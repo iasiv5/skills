@@ -1,0 +1,28 @@
+# Claude Code 配置目录
+.claude/
+
+# Python 编译文件
+*.pyc
+__pycache__/
+*.pyc
+*/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境
+venv/
+env/
+ENV/
+
+# IDE 配置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 分析输出文件
+daily_analysis_*.xlsx
+*.xlsx

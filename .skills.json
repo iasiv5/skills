@@ -1,0 +1,12 @@
+{
+  "skills": {
+    "docx":               { "repo": "anthropics/skills",                    "subdir": "skills/docx" },
+    "pdf":                { "repo": "anthropics/skills",                    "subdir": "skills/pdf" },
+    "pptx":               { "repo": "anthropics/skills",                    "subdir": "skills/pptx" },
+    "xlsx":               { "repo": "anthropics/skills",                    "subdir": "skills/xlsx" },
+    "skill-creator":      { "repo": "anthropics/skills",                    "subdir": "skills/skill-creator" },
+    "Claude-to-IM-skill": { "repo": "op7418/Claude-to-IM-skill" },
+    "slides":             { "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "subdir": ".claude/skills/slides" }
+  },
+  "skip": ["wechat-article-writer", "ui-ux-pro-max", "a-share-analyst", "code-review"]
+}
