@@ -32,6 +32,9 @@ get_clone() {
 }
 
 # 从 .skills.json 读取条目列表（排除 skip，支持按名称过滤）
+# 输出格式: name TAB repo TAB mode TAB payload
+#   mode=subdir: payload=子目录路径（或空）
+#   mode=files:  payload=JSON 数组字符串
 read_skills() {
   python3 -c "
 import json, os, sys
@@ -43,14 +46,18 @@ for name, cfg in data['skills'].items():
         continue
     if f and name not in f:
         continue
-    print(name + '\t' + cfg['repo'] + '\t' + cfg.get('subdir', ''))
+    if 'files' in cfg:
+        import json as j
+        print(name + '\\t' + cfg['repo'] + '\\tfiles\\t' + j.dumps(cfg['files']))
+    else:
+        print(name + '\\t' + cfg['repo'] + '\\tsubdir\\t' + cfg.get('subdir', ''))
 " "$FILTER"
 }
 
 [[ -n "$FILTER" ]] && log "更新 skills: $FILTER" || log "更新所有 skills"
 echo
 
-while IFS=$'\t' read -r name repo subdir; do
+while IFS=$'\t' read -r name repo mode payload; do
   printf '  %s\n' "$name"
   dest="$SKILLS_DIR/$name"
 
@@ -65,21 +72,48 @@ while IFS=$'\t' read -r name repo subdir; do
     cp -r "$dest" "$BACKUP_DIR/$name"
     rm -rf "$dest"
   fi
+  mkdir -p "$dest"
 
-  if [[ -n "$subdir" ]]; then
-    src="$repo_dir/$subdir"
+  if [[ "$mode" == "files" ]]; then
+    # 多源拼装模式：按文件列表逐一复制
+    err=0
+    while IFS=$'\t' read -r src_path dest_name; do
+      full_src="$repo_dir/$src_path"
+      full_dest="$dest/$dest_name"
+      if [[ -f "$full_src" ]]; then
+        cp "$full_src" "$full_dest" || { err=1; break; }
+      elif [[ -d "$full_src" ]]; then
+        cp -r "$full_src" "$full_dest" || { err=1; break; }
+      else
+        printf '\n'; fail "路径不存在: $src_path"; err=1; break
+      fi
+    done < <(python3 -c "
+import json, sys
+for item in json.loads(sys.argv[1]):
+    print(item['src'] + '\\t' + item['dest'])
+" "$payload")
+    if [[ $err -eq 0 ]]; then ok; else
+      fail "复制失败，恢复备份"
+      rm -rf "$dest"
+      [[ -d "$BACKUP_DIR/$name" ]] && cp -r "$BACKUP_DIR/$name" "$dest"
+    fi
+  elif [[ -n "$payload" ]]; then
+    src="$repo_dir/$payload"
     if [[ ! -d "$src" ]]; then
-      fail "子目录不存在: $subdir，恢复备份"
+      fail "子目录不存在: $payload，恢复备份"
+      rm -rf "$dest"
       [[ -d "$BACKUP_DIR/$name" ]] && cp -r "$BACKUP_DIR/$name" "$dest"
       continue
     fi
-    if cp -r "$src" "$dest"; then ok; else
+    if cp -r "$src/".  "$dest/" 2>/dev/null || { rm -rf "$dest" && cp -r "$src" "$dest"; }; then ok; else
       fail "复制失败，恢复备份"
+      rm -rf "$dest"
       [[ -d "$BACKUP_DIR/$name" ]] && cp -r "$BACKUP_DIR/$name" "$dest"
     fi
   else
-    if cp -r "$repo_dir" "$dest" && rm -rf "$dest/.git"; then ok; else
+    if cp -r "$repo_dir/". "$dest/" && rm -rf "$dest/.git"; then ok; else
       fail "复制失败，恢复备份"
+      rm -rf "$dest"
       [[ -d "$BACKUP_DIR/$name" ]] && cp -r "$BACKUP_DIR/$name" "$dest"
     fi
   fi

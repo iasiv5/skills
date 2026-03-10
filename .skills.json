@@ -6,7 +6,12 @@
     "xlsx":               { "repo": "anthropics/skills",                    "subdir": "skills/xlsx" },
     "skill-creator":      { "repo": "anthropics/skills",                    "subdir": "skills/skill-creator" },
     "Claude-to-IM-skill": { "repo": "op7418/Claude-to-IM-skill" },
-    "slides":             { "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "subdir": ".claude/skills/slides" }
+    "slides":             { "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "subdir": ".claude/skills/slides" },
+    "ui-ux-pro-max":      { "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "files": [
+      { "src": ".claude/skills/ui-ux-pro-max/SKILL.md", "dest": "SKILL.md" },
+      { "src": "src/ui-ux-pro-max/data",                "dest": "data" },
+      { "src": "src/ui-ux-pro-max/scripts",             "dest": "scripts" }
+    ]}
   },
-  "skip": ["wechat-article-writer", "ui-ux-pro-max", "a-share-analyst", "code-review"]
+  "skip": ["wechat-article-writer", "a-share-analyst", "code-review"]
 }
