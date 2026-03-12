@@ -7,6 +7,7 @@
     "skill-creator":      { "repo": "anthropics/skills",                    "subdir": "skills/skill-creator" },
     "remotion":           { "repo": "remotion-dev/skills",                  "subdir": "skills/remotion" },
     "Claude-to-IM-skill": { "repo": "op7418/Claude-to-IM-skill" },
+    "pua-debugging":      { "repo": "tanweai/pua",                          "subdir": "skills/pua-debugging" },
     "slides":             { "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "subdir": ".claude/skills/slides" },
     "ui-ux-pro-max":      { "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "files": [
       { "src": ".claude/skills/ui-ux-pro-max/SKILL.md", "dest": "SKILL.md" },
