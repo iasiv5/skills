@@ -5,7 +5,6 @@
 *.pyc
 __pycache__/
 *.pyc
-*/
 
 # Python 缓存
 __pycache__/
@@ -26,3 +25,5 @@ ENV/
 # 分析输出文件
 daily_analysis_*.xlsx
 *.xlsx
+*.json
+*.md
