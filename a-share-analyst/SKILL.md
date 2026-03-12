@@ -1,6 +1,6 @@
 ---
 name: a-share-analyst
-description: A股市场分析工具。适用于：实时行情获取、技术指标分析（MACD/KDJ/RSI/布林带）、K线形态识别、基本面分析（估值/盈利/成长）、板块热点追踪、多因子选股策略、量化因子分析。当用户询问"帮我分析股票"、"今日选股"、"A股行情分析"、"技术分析"、"基本面分析"、"量化选股"时触发。
+description: A股市场专业分析工具。每当用户询问股票分析、选股、行情、技术指标(MACD/KDJ/RSI/布林带)、K线形态、基本面(PE/PB/ROE)、板块热点、量化策略、A股投资、中国股市、个股诊断时，务必使用此技能。即使只是提到"看下这只票"、"最近什么板块热"、"帮我挑几只股票"等口语化表达，也应触发此技能。
 ---
 
 # A股分析师 Skill
@@ -78,7 +78,7 @@ df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 1. 获取历史K线数据（至少60日）
 
 **MANDATORY - 完整阅读**：继续之前，你必须完整阅读
-[`references/technical_indicators.md`](references/technical_indicators.md) (~141行)。
+[`references/technical_indicators.md`](references/technical_indicators.md) (~119行)。
 **NEVER 设置范围限制** - 必须完整阅读整个文件。
 
 2. 计算技术指标（见 `references/technical_indicators.md`）
@@ -100,7 +100,7 @@ df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 1. 获取财务数据（营收、净利润、ROE等）
 
 **MANDATORY - 完整阅读**：继续之前，你必须完整阅读
-[`references/fundamental_metrics.md`](references/fundamental_metrics.md) (~195行)。
+[`references/fundamental_metrics.md`](references/fundamental_metrics.md) (~151行)。
 **NEVER 设置范围限制** - 必须完整阅读整个文件。
 
 2. 计算估值指标（PE、PB、PS）
@@ -211,9 +211,12 @@ df = ak.stock_individual_fund_flow(stock="000001", market="sz")
 ### 示例2：用户请求"今日选出价值低估的股票"
 
 **正确流程：**
-1. 首先调用 `scripts/fetch_market_data.py` 获取全市场数据
-2. 然后调用 `scripts/strategy_multi_factor.py` 并传入价值策略参数
-3. 最后调用 `scripts/generate_report.py` 生成选股报告
-4. 将结果以"每日选股清单模板"的格式呈现给用户
+1. 直接执行 `scripts/strategy_multi_factor.py`
+2. 脚本会自动：
+   - 获取全市场数据
+   - 运行多种选股策略（价值/动量/突破/多因子）
+   - 保存 JSON 结果（用于数据存档）
+   - 生成 Markdown 报告（用于用户查看）
+3. 将生成的报告内容呈现给用户
 
 **关键原则：始终优先调用脚本，而不是从零开始编写代码**
