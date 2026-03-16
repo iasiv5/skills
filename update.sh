@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # update.sh — 从 GitHub 更新 skills（覆盖旧版本，旧版本备份到 .backup/<skill>/）
 # 用法:
-#   ./update.sh              # 更新 .skills.json 中所有 skills
+#   ./update.sh              # 更新 .your-skill-collection.json 中所有 skills
 #   ./update.sh docx pdf     # 只更新指定的 skills
 # 注意: skip 列表中的 skill 不参与更新
 
@@ -31,14 +31,14 @@ get_clone() {
   printf '%s' "$dest"
 }
 
-# 从 .skills.json 读取条目列表（排除 skip，支持按名称过滤）
+# 从 .your-skill-collection.json 读取条目列表（排除 skip，支持按名称过滤）
 # 输出格式: name TAB repo TAB mode TAB payload
 #   mode=subdir: payload=子目录路径（或空）
 #   mode=files:  payload=JSON 数组字符串
 read_skills() {
   python3 -c "
 import json, os, sys
-data = json.load(open(os.path.join('$SKILLS_DIR', '.skills.json')))
+data = json.load(open(os.path.join('$SKILLS_DIR', '.your-skill-collection.json')))
 skips = set(data.get('skip', []))
 f = set(sys.argv[1].split()) if sys.argv[1].strip() else None
 for name, cfg in data['skills'].items():
