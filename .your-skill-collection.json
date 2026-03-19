@@ -7,6 +7,7 @@
     "skill-creator":            { "repo": "anthropics/skills",                    "subdir": "skills/skill-creator" },
     "remotion-best-practices":  { "repo": "remotion-dev/skills",                  "subdir": "skills/remotion" },
     "claude-to-im":             { "repo": "op7418/Claude-to-IM-skill" },
+    "web-access":               { "repo": "eze-is/web-access" },
     "pua":                      { "repo": "tanweai/pua",                          "subdir": "skills/pua" },
     "grill-me":                 { "repo": "mattpocock/skills",                    "subdir": "grill-me" },
     "slides":                   { "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "subdir": ".claude/skills/slides" },
