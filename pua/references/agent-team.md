@@ -81,7 +81,7 @@ P8 收到任务
 开工前先用 Read 工具读取 references/p7-protocol.md（进入 P7 方案驱动模式）。
 ```
 
-**重要**：subagent 不能用 `/puav2` 斜杠命令（skill 只在主会话加载）。必须通过 Read 工具读取 SKILL.md 或对应 protocol 文件。
+**重要**：subagent 不能用 `/pua` 斜杠命令（skill 只在主会话加载）。必须通过 Read 工具读取 SKILL.md 或对应 protocol 文件。
 
 **工具选择标准**：
 
