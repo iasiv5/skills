@@ -1,5 +1,6 @@
 {
   "skills": {
+    "excalidraw-diagram":       { "repo": "coleam00/excalidraw-diagram-skill" },
     "docx":                     { "repo": "anthropics/skills",                    "subdir": "skills/docx" },
     "pdf":                      { "repo": "anthropics/skills",                    "subdir": "skills/pdf" },
     "pptx":                     { "repo": "anthropics/skills",                    "subdir": "skills/pptx" },
