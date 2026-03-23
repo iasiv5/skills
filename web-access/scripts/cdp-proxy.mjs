@@ -11,13 +11,10 @@ import os from 'node:os';
 import net from 'node:net';
 
 const PORT = parseInt(process.env.CDP_PROXY_PORT || '3456');
-const IDLE_TIMEOUT_MS = 20 * 60 * 1000; // 20 分钟无请求自动退出
-
 let ws = null;
 let cmdId = 0;
 const pending = new Map(); // id -> {resolve, timer}
 const sessions = new Map(); // targetId -> sessionId
-let idleTimer = null;
 
 // --- WebSocket 兼容层 ---
 let WS;
@@ -238,15 +235,6 @@ async function waitForLoad(sessionId, timeoutMs = 15000) {
   });
 }
 
-// --- 空闲超时 ---
-function resetIdleTimer() {
-  if (idleTimer) clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => {
-    console.log('[CDP Proxy] 空闲超时，自动退出');
-    process.exit(0);
-  }, IDLE_TIMEOUT_MS);
-}
-
 // --- 读取 POST body ---
 async function readBody(req) {
   let body = '';
@@ -256,8 +244,6 @@ async function readBody(req) {
 
 // --- HTTP API ---
 const server = http.createServer(async (req, res) => {
-  resetIdleTimer();
-
   const parsed = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = parsed.pathname;
   const q = Object.fromEntries(parsed.searchParams);
@@ -557,7 +543,6 @@ async function main() {
 
   server.listen(PORT, '127.0.0.1', () => {
     console.log(`[CDP Proxy] 运行在 http://localhost:${PORT}`);
-    resetIdleTimer();
     // 启动时尝试连接 Chrome（非阻塞）
     connect().catch(e => console.error('[CDP Proxy] 初始连接失败:', e.message, '（将在首次请求时重试）'));
   });
