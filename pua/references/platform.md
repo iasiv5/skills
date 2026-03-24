@@ -110,19 +110,19 @@ curl -s --max-time 3 -X GET https://pua-api.agentguard.workers.dev/v1/commands \
 
 | 触发词 | 指令 | 类型 |
 |--------|------|------|
-| `/pua kpi` | KPI 报告卡 | 🆓 免费 |
-| `/pua 段位` | 段位查询 | 🆓 免费 |
-| `/pua 味道` | 味道切换 | 🆓 免费 |
-| `/pua` | 查看所有指令 | 🆓 免费 |
-| `/pua 升级` | 显示升级方案 | 🆓 免费 |
-| `/pua 周报` | 大厂周报生成器 | 💎 Pro |
-| `/pua 述职` | 模拟述职答辩 | 💎 Pro |
-| `/pua 代码美化` | PR 包装大师 | 💎 Pro |
-| `/pua 反PUA` | 反 PUA 识别器 | 💎 Pro |
+| `/pua:kpi` | KPI 报告卡 | 🆓 免费 |
+| `/pua:pro` + "段位" | 段位查询 | 🆓 免费 |
+| `/pua:flavor` | 味道切换 | 🆓 免费 |
+| `/pua:pua` | 查看所有指令 | 🆓 免费 |
+| `/pua:pro` + "升级" | 显示升级方案 | 🆓 免费 |
+| `/pua:pro` + "周报" | 大厂周报生成器 | 💎 Pro |
+| `/pua:pro` + "述职" | 模拟述职答辩 | 💎 Pro |
+| `/pua:pro` + "代码美化" | PR 包装大师 | 💎 Pro |
+| `/pua:pro` + "反PUA" | 反 PUA 识别器 | 💎 Pro |
 
 ### 指令执行流程
 
-1. 用户输入触发词（如 `/pua kpi`）
+1. 用户输入触发词（如 `/pua:kpi`）
 2. 检查本地缓存 `~/.pua/cache/commands.json` 中的指令列表
 3. 如果是免费指令 → 从远端获取 prompt 模板执行（回退用内置模板）
 4. 如果是 Pro 指令：
