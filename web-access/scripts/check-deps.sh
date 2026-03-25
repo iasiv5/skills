@@ -15,18 +15,73 @@ else
   exit 1
 fi
 
-# Chrome 调试端口（9222）— TCP 探测，不建立真实连接（跨平台）
-if ! node -e "
+# Chrome 调试端口 — 先读 DevToolsActivePort，再回退常见端口
+if ! CHROME_PORT=$(node -e "
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 const net = require('net');
-const s = net.createConnection(9222, '127.0.0.1');
-s.on('connect', () => { process.exit(0); });
-s.on('error', () => process.exit(1));
-setTimeout(() => process.exit(1), 2000);
-" 2>/dev/null; then
+
+function checkPort(port) {
+  return new Promise((resolve) => {
+    const socket = net.createConnection(port, '127.0.0.1');
+    const timer = setTimeout(() => { socket.destroy(); resolve(false); }, 2000);
+    socket.once('connect', () => { clearTimeout(timer); socket.destroy(); resolve(true); });
+    socket.once('error', () => { clearTimeout(timer); resolve(false); });
+  });
+}
+
+function activePortFiles() {
+  const home = os.homedir();
+  const localAppData = process.env.LOCALAPPDATA || '';
+  switch (process.platform) {
+    case 'darwin':
+      return [
+        path.join(home, 'Library/Application Support/Google/Chrome/DevToolsActivePort'),
+        path.join(home, 'Library/Application Support/Google/Chrome Canary/DevToolsActivePort'),
+        path.join(home, 'Library/Application Support/Chromium/DevToolsActivePort'),
+      ];
+    case 'linux':
+      return [
+        path.join(home, '.config/google-chrome/DevToolsActivePort'),
+        path.join(home, '.config/chromium/DevToolsActivePort'),
+      ];
+    case 'win32':
+      return [
+        path.join(localAppData, 'Google/Chrome/User Data/DevToolsActivePort'),
+        path.join(localAppData, 'Chromium/User Data/DevToolsActivePort'),
+      ];
+    default:
+      return [];
+  }
+}
+
+(async () => {
+  for (const filePath of activePortFiles()) {
+    try {
+      const lines = fs.readFileSync(filePath, 'utf8').trim().split(/\\r?\\n/).filter(Boolean);
+      const port = parseInt(lines[0], 10);
+      if (port > 0 && port < 65536 && await checkPort(port)) {
+        console.log(port);
+        process.exit(0);
+      }
+    } catch (_) {}
+  }
+
+  for (const port of [9222, 9229, 9333]) {
+    if (await checkPort(port)) {
+      console.log(port);
+      process.exit(0);
+    }
+  }
+
+  process.exit(1);
+})();
+" 2>/dev/null); then
   echo "chrome: not connected — 请打开 chrome://inspect/#remote-debugging 并勾选 Allow remote debugging"
   exit 1
 fi
-echo "chrome: ok (port 9222)"
+echo "chrome: ok (port $CHROME_PORT)"
 
 # CDP Proxy — 已运行则跳过，未运行则启动并等待连接
 HEALTH=$(curl -s --connect-timeout 2 "http://127.0.0.1:3456/health" 2>/dev/null)
@@ -35,7 +90,8 @@ if echo "$HEALTH" | grep -q '"connected":true'; then
 else
   if ! echo "$HEALTH" | grep -q '"ok"'; then
     echo "proxy: starting..."
-    node ~/.claude/skills/web-access/scripts/cdp-proxy.mjs > /tmp/cdp-proxy.log 2>&1 &
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    node "$SCRIPT_DIR/cdp-proxy.mjs" > /tmp/cdp-proxy.log 2>&1 &
   fi
   for i in $(seq 1 15); do
     sleep 1
