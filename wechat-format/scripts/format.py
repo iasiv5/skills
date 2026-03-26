@@ -1671,11 +1671,17 @@ def main():
             recommended=args.recommend
         )
 
+        gallery_path = gallery_path.resolve()
+        gallery_url = gallery_path.as_uri()
         print(f"\n画廊页面: {gallery_path}")
+        print(f"手动打开: {gallery_url}")
 
         if AUTO_OPEN and not args.no_open:
-            webbrowser.open(f"file://{gallery_path}")
-            print("已在浏览器中打开画廊")
+            opened = webbrowser.open(gallery_url)
+            if opened:
+                print("已尝试在浏览器中打开画廊")
+            else:
+                print("未能自动打开浏览器，请手动打开上面的文件路径或 file URL")
 
         print("\n完成! 当前浏览器会记住你上次选过的主题。")
         print("点击「复制内容到剪贴板 去公众号粘贴」即可复制 HTML。")
@@ -1700,11 +1706,17 @@ def main():
     # 保存预览 HTML
     preview_path = output_dir / "preview.html"
     generate_preview(html, footnote_html, theme, title, word_count, preview_path)
+    preview_path = preview_path.resolve()
+    preview_url = preview_path.as_uri()
     print(f"\n排版成品: {preview_path}")
+    print(f"手动打开: {preview_url}")
 
     if AUTO_OPEN and not args.no_open:
-        webbrowser.open(f"file://{preview_path}")
-        print("已在浏览器中打开预览")
+        opened = webbrowser.open(preview_url)
+        if opened:
+            print("已尝试在浏览器中打开预览")
+        else:
+            print("未能自动打开浏览器，请手动打开上面的文件路径或 file URL")
 
     print("\n完成! 在浏览器中点击「复制到微信」按钮，然后粘贴到公众号后台即可。")
 

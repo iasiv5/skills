@@ -20,8 +20,10 @@
 cd ~/.claude/skills/
 git clone YOUR_REPO_URL wechat-format
 cp wechat-format/config.example.json wechat-format/config.json
-pip3 install markdown
+python3 -m pip install -r wechat-format/requirements.txt
 ```
+
+`scripts/format.py` 依赖第三方 Python 包 `markdown`。新环境首次运行前，先安装上面的依赖。
 
 ## 配置
 
@@ -147,7 +149,7 @@ python3 scripts/format.py --input article.md --theme newspaper
 ## 依赖
 
 - Python 3
-- `markdown` 库
+- `markdown` 库（已写入 `requirements.txt`）
 
 ## License
 
