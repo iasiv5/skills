@@ -1,0 +1,17 @@
+{
+  "skill_name": "wechat-format",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "排版这篇文章 /tmp/articles/ai-agent-governance.md。先给我推荐 3 个合适的主题，然后打开主题画廊让我选。",
+      "expected_output": "读取文章，保留原文结构，给出 2-3 个主题建议，并使用 format.py 的 --gallery 与 --recommend 运行真实文章预览。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "我这里是一份很乱的采访笔记，帮我整理成适合公众号的 Markdown，再用 terracotta 排版。注意别改我原话的意思。",
+      "expected_output": "判断输入属于原始笔记，先生成最小结构化 working copy；只有在明确有帮助时补 dialogue 或 callout，然后用 terracotta 运行 format.py。",
+      "files": []
+    }
+  ]
+}

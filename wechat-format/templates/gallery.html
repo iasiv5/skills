@@ -310,7 +310,7 @@ function switchTheme(themeId) {
             btns[i].classList.remove('active');
         }
     }
-    // Update selected theme + persist to /tmp via fetch (for publish.py)
+    // Update selected theme and persist locally for the user's next Claude turn
     selectedTheme = themeId;
     try {
         // Write to localStorage as reliable persistence
@@ -319,7 +319,7 @@ function switchTheme(themeId) {
     // Reset confirm button
     var confirmBtn = document.getElementById('confirmBtn');
     if (confirmBtn) {
-        confirmBtn.textContent = '✓ 确认 — 回到 Claude 回复主题名 推送到公众号';
+        confirmBtn.textContent = '✓ 确认 — 回到 Claude 回复主题名继续排版';
         confirmBtn.classList.remove('copied');
     }
     // Scroll preview to top

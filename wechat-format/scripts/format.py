@@ -6,13 +6,12 @@
 所以所有样式必须用 style="..." 内联写在每个标签上。
 
 用法:
-    python3 format.py --input article.md --theme elegant [--vault-root /path] [--output /path]
+    python3 format.py --input article.md --theme elegant [--output /path]
     python3 format.py --input article.md --format plain  # 纯 HTML 输出（无微信兼容处理）
 """
 
 import argparse
 import json
-import os
 import re
 import shutil
 import sys
@@ -104,7 +103,6 @@ with open(SKILL_DIR / "config.json", encoding="utf-8") as f:
     CONFIG = json.load(f)
 
 OUTPUT_DIR = Path(CONFIG["output_dir"])
-VAULT_ROOT = Path(CONFIG["vault_root"])
 DEFAULT_THEME = CONFIG["settings"]["default_theme"]
 AUTO_OPEN = CONFIG["settings"]["auto_open_browser"]
 
@@ -280,45 +278,6 @@ def fix_cjk_bold_punctuation(text: str) -> str:
     return text
 
 
-def convert_wikilinks(text: str, vault_root: Path, output_dir: Path) -> str:
-    """把 Obsidian ![[image.jpg]] 转为 <img> 标签，复制图片到输出目录"""
-    images_dir = output_dir / "images"
-    # 搜索路径：vault 目录（如需额外图片目录，在 config.json 的 image_search_paths 中配置）
-    search_roots = [vault_root]
-    # 支持自定义图片搜索目录
-    config_path = SKILL_DIR / "config.json"
-    if config_path.exists():
-        import json as _json
-        try:
-            _cfg = _json.load(open(config_path, encoding="utf-8"))
-            for p in _cfg.get("image_search_paths", []):
-                search_roots.append(Path(p).expanduser())
-        except Exception:
-            pass
-
-    def replace_img(match):
-        filename = match.group(1).strip()
-        # 处理带尺寸的 wikilink: ![[image.jpg|300]]
-        if "|" in filename:
-            filename = filename.split("|")[0].strip()
-        # 在多个目录中搜索图片（followlinks=True 跟随符号链接）
-        for search_root in search_roots:
-            if not search_root.exists():
-                continue
-            for root, dirs, files in os.walk(search_root, followlinks=True):
-                if filename in files:
-                    img_path = Path(root) / filename
-                    images_dir.mkdir(parents=True, exist_ok=True)
-                    dest = images_dir / filename
-                    if not dest.exists():
-                        shutil.copy2(img_path, dest)
-                    # 返回占位标记，后面注入样式时处理
-                    return f'<section data-role="img-wrapper"><img src="images/{filename}" alt="{filename}"></section>'
-        return f'<span style="color:#999;">[图片: {filename}]</span>'
-
-    return re.sub(r"!\[\[([^\]]+)\]\]", replace_img, text)
-
-
 def copy_markdown_images(text: str, input_dir: Path, output_dir: Path) -> str:
     """处理标准 Markdown 图片 ![alt](path)，把本地相对路径图片复制到输出目录"""
     images_dir = output_dir / "images"
@@ -386,7 +345,7 @@ def extract_links_as_footnotes(html: str) -> tuple[str, str]:
 
 
 def process_callouts(text: str) -> str:
-    """处理 Obsidian callout 语法: > [!callout] 内容"""
+    """处理 callout 语法: > [!callout] 内容"""
     lines = text.split("\n")
     result = []
     i = 0
@@ -1545,7 +1504,7 @@ def generate_gallery(rendered_map: dict, theme_map: dict,
 
 
 def format_for_output(content: str, input_path: Path, theme: dict,
-                      output_dir: Path, vault_root: Path,
+                      output_dir: Path,
                       output_format: str = "wechat") -> dict:
     """统一格式化入口，支持多种输出格式
 
@@ -1570,7 +1529,6 @@ def format_for_output(content: str, input_path: Path, theme: dict,
     content = re.sub(r'~~(.+?)~~', r'<del>\1</del>', content)
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    content = convert_wikilinks(content, vault_root, output_dir)
     content = copy_markdown_images(content, input_path.parent, output_dir)
 
     html = md_to_html(content)
@@ -1617,7 +1575,6 @@ def main():
     parser = argparse.ArgumentParser(description="微信公众号文章排版工具")
     parser.add_argument("--input", "-i", required=True, help="输入 Markdown 文件路径")
     parser.add_argument("--theme", "-t", default=DEFAULT_THEME, help=f"主题名称（默认: {DEFAULT_THEME}）")
-    parser.add_argument("--vault-root", default=str(VAULT_ROOT), help="Obsidian Vault 根目录")
     parser.add_argument("--output", "-o", default=str(OUTPUT_DIR), help="输出目录")
     parser.add_argument("--no-open", action="store_true", help="不自动打开浏览器")
     parser.add_argument("--gallery", action="store_true", help="主题画廊模式：预览多个主题供选择")
@@ -1627,7 +1584,6 @@ def main():
     args = parser.parse_args()
 
     input_path = Path(args.input)
-    vault_root = Path(args.vault_root)
     output_base = Path(args.output)
     theme_name = args.theme
 
@@ -1655,7 +1611,7 @@ def main():
 
     # 非微信格式：简单输出
     if args.format != "wechat":
-        result = format_for_output(content, input_path, theme, output_dir, vault_root, args.format)
+        result = format_for_output(content, input_path, theme, output_dir, args.format)
         out_path = output_dir / f"article.{args.format}.html"
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_html = result["html"]
@@ -1673,7 +1629,6 @@ def main():
     content = re.sub(r'~~(.+?)~~', r'<del>\1</del>', content)
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    content = convert_wikilinks(content, vault_root, output_dir)
     content = copy_markdown_images(content, input_path.parent, output_dir)
 
     html = md_to_html(content)
