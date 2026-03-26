@@ -104,7 +104,7 @@ python3 {skill_dir}/scripts/format.py \
   --recommend newspaper magazine ink
 ```
 
-重点：画廊模式会用用户的真实文章并行渲染多个主题。选中主题后，脚本会把主题 ID 写到 `/tmp/wechat-format/selected-theme.txt`。
+重点：画廊模式会用用户的真实文章并行渲染多个主题。在同一浏览器里，页面会记住你上次选过的主题。
 
 ### 6. 用户已选主题时走单主题模式
 

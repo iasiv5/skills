@@ -1493,10 +1493,6 @@ def generate_gallery(rendered_map: dict, theme_map: dict,
     )
 
     # 写入选中主题到临时文件（默认第一个）
-    tmp_dir = Path("/tmp/wechat-format")
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    (tmp_dir / "selected-theme.txt").write_text(default_theme, encoding="utf-8")
-
     output_path = output_dir / "gallery.html"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path.write_text(gallery_html, encoding="utf-8")
@@ -1674,14 +1670,15 @@ def main():
             title, word_count, output_dir,
             recommended=args.recommend
         )
+
         print(f"\n画廊页面: {gallery_path}")
 
         if AUTO_OPEN and not args.no_open:
             webbrowser.open(f"file://{gallery_path}")
             print("已在浏览器中打开画廊")
 
-        print(f"\n完成! 选中主题后点「用这个风格排版」即可复制到剪贴板。")
-        print(f"选中的主题 ID 会写入 /tmp/wechat-format/selected-theme.txt")
+        print("\n完成! 当前浏览器会记住你上次选过的主题。")
+        print("点击「复制内容到剪贴板 去公众号粘贴」即可复制 HTML。")
         return
 
     # ── 单主题模式 ──

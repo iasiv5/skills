@@ -54,7 +54,7 @@ pip3 install markdown
 python3 scripts/format.py --input article.md --gallery --recommend newspaper magazine ink
 ```
 
-在浏览器中用真实文章预览 20 个核心主题，选好后回到 Claude 说主题名。
+在浏览器中用真实文章预览 20 个核心主题；同一浏览器会记住你上次选过的主题，复制后直接去公众号后台粘贴即可。
 
 ### 指定主题排版
 

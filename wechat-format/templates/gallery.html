@@ -47,6 +47,7 @@ body {
     font-size: 13px;
     color: #07c160;
     font-weight: 500;
+    text-align: right;
 }
 
 /* ── Main Container ── */
@@ -224,7 +225,11 @@ body {
 /* ── Responsive ── */
 @media (max-width: 600px) {
     .toolbar { padding: 10px 14px; }
-    .toolbar-hint { display: none; }
+    .toolbar-hint {
+        font-size: 12px;
+        max-width: 180px;
+        line-height: 1.4;
+    }
     .main-container {
         margin-top: 68px;
         padding: 0 12px;
@@ -255,7 +260,7 @@ body {
         <span class="toolbar-title">{{TITLE}}</span>
         <span class="toolbar-meta">{{WORD_COUNT}} 字</span>
     </div>
-    <span class="toolbar-hint">选一个你喜欢的风格</span>
+    <span class="toolbar-hint" id="toolbarHint">切换主题会自动保存，复制后去公众号粘贴</span>
 </div>
 
 <!-- ── Main Content ── -->
@@ -282,13 +287,29 @@ body {
     </div>
 
     <!-- Action Buttons -->
-    <button class="action-btn" id="confirmBtn" onclick="confirmAndCopy()">✓ 确认 — 回到 Claude 回复主题名 推送到公众号</button>
-    <button class="action-btn" id="copyBtn" onclick="applyTheme()" style="background:#86868b;margin-top:8px;">复制内容到剪贴板 去公众号粘贴</button>
+    <button class="action-btn" id="copyBtn" onclick="applyTheme()">复制内容到剪贴板 去公众号粘贴</button>
 
 </div>
 
 <script>
 var selectedTheme = '{{DEFAULT_THEME}}';
+
+function setToolbarHint(message, isError) {
+    var hint = document.getElementById('toolbarHint');
+    if (!hint) return;
+    hint.textContent = message;
+    hint.style.color = isError ? '#d93025' : '#07c160';
+}
+
+function saveSelectedTheme(themeId) {
+    try {
+        localStorage.setItem('wechat-format-theme', themeId);
+    } catch (e) {
+        setToolbarHint('当前主题已切换，但浏览器未能记住这次选择', true);
+        return;
+    }
+    setToolbarHint('已在当前浏览器记住这个主题，复制后去公众号粘贴', false);
+}
 
 function switchTheme(themeId) {
     // Hide all previews
@@ -312,16 +333,7 @@ function switchTheme(themeId) {
     }
     // Update selected theme and persist locally for the user's next Claude turn
     selectedTheme = themeId;
-    try {
-        // Write to localStorage as reliable persistence
-        localStorage.setItem('wechat-format-theme', themeId);
-    } catch(e) {}
-    // Reset confirm button
-    var confirmBtn = document.getElementById('confirmBtn');
-    if (confirmBtn) {
-        confirmBtn.textContent = '✓ 确认 — 回到 Claude 回复主题名继续排版';
-        confirmBtn.classList.remove('copied');
-    }
+    saveSelectedTheme(themeId);
     // Scroll preview to top
     document.getElementById('previewScroll').scrollTop = 0;
 }
@@ -358,17 +370,6 @@ function copyCurrentPreview() {
     }
 
     showCopied();
-}
-
-function confirmAndCopy() {
-    var themeName = '';
-    var activeBtn = document.querySelector('.theme-btn.active');
-    if (activeBtn) {
-        themeName = activeBtn.textContent.replace('推荐', '').trim();
-    }
-    var btn = document.getElementById('confirmBtn');
-    btn.textContent = '✓ 已确认「' + themeName + '」— 回到 Claude 回复「' + themeName + '」推送到公众号';
-    btn.classList.add('copied');
 }
 
 function applyTheme() {
@@ -426,6 +427,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var saved = localStorage.getItem('wechat-format-fontsize');
     if (saved && saved !== '15') {
         switchFontSize(parseInt(saved));
+    }
+
+    var savedTheme = null;
+    try {
+        savedTheme = localStorage.getItem('wechat-format-theme');
+    } catch (e) {}
+
+    if (savedTheme && document.querySelector('.theme-btn[data-theme="' + savedTheme + '"]')) {
+        switchTheme(savedTheme);
+    } else {
+        setToolbarHint('会在当前浏览器记住你上次选过的主题，复制后去公众号粘贴', false);
     }
 });
 
