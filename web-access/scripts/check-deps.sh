@@ -83,20 +83,20 @@ function activePortFiles() {
 fi
 echo "chrome: ok (port $CHROME_PORT)"
 
-# CDP Proxy — 已运行则跳过，未运行则启动并等待连接
-HEALTH=$(curl -s --connect-timeout 2 "http://127.0.0.1:3456/health" 2>/dev/null)
-if echo "$HEALTH" | grep -q '"connected":true'; then
+# CDP Proxy — 用 /targets 统一判断：返回 JSON 数组即 ready，失败则启动并重试
+TARGETS=$(curl -s --connect-timeout 3 "http://127.0.0.1:3456/targets" 2>/dev/null)
+if echo "$TARGETS" | grep -q '^\['; then
   echo "proxy: ready"
 else
-  if ! echo "$HEALTH" | grep -q '"ok"'; then
-    echo "proxy: starting..."
-    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-    node "$SCRIPT_DIR/cdp-proxy.mjs" > /tmp/cdp-proxy.log 2>&1 &
-  fi
+  # /targets 失败：proxy 未运行或未连接 Chrome，尝试启动（已运行会自动跳过）
+  echo "proxy: connecting..."
+  SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+  node "$SCRIPT_DIR/cdp-proxy.mjs" > /tmp/cdp-proxy.log 2>&1 &
+  sleep 2  # 等 proxy 进程就绪
   for i in $(seq 1 15); do
-    sleep 1
-    curl -s http://localhost:3456/health | grep -q '"connected":true' && echo "proxy: ready" && exit 0
-    [ $i -eq 3 ] && echo "⚠️  Chrome 可能有授权弹窗，请点击「允许」后等待连接..."
+    # connect-timeout 5s：给 Chrome 授权弹窗留够响应时间，避免超时后重复触发连接
+    curl -s --connect-timeout 5 --max-time 8 http://localhost:3456/targets 2>/dev/null | grep -q '^\[' && echo "proxy: ready" && exit 0
+    [ $i -eq 1 ] && echo "⚠️  Chrome 可能有授权弹窗，请点击「允许」后等待连接..."
   done
   echo "❌ 连接超时，请检查 Chrome 调试设置"
   exit 1

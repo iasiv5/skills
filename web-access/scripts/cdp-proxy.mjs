@@ -110,8 +110,10 @@ function getWebSocketUrl(port, wsPath) {
 let chromePort = null;
 let chromeWsPath = null;
 
+let connectingPromise = null;
 async function connect() {
   if (ws && (ws.readyState === WS.OPEN || ws.readyState === 1)) return;
+  if (connectingPromise) return connectingPromise;  // 复用进行中的连接
 
   if (!chromePort) {
     const discovered = await discoverChromePort();
@@ -130,16 +132,18 @@ async function connect() {
   const wsUrl = getWebSocketUrl(chromePort, chromeWsPath);
   if (!wsUrl) throw new Error('无法获取 Chrome WebSocket URL');
 
-  return new Promise((resolve, reject) => {
+  return connectingPromise = new Promise((resolve, reject) => {
     ws = new WS(wsUrl);
 
     const onOpen = () => {
       cleanup();
+      connectingPromise = null;
       console.log(`[CDP Proxy] 已连接 Chrome (端口 ${chromePort})`);
       resolve();
     };
     const onError = (e) => {
       cleanup();
+      connectingPromise = null;
       const msg = e.message || e.error?.message || '连接失败';
       console.error('[CDP Proxy] 连接错误:', msg);
       reject(new Error(msg));
