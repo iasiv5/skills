@@ -1,4 +1,9 @@
 .backup/
 __pycache__/
 *.pyc
-lark-*/
+
+# Ignore all items with lark- prefix (including symlinks)
+/lark-*
+
+# Ignore all Lark skill directories
+/lark-*/
