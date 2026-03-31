@@ -144,8 +144,11 @@ async function connect() {
     const onError = (e) => {
       cleanup();
       connectingPromise = null;
+      ws = null;
+      chromePort = null;
+      chromeWsPath = null;
       const msg = e.message || e.error?.message || '连接失败';
-      console.error('[CDP Proxy] 连接错误:', msg);
+      console.error('[CDP Proxy] 连接错误:', msg, '（端口缓存已清除，下次将重新发现）');
       reject(new Error(msg));
     };
     const onClose = () => {

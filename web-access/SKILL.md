@@ -17,7 +17,7 @@ metadata:
 在开始联网操作前，先检查 CDP 模式可用性：
 
 ```bash
-bash ~/.claude/skills/web-access/scripts/check-deps.sh
+node "$CLAUDE_SKILL_DIR/scripts/check-deps.mjs"
 ```
 
 - **Node.js 22+**：必需（使用原生 WebSocket）。版本低于 22 可用但需安装 `ws` 模块。
@@ -82,7 +82,7 @@ bash ~/.claude/skills/web-access/scripts/check-deps.sh
 ### 启动
 
 ```bash
-bash ~/.claude/skills/web-access/scripts/check-deps.sh
+node "$CLAUDE_SKILL_DIR/scripts/check-deps.mjs"
 ```
 
 脚本会依次检查 Node.js、Chrome 端口，并确保 Proxy 已连接（未运行则自动启动并等待）。Proxy 启动后持续运行。
@@ -211,7 +211,7 @@ Proxy 持续运行，不建议主动停止——重启后需要在 Chrome 中重
 
 操作中积累的特定网站经验，按域名存储在 `references/site-patterns/` 下。
 
-已有经验的站点：!`ls ${CLAUDE_SKILL_DIR}/references/site-patterns/ 2>/dev/null | sed 's/\.md$//' || echo "暂无"`
+已有经验的站点：!`node -e "const fs=require('fs'),p=require('path').join(process.env.CLAUDE_SKILL_DIR||'.','references','site-patterns');try{console.log(fs.readdirSync(p).filter(f=>f.endsWith('.md')).map(f=>f.replace(/\\.md$/,'')).join(', ')||'暂无')}catch{console.log('暂无')}"`
 
 确定目标网站后，如果上方列表中有匹配的站点，必须读取对应文件获取先验知识（平台特征、有效模式、已知陷阱）。经验内容标注了发现日期，当作可能有效的提示而非保证——如果按经验操作失败，回退通用模式并更新经验文件。
 
