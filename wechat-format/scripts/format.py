@@ -1619,6 +1619,8 @@ def main():
 
     # 处理流程
     content = strip_frontmatter(content)
+    content = fix_cjk_spacing(content)
+    content = fix_cjk_bold_punctuation(content)
     content = process_callouts(content)
     content = process_manual_footnotes(content)
     content = process_fenced_containers(content)

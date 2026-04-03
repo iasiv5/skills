@@ -119,29 +119,6 @@ python3 scripts/format.py --input article.md --theme newspaper
 > 实用提示
 ```
 
-## 容器语法
-
-文章中可使用以下容器增强排版：
-
-```markdown
-:::dialogue[对话标题]
-张三：你好
-李四：你好啊
-:::
-
-:::gallery[图片标题]
-![](img1.jpg)
-![](img2.jpg)
-![](img3.jpg)
-:::
-
-> [!important] 核心观点
-> 这里是重点内容
-
-> [!tip] 小技巧
-> 实用提示
-```
-
 ## 自定义主题
 
 在 `themes/` 目录下创建 JSON 文件。参考 `themes/newspaper.json`。
