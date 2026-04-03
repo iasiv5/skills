@@ -1,7 +1,0 @@
-{
-  "output_dir": "/tmp/wechat-format",
-  "settings": {
-    "default_theme": "newspaper",
-    "auto_open_browser": true
-  }
-}
