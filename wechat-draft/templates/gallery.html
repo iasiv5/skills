@@ -350,8 +350,8 @@ body {
         <!-- Font Size Selector -->
         <div class="font-size-selector">
             <span class="fs-label">字号</span>
-            <button class="fs-btn active" data-size="15" onclick="switchFontSize(15)">15px</button>
-            <button class="fs-btn" data-size="16" onclick="switchFontSize(16)">16px</button>
+            <button class="fs-btn" data-size="15" onclick="switchFontSize(15)">15px</button>
+            <button class="fs-btn active" data-size="16" onclick="switchFontSize(16)">16px</button>
         </div>
 
         <!-- Theme Buttons -->
@@ -499,7 +499,7 @@ function switchFontSize(size) {
             }
         });
         // 修改列表项文字
-        preview.querySelectorAll('[style*="font-size:15px"]').forEach(function(el) {
+        preview.querySelectorAll('[style*="font-size:16px"]').forEach(function(el) {
             if (el.tagName === 'SPAN' || el.tagName === 'SECTION') {
                 el.style.fontSize = size + 'px';
             }
