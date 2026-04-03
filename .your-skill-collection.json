@@ -19,5 +19,5 @@
       { "src": "src/ui-ux-pro-max/scripts",             "dest": "scripts" }
     ]}
   },
-  "skip": ["wechat-article-writer", "a-share-analyst", "code-review", "wechat-format"]
+  "skip": ["wechat-article-writer", "a-share-analyst", "code-review", "wechat-draft"]
 }

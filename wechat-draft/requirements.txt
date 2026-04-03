@@ -1,0 +1,3 @@
+markdown
+requests
+Pillow  # 可选：占位封面图生成

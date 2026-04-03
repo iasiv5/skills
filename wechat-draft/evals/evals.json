@@ -1,0 +1,29 @@
+{
+  "skill_name": "wechat-draft",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "排版 article.md 并推到公众号草稿箱，用 newspaper 主题",
+      "expected_output": "先运行 format.py 生成预览 HTML，告知用户标题和字数，让用户确认后运行 publish.py 推送。推送前检查 config.json 中的 APPID/APPSECRET 是否配置。全程不重写文章内容。",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "排版这篇文章，用 terracotta 主题",
+      "expected_output": "只运行 format.py --input --theme terracotta，生成预览。不触发推送流程。如果检测到文章缺少格式标记，先做结构化预处理。",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "把 /tmp/post.md 推到草稿箱，标题用'AI 工具评测'，作者是'编辑部'",
+      "expected_output": "运行 publish.py --input /tmp/post.md --title 'AI 工具评测' --author '编辑部'。自动排版后再推送。推送成功后提示到公众号后台查看并补封面图。",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "帮我看看公众号草稿箱里有什么",
+      "expected_output": "提示用户草稿管理功能尚未实现，或建议使用 publish.py --dry-run 测试。当前版本只支持创建草稿，不支持列出草稿。",
+      "files": []
+    }
+  ]
+}
