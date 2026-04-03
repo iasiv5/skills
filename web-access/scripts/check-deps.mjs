@@ -154,6 +154,7 @@ async function main() {
   if (!proxyOk) {
     process.exit(1);
   }
+
 }
 
 await main();
