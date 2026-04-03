@@ -1,5 +1,5 @@
 {
-  "output_dir": "/tmp/wechat-draft",
+  "output_dir": "",
   "settings": {
     "default_theme": "newspaper",
     "auto_open_browser": true,
@@ -9,8 +9,8 @@
     "app_id": "YOUR_APP_ID",
     "app_secret": "YOUR_APP_SECRET",
     "author": "",
-    "token_cache_path": "/tmp/wechat-draft-token.json",
+    "token_cache_path": "",
     "cover_image": "",
-    "cover_cache_path": "/tmp/wechat-draft-cover.json"
+    "cover_cache_path": ""
   }
 }

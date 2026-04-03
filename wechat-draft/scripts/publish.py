@@ -78,7 +78,7 @@ def get_access_token(config):
         print("错误: 请先在 config.json 中配置 wechat.app_id 和 wechat.app_secret")
         sys.exit(1)
 
-    cache_path = Path(wechat.get("token_cache_path", "/tmp/wechat-draft-token.json"))
+    cache_path = Path(wechat.get("token_cache_path") or str(SKILL_DIR / ".cache" / "token.json"))
 
     # 检查缓存
     if cache_path.exists():
@@ -136,7 +136,7 @@ def upload_cover(token, config):
     """
     wechat = config.get("wechat", {})
     cover_image = wechat.get("cover_image", "")
-    cache_path = Path(wechat.get("cover_cache_path", "/tmp/wechat-draft-cover.json"))
+    cache_path = Path(wechat.get("cover_cache_path") or str(SKILL_DIR / ".cache" / "cover.json"))
 
     # 判断图片来源：优先 config 指定 → 内置 assets/cover.jpg → Pillow 占位
     if cover_image and Path(cover_image).exists():
@@ -300,7 +300,7 @@ def main():
             sys.exit(1)
 
         theme = args.theme or config.get("settings", {}).get("default_theme", "newspaper")
-        output_base = Path(config.get("output_dir", "/tmp/wechat-draft"))
+        output_base = Path(config.get("output_dir") or str(SKILL_DIR / "output"))
         file_stem = re.sub(r"-(公众号|小红书|微博)$", "", input_path.stem)
         article_dir = output_base / file_stem
 

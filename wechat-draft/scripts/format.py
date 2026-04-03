@@ -102,7 +102,7 @@ TEMPLATE_DIR = SKILL_DIR / "templates"
 try:
     with open(SKILL_DIR / "config.json", encoding="utf-8") as f:
         CONFIG = json.load(f)
-    OUTPUT_DIR = Path(CONFIG["output_dir"])
+    OUTPUT_DIR = Path(CONFIG["output_dir"]) if CONFIG.get("output_dir") else SKILL_DIR / "output"
     DEFAULT_THEME = CONFIG["settings"]["default_theme"]
     AUTO_OPEN = CONFIG["settings"]["auto_open_browser"]
 except FileNotFoundError:
@@ -1631,20 +1631,10 @@ def main():
         print(f"\n输出: {out_path}")
         return
 
-    # 处理流程
-    content = strip_frontmatter(content)
-    content = fix_cjk_spacing(content)
-    content = fix_cjk_bold_punctuation(content)
-    content = process_callouts(content)
-    content = process_manual_footnotes(content)
-    content = process_fenced_containers(content)
-    content = re.sub(r'~~(.+?)~~', r'<del>\1</del>', content)
-
-    output_dir.mkdir(parents=True, exist_ok=True)
-    content = copy_markdown_images(content, input_path.parent, output_dir)
-
-    html = md_to_html(content)
-    html, footnote_html = extract_links_as_footnotes(html)
+    # 预处理（复用 format_for_output，消除重复逻辑）
+    result = format_for_output(content, input_path, theme, output_dir, "html")
+    html = result["html"]
+    footnote_html = result["footnote_html"]
 
     # ── Gallery 模式：并行渲染多主题 ──
     if args.gallery:

@@ -49,7 +49,7 @@ pip install -r {skill_dir}/requirements.txt
 - 格式充分 → 跳过
 - 纯文本/粗糙笔记 → 补标题、分段、加粗、列表（不改内容，只加标记）
 
-**第 3 步：AI 内容增强**
+**第 3 步：结构增强（套用排版容器，不改文字内容）**
 - 分析内容类型，自动套用容器语法：
   - 对话/访谈 → `:::dialogue[标题]`
   - 连续多图 → `:::gallery[标题]`
@@ -153,35 +153,17 @@ python3 {skill_dir}/scripts/publish.py \
 
 ## 可用主题（30 个）
 
-### 独立风格（9 个）
+30 个主题覆盖深度长文、科技产品、文艺随笔、活力动态等风格。完整列表见 [references/themes.md](references/themes.md)。
 
-| 主题 | 命令值 | 风格 |
-|------|--------|------|
-| 赤陶 | terracotta | 暖橙色，左边框渐变 |
-| 字节蓝 | bytedance | 蓝青渐变，科技现代 |
-| 中国风 | chinese | 朱砂红，古典雅致 |
-| 报纸 | newspaper | 纽约时报风，严肃深度 |
-| GitHub | github | 开发者风，浅色代码块 |
-| 少数派 | sspai | 中文科技媒体红 |
-| 包豪斯 | bauhaus | 红蓝黄三原色 |
-| 墨韵 | ink | 纯黑水墨，极简留白 |
-| 暗夜 | midnight | 深色底+霓虹色 |
+内容类型推荐：
 
-### 精选风格（7 个）
-
-| 主题 | 命令值 | 风格 |
-|------|--------|------|
-| 运动 | sports | 渐变色带，活力动感 |
-| 薄荷 | mint-fresh | 薄荷绿，清爽健康 |
-| 日落 | sunset-amber | 琥珀暖调 |
-| 薰衣草 | lavender-dream | 紫色梦幻 |
-| 咖啡 | coffee-house | 棕色暖调 |
-| 微信原生 | wechat-native | 微信绿 |
-| 杂志 | magazine | 超大留白，品质长文 |
-
-### 模板系列（14 个）
-
-四种布局（简约/聚焦/精致/醒目）× 多种配色
+| 内容类型 | 推荐主题 |
+|----------|----------|
+| 深度长文/分析 | newspaper, magazine, ink |
+| 科技产品/AI | bytedance, github, sspai |
+| 访谈/对话 | terracotta, coffee-house, mint-fresh |
+| 教程/指南 | github, sspai, bytedance |
+| 文艺/随笔 | terracotta, sunset-amber, lavender-dream |
 
 ## 内置排版增强
 
