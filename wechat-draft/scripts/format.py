@@ -1471,7 +1471,7 @@ def generate_gallery(rendered_map: dict, theme_map: dict,
         group_tids = [t for t in group_ids if t in theme_ids]
         if not group_tids:
             continue
-        buttons_html += f'<div class="theme-group"><span class="group-label">{group_name}</span>'
+        buttons_html += f'<div class="theme-group"><span class="group-label">{group_name}</span><div class="theme-group-buttons">'
         for tid in group_tids:
             theme = theme_map[tid]
             accent = theme.get("colors", {}).get("accent", "#333")
@@ -1486,7 +1486,7 @@ def generate_gallery(rendered_map: dict, theme_map: dict,
                 f'{name}{rec_label}</button>'
             )
             btn_index += 1
-        buttons_html += '</div>\n'
+        buttons_html += '</div></div>\n'
 
     # 生成 THEME_PREVIEWS
     previews_html = ""
