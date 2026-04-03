@@ -99,12 +99,26 @@ SKILL_DIR = SCRIPT_DIR.parent
 THEMES_DIR = SKILL_DIR / "themes"
 TEMPLATE_DIR = SKILL_DIR / "templates"
 
-with open(SKILL_DIR / "config.json", encoding="utf-8") as f:
-    CONFIG = json.load(f)
-
-OUTPUT_DIR = Path(CONFIG["output_dir"])
-DEFAULT_THEME = CONFIG["settings"]["default_theme"]
-AUTO_OPEN = CONFIG["settings"]["auto_open_browser"]
+try:
+    with open(SKILL_DIR / "config.json", encoding="utf-8") as f:
+        CONFIG = json.load(f)
+    OUTPUT_DIR = Path(CONFIG["output_dir"])
+    DEFAULT_THEME = CONFIG["settings"]["default_theme"]
+    AUTO_OPEN = CONFIG["settings"]["auto_open_browser"]
+except FileNotFoundError:
+    print("错误: 配置文件不存在\n"
+          f"修复: cp {SKILL_DIR / 'config.example.json'} {SKILL_DIR / 'config.json'}\n"
+          "然后根据需要编辑 output_dir 等字段。")
+    sys.exit(1)
+except json.JSONDecodeError as e:
+    print(f"错误: config.json 格式有误 — {e}\n"
+          "修复: 请检查 JSON 语法（引号、逗号、括号是否匹配）。")
+    sys.exit(1)
+except (KeyError, TypeError) as e:
+    print(f"错误: config.json 缺少必要字段 — {e}\n"
+          f"参考: cp {SKILL_DIR / 'config.example.json'} {SKILL_DIR / 'config.json'}\n"
+          "必要字段: output_dir, settings.default_theme, settings.auto_open_browser")
+    sys.exit(1)
 
 
 # ── 主题加载 ────────────────────────────────────────────────────────────
