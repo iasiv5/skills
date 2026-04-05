@@ -8,6 +8,7 @@
 set -euo pipefail
 
 SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_DIR="$(command -v cygpath >/dev/null 2>&1 && cygpath -w "$SKILLS_DIR" || echo "$SKILLS_DIR")"
 TMP_BASE=$(mktemp -d)
 trap 'rm -rf "$TMP_BASE"' EXIT
 
@@ -38,7 +39,7 @@ get_clone() {
 read_skills() {
   python3 -c "
 import json, os, sys
-data = json.load(open(os.path.join('$SKILLS_DIR', '.your-skill-collection.json')))
+data = json.load(open(os.path.join(sys.argv[2], '.your-skill-collection.json')))
 skips = set(data.get('skip', []))
 f = set(sys.argv[1].split()) if sys.argv[1].strip() else None
 for name, cfg in data['skills'].items():
@@ -51,7 +52,7 @@ for name, cfg in data['skills'].items():
         print(name + '\\t' + cfg['repo'] + '\\tfiles\\t' + j.dumps(cfg['files']))
     else:
         print(name + '\\t' + cfg['repo'] + '\\tsubdir\\t' + cfg.get('subdir', ''))
-" "$FILTER"
+" "$FILTER" "$PYTHON_DIR"
 }
 
 [[ -n "$FILTER" ]] && log "更新 skills: $FILTER" || log "更新所有 skills"
