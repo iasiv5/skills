@@ -12,6 +12,10 @@
     {
       "text": "Please do WeChat formatting for article.md and open a theme gallery first.",
       "family": "format_only"
+    },
+    {
+      "text": "The WeChat article is already written. Format it, show theme previews, and publish it to the draft box after I confirm.",
+      "family": "writer_boundary_positive"
     }
   ],
   "should_not_trigger": [
@@ -26,6 +30,14 @@
     {
       "text": "Create a cover image and upload the inline images for this post.",
       "family": "image_work"
+    },
+    {
+      "text": "Turn these notes into a polished WeChat public account article for me.",
+      "family": "writer_overlap_creation"
+    },
+    {
+      "text": "Use this website link to write a WeChat article with a friendly tech-blog tone.",
+      "family": "writer_overlap_source_to_article"
     }
   ],
   "near_neighbor": [
@@ -40,6 +52,14 @@
     {
       "text": "Help me choose a title and outline for a public account article.",
       "family": "article_planning"
+    },
+    {
+      "text": "Draft a WeChat article from these materials and give me three title options.",
+      "family": "writer_overlap_titles"
+    },
+    {
+      "text": "Rewrite this WeChat article to sound more like an official company account, but do not format or publish it.",
+      "family": "writer_overlap_rewrite"
     }
   ]
 }
