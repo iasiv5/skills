@@ -1,0 +1,24 @@
+interface:
+  display_name: "WeChat Draft Publisher"
+  short_description: "Format Markdown for WeChat and publish to the draft box"
+  default_prompt: "Use $wechat-draft to format this Markdown article for a WeChat official account, preview themes, and publish it to the draft box after user confirmation."
+compatibility:
+  canonical_format: "agent-skills"
+  adapter_targets:
+    - "openai"
+    - "claude"
+    - "generic"
+  activation:
+    mode: "manual"
+    paths: []
+  execution:
+    context: "inline"
+    shell: "bash"
+  trust:
+    source_tier: "local"
+    remote_inline_execution: "forbid"
+    remote_metadata_policy: "allow-metadata-only"
+  degradation:
+    openai: "metadata-adapter"
+    claude: "neutral-source-plus-adapter"
+    generic: "neutral-source"

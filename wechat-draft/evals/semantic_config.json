@@ -1,0 +1,151 @@
+{
+  "optimizer_hints": {
+    "capability": "Format Markdown articles for WeChat and publish them to the official account draft box",
+    "inputs": [
+      "markdown article",
+      "article path",
+      "theme choice",
+      "wechat config"
+    ],
+    "trigger_actions": [
+      "format for wechat",
+      "preview themes",
+      "publish to draft",
+      "push markdown to wechat draft"
+    ],
+    "exclusions": [
+      "write article content",
+      "rewrite copy only",
+      "cover image generation",
+      "image upload",
+      "list existing drafts"
+    ],
+    "artifacts": [
+      "markdown file",
+      "preview html",
+      "draft media_id"
+    ]
+  },
+  "fallback_positive_concepts": [
+    "format_wechat",
+    "draft_publish",
+    "theme_preview"
+  ],
+  "positive_concepts": {
+    "format_wechat": {
+      "weight": 0.36,
+      "phrases": [
+        "format for wechat",
+        "wechat formatting",
+        "wechat layout",
+        "format markdown",
+        "markdown to html",
+        "wechat html",
+        "official account format",
+        "inline html"
+      ]
+    },
+    "draft_publish": {
+      "weight": 0.3,
+      "phrases": [
+        "draft box",
+        "publish to draft",
+        "push to draft",
+        "wechat draft",
+        "weixin draft",
+        "mp draft",
+        "draft publication"
+      ]
+    },
+    "theme_preview": {
+      "weight": 0.18,
+      "phrases": [
+        "theme preview",
+        "preview themes",
+        "theme gallery",
+        "choose a theme",
+        "newspaper theme",
+        "terracotta theme",
+        "gallery mode"
+      ]
+    },
+    "markdown_asset": {
+      "weight": 0.08,
+      "phrases": [
+        "markdown",
+        ".md",
+        "article.md",
+        "post.md"
+      ]
+    },
+    "config_troubleshoot": {
+      "weight": 0.08,
+      "phrases": [
+        "config.json",
+        "appid",
+        "appsecret",
+        "ip whitelist",
+        "token limit",
+        "access token"
+      ]
+    }
+  },
+  "negative_concepts": {
+    "write_content": {
+      "weight": 0.34,
+      "exclusive": true,
+      "phrases": [
+        "write a brand new article",
+        "write the article",
+        "draft a new article",
+        "generate article copy",
+        "compose the post"
+      ]
+    },
+    "rewrite_only": {
+      "weight": 0.3,
+      "exclusive": true,
+      "phrases": [
+        "rewrite the article",
+        "rewrite this post",
+        "polish the copy",
+        "edit the wording",
+        "improve the wording",
+        "refine the article"
+      ]
+    },
+    "image_work": {
+      "weight": 0.3,
+      "exclusive": true,
+      "phrases": [
+        "cover image",
+        "thumbnail",
+        "banner image",
+        "upload the images",
+        "image upload",
+        "inline images"
+      ]
+    },
+    "draft_management": {
+      "weight": 0.24,
+      "exclusive": false,
+      "phrases": [
+        "list drafts",
+        "show drafts",
+        "what is in the draft box",
+        "draft management",
+        "existing drafts"
+      ]
+    },
+    "planning_only": {
+      "weight": 0.2,
+      "exclusive": false,
+      "phrases": [
+        "choose a title",
+        "article outline",
+        "content plan",
+        "brainstorm topics"
+      ]
+    }
+  }
+}

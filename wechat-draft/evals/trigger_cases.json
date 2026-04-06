@@ -1,0 +1,45 @@
+{
+  "recommended_threshold": 0.52,
+  "should_trigger": [
+    {
+      "text": "Format this Markdown post for WeChat, let me preview themes, then publish it to the draft box.",
+      "family": "format_publish"
+    },
+    {
+      "text": "Push post.md to the WeChat draft box with the newspaper theme.",
+      "family": "publish_direct"
+    },
+    {
+      "text": "Please do WeChat formatting for article.md and open a theme gallery first.",
+      "family": "format_only"
+    }
+  ],
+  "should_not_trigger": [
+    {
+      "text": "Write a brand new WeChat article about AI tools.",
+      "family": "content_writing"
+    },
+    {
+      "text": "Rewrite this post so the copy sounds sharper before we publish it.",
+      "family": "rewrite_only"
+    },
+    {
+      "text": "Create a cover image and upload the inline images for this post.",
+      "family": "image_work"
+    }
+  ],
+  "near_neighbor": [
+    {
+      "text": "Show me what is already in the WeChat draft box.",
+      "family": "draft_management"
+    },
+    {
+      "text": "Polish the wording of this article for WeChat but do not format or publish it.",
+      "family": "content_editing"
+    },
+    {
+      "text": "Help me choose a title and outline for a public account article.",
+      "family": "article_planning"
+    }
+  ]
+}
