@@ -111,7 +111,7 @@ def command_init(args: argparse.Namespace) -> int:
             *(["--title", args.title] if args.title else []),
         ],
     )
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
 
 
@@ -211,6 +211,18 @@ def command_report(args: argparse.Namespace) -> int:
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report["ok"] else 2
+
+
+def command_skill_report(args: argparse.Namespace) -> int:
+    skill_dir = str(Path(args.skill_dir).resolve())
+    cmd = [skill_dir]
+    if args.output_html:
+        cmd.extend(["--output-html", args.output_html])
+    if args.output_json:
+        cmd.extend(["--output-json", args.output_json])
+    result = run_script("render_skill_overview.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
 
 
 def command_review(args: argparse.Namespace) -> int:
@@ -415,6 +427,12 @@ def build_parser() -> argparse.ArgumentParser:
     report_cmd = subparsers.add_parser("report", help="Render route, iteration, regression, and context reports.")
     report_cmd.add_argument("--refresh-optimization", action="store_true")
     report_cmd.set_defaults(func=command_report)
+
+    skill_report_cmd = subparsers.add_parser("skill-report", help="Render a visual overview report for a skill package.")
+    skill_report_cmd.add_argument("skill_dir", nargs="?", default=".")
+    skill_report_cmd.add_argument("--output-html")
+    skill_report_cmd.add_argument("--output-json")
+    skill_report_cmd.set_defaults(func=command_skill_report)
 
     package_cmd = subparsers.add_parser("package", help="Export compatibility artifacts for selected targets.")
     package_cmd.add_argument("skill_dir", nargs="?", default=".")

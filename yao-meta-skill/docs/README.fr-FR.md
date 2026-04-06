@@ -9,14 +9,35 @@ Il transforme des workflows bruts, des transcripts, des prompts, des notes et de
 - une surface de déclenchement claire
 - un `SKILL.md` léger
 - des references, scripts et evals optionnels
+- un rapport HTML minimaliste en fond blanc généré automatiquement pour chaque nouveau skill
 - des métadonnées sources neutres et des adaptateurs spécifiques au client
 - des contrôles de gouvernance, de promotion et de portabilité intégrés au flux standard
+
+## Architecture
+
+En version hero, le système tient sur une seule ligne : transformer une entrée brouillonne en skill package gouverné et réutilisable.
+
+```mermaid
+flowchart LR
+    A["Entrées<br/>workflow / prompt / transcript / docs / notes"] --> B["Routage<br/>SKILL.md"]
+    B --> C["Conception<br/>méthode + garde-fous"]
+    C --> D["Exécution<br/>create / validate / eval / promote"]
+    D --> E["Sorties<br/>skill package + rapports + adapters"]
+```
+
+Lecture en 10 secondes :
+
+- **Entrées** : on part de workflows, prompts, documents et notes dispersés.
+- **Routage** : un `SKILL.md` léger définit d'abord la frontière et le déclenchement.
+- **Conception** : on choisit le bon archetype, les bons gates et la bonne séparation des ressources.
+- **Exécution** : la CLI unifiée construit, valide, optimise et promeut le skill.
+- **Sorties** : on obtient un skill package réutilisable avec ses preuves d'évaluation, de gouvernance et de portabilité.
 
 ## Quick Start
 
 1. Décrivez le workflow, l'ensemble de prompts ou la tâche répétée que vous voulez transformer en skill.
 2. Utilisez `yao-meta-skill` pour générer ou améliorer le paquet en mode scaffold, production ou library.
-3. Exécutez `context_sizer.py`, `trigger_eval.py` et `cross_packager.py` selon le besoin pour valider et exporter le résultat.
+3. Chaque nouveau skill reçoit aussi `reports/skill-overview.html`, pour comprendre rapidement son architecture, sa logique, son usage et ses points forts.
 
 ## Results
 

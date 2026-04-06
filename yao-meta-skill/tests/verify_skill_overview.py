@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parent.parent
+CLI = ROOT / "scripts" / "yao.py"
+
+
+def run(*args: str) -> dict:
+    proc = subprocess.run(
+        [sys.executable, str(CLI), *args],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(proc.stdout)
+    return {
+        "ok": proc.returncode == 0,
+        "returncode": proc.returncode,
+        "payload": payload,
+        "stderr": proc.stderr,
+    }
+
+
+def main() -> None:
+    tmp_root = ROOT / "tests" / "tmp_skill_overview"
+    if tmp_root.exists():
+        subprocess.run(["rm", "-rf", str(tmp_root)], check=True)
+    tmp_root.mkdir(parents=True, exist_ok=True)
+
+    init_result = run(
+        "init",
+        "skill-overview-demo",
+        "--description",
+        "Turn rough requests into a compact reusable demo skill.",
+        "--output-dir",
+        str(tmp_root),
+    )
+    assert init_result["ok"], init_result
+
+    created = tmp_root / "skill-overview-demo"
+    assert (created / "README.md").exists(), created
+    assert (created / "manifest.json").exists(), created
+    assert (created / "reports" / "skill-overview.html").exists(), created
+    assert (created / "reports" / "skill-overview.json").exists(), created
+
+    rerender_result = run("skill-report", str(created))
+    assert rerender_result["ok"], rerender_result
+    assert rerender_result["payload"]["artifacts"]["html"].endswith("reports/skill-overview.html"), rerender_result
+
+    report_html = (created / "reports" / "skill-overview.html").read_text(encoding="utf-8")
+    assert "Skill Overview" in report_html, report_html[:200]
+    assert "Architecture" in report_html, report_html[:400]
+    assert "Why It Works" in report_html, report_html[:600]
+
+    print(json.dumps({"ok": True}, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()

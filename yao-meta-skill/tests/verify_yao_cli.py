@@ -33,14 +33,18 @@ def main() -> None:
 
     init_result = run("init", "cli-demo-skill", "--description", "CLI demo skill.", "--output-dir", str(tmp_root))
     assert init_result["ok"], init_result
-    created = Path(init_result["payload"]["stdout"].strip()) if "stdout" in init_result["payload"] else tmp_root / "cli-demo-skill"
-    if not created.exists():
-        created = tmp_root / "cli-demo-skill"
+    created = Path(init_result["payload"]["root"])
     assert (created / "SKILL.md").exists(), created
+    assert (created / "README.md").exists(), created
+    assert (created / "reports" / "skill-overview.html").exists(), created
 
     validate_result = run("validate", str(created))
     assert validate_result["ok"], validate_result
     assert len(validate_result["payload"]["steps"]) == 4, validate_result
+
+    skill_report_result = run("skill-report", str(created))
+    assert skill_report_result["ok"], skill_report_result
+    assert skill_report_result["payload"]["artifacts"]["html"].endswith("reports/skill-overview.html"), skill_report_result
 
     optimize_result = run("optimize-description", "--target", "root")
     assert optimize_result["ok"], optimize_result

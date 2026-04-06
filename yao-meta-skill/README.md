@@ -19,8 +19,29 @@ It turns rough workflows, transcripts, prompts, notes, and runbooks into reusabl
 - a clear trigger surface
 - a lean `SKILL.md`
 - optional references, scripts, and evals
+- a generated visual HTML overview for each newly initialized skill
 - neutral source metadata plus client-specific adapters
 - governance, promotion, and portability checks built into the default flow
+
+## Architecture
+
+Hero view: turn messy operational input into a governed, reusable skill package through one compact flow.
+
+```mermaid
+flowchart LR
+    A["Inputs<br/>workflow / prompt / transcript / docs / notes"] --> B["Route<br/>SKILL.md"]
+    B --> C["Design<br/>method + gates"]
+    C --> D["Run<br/>create / validate / eval / promote"]
+    D --> E["Outputs<br/>skill package + reports + adapters"]
+```
+
+Read it in 10 seconds:
+
+- **Inputs**: start from rough operational material.
+- **Route**: define boundary and trigger in a lean `SKILL.md`.
+- **Design**: choose the right archetype, gates, and resource split.
+- **Run**: use the unified CLI to build, validate, optimize, and promote.
+- **Outputs**: ship a reusable skill plus evidence, governance signals, and portability artifacts.
 
 ## Quick Start
 
@@ -31,8 +52,8 @@ It turns rough workflows, transcripts, prompts, notes, and runbooks into reusabl
 Or use the unified authoring CLI:
 
 ```bash
-python3 scripts/yao.py validate .
-python3 scripts/yao.py workspace-flow --target root --label first-pass
+python3 scripts/yao.py init my-skill --description "Describe what the skill does."
+python3 scripts/yao.py skill-report my-skill
 python3 scripts/yao.py package . --platform generic --output-dir dist
 ```
 

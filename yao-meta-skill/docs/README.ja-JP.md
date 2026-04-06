@@ -9,14 +9,35 @@
 - 明確なトリガー面
 - 軽量な `SKILL.md`
 - 必要に応じた references、scripts、evals
+- 新しい skill ごとに、白背景の簡潔な HTML overview を自動生成
 - 中立的なソースメタデータとクライアント別アダプタ
 - ガバナンス、昇格判定、portability チェックを標準フローに内蔵
+
+## アーキテクチャ
+
+Hero 版では、全体の流れは 1 本です。ばらばらの入力を、統制された再利用可能な skill package に変えます。
+
+```mermaid
+flowchart LR
+    A["入力<br/>workflow / prompt / transcript / docs / notes"] --> B["ルート定義<br/>SKILL.md"]
+    B --> C["設計<br/>method + gates"]
+    C --> D["実行<br/>create / validate / eval / promote"]
+    D --> E["出力<br/>skill package + reports + adapters"]
+```
+
+10 秒で読むならこうです。
+
+- **入力**: workflow、prompt、文書、メモなどの粗い素材から始めます。
+- **ルート定義**: まず軽量な `SKILL.md` で境界と trigger を決めます。
+- **設計**: 適切な archetype、gate、資源の分割を選びます。
+- **実行**: 統一 CLI で作成、検証、最適化、昇格を進めます。
+- **出力**: 最終的に skill package と、評価・ガバナンス・移植性の証拠が残ります。
 
 ## Quick Start
 
 1. skill 化したい workflow、prompt 集合、または反復タスクを説明します。
 2. `yao-meta-skill` を使って scaffold、production、library のいずれかのモードでパッケージを生成または改善します。
-3. 必要に応じて `context_sizer.py`、`trigger_eval.py`、`cross_packager.py` を実行し、検証と出力を行います。
+3. 新しく作成した skill には `reports/skill-overview.html` が付き、構造、ロジック、使い方、強みをすぐ確認できます。
 
 ## Results
 

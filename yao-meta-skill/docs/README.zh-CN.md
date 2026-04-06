@@ -9,14 +9,35 @@
 - 清晰的触发面
 - 精简的 `SKILL.md`
 - 可选的 references、scripts 和 evals
+- 新建 skill 时自动生成一份极简白底 HTML 可视化说明
 - 中性的源元数据以及面向不同客户端的适配层
 - 内建的治理、晋升和 portability 检查
+
+## 架构图
+
+Hero 版可以压缩成一条主线：把零散输入变成一个可治理、可复用的 skill 包。
+
+```mermaid
+flowchart LR
+    A["输入<br/>workflow / prompt / transcript / docs / notes"] --> B["路由<br/>SKILL.md"]
+    B --> C["设计<br/>方法 + 质量门"]
+    C --> D["执行<br/>create / validate / eval / promote"]
+    D --> E["产出<br/>skill 包 + 报告 + 适配层"]
+```
+
+10 秒理解这张图：
+
+- **输入**：从零散的 workflow、prompt、文档和笔记出发。
+- **路由**：先用精简的 `SKILL.md` 定义边界和触发。
+- **设计**：选择合适的 archetype、gates 和资源拆分方式。
+- **执行**：通过统一 CLI 完成创建、校验、优化和晋升。
+- **产出**：最终得到 skill 包，以及评测、治理和 portability 证据。
 
 ## Quick Start
 
 1. 先描述你想沉淀成 skill 的 workflow、prompt 集合或重复任务。
 2. 使用 `yao-meta-skill` 以 scaffold、production 或 library 模式生成或改进 skill 包。
-3. 按需要运行 `context_sizer.py`、`trigger_eval.py` 和 `cross_packager.py` 来检查并导出结果。
+3. 新建 skill 后，会默认附带 `reports/skill-overview.html`，方便快速理解架构、逻辑、使用方法和优势。
 
 ## Results
 
