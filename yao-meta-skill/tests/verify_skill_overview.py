@@ -44,8 +44,12 @@ def main() -> None:
     created = tmp_root / "skill-overview-demo"
     assert (created / "README.md").exists(), created
     assert (created / "manifest.json").exists(), created
+    assert (created / "reports" / "intent-dialogue.md").exists(), created
+    assert (created / "reports" / "intent-dialogue.json").exists(), created
     assert (created / "reports" / "skill-overview.html").exists(), created
     assert (created / "reports" / "skill-overview.json").exists(), created
+    assert (created / "reports" / "iteration-directions.md").exists(), created
+    assert (created / "reports" / "iteration-directions.json").exists(), created
 
     rerender_result = run("skill-report", str(created))
     assert rerender_result["ok"], rerender_result
@@ -55,6 +59,12 @@ def main() -> None:
     assert "Skill Overview" in report_html, report_html[:200]
     assert "Architecture" in report_html, report_html[:400]
     assert "Why It Works" in report_html, report_html[:600]
+
+    intent_text = (created / "reports" / "intent-dialogue.md").read_text(encoding="utf-8")
+    assert "Questions To Ask" in intent_text, intent_text[:400]
+
+    directions_text = (created / "reports" / "iteration-directions.md").read_text(encoding="utf-8")
+    assert "Top 3 Next Moves" in directions_text, directions_text[:400]
 
     print(json.dumps({"ok": True}, ensure_ascii=False, indent=2))
 

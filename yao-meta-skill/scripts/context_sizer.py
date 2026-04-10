@@ -42,7 +42,7 @@ def read_text(path: Path) -> str:
 
 def classify(path: Path) -> str:
     parts = set(path.parts)
-    if path.name == "SKILL.md":
+    if path == Path("SKILL.md"):
         return "skill_body"
     if "agents" in parts:
         return "interface"
@@ -59,7 +59,9 @@ def classify(path: Path) -> str:
 
 def should_ignore(path: Path, skill_dir: Path) -> bool:
     rel = path.relative_to(skill_dir)
-    return any(rel == ignored or ignored in rel.parents for ignored in IGNORED_RELATIVE_DIRS)
+    if any(rel == ignored or ignored in rel.parents for ignored in IGNORED_RELATIVE_DIRS):
+        return True
+    return len(rel.parts) >= 2 and rel.parts[0] == "tests" and rel.parts[1].startswith("tmp_")
 
 
 def summarize(skill_dir: Path) -> dict:
@@ -77,26 +79,26 @@ def summarize(skill_dir: Path) -> dict:
     for path in candidate_files:
         if should_ignore(path, skill_dir):
             continue
+        rel = path.relative_to(skill_dir)
         if path.suffix not in TEXT_EXTS and path.name != "SKILL.md":
             size = path.stat().st_size
-            files.append({"path": str(path.relative_to(skill_dir)), "kind": "binary_or_other", "bytes": size})
+            files.append({"path": str(rel), "kind": "binary_or_other", "bytes": size})
             continue
-        kind = classify(path)
+        kind = classify(rel)
         if kind in {"binary_or_other", "asset"} and path.suffix not in TEXT_EXTS:
             size = path.stat().st_size
-            files.append({"path": str(path.relative_to(skill_dir)), "kind": kind, "bytes": size})
+            files.append({"path": str(rel), "kind": kind, "bytes": size})
             continue
         text = read_text(path)
         tokens = estimate_tokens(text)
         record = {
-            "path": str(path.relative_to(skill_dir)),
+            "path": str(rel),
             "kind": kind,
             "chars": len(text),
             "estimated_tokens": tokens,
         }
         files.append(record)
         total_tokens += tokens
-        rel = path.relative_to(skill_dir)
         if rel == Path("SKILL.md") or (rel.parts and rel.parts[0] == "agents"):
             initial_tokens += tokens
     return {

@@ -45,7 +45,9 @@ def has_files(path: Path) -> bool:
 
 def should_ignore(path: Path, root: Path) -> bool:
     rel = path.relative_to(root)
-    return any(rel == ignored or ignored in rel.parents for ignored in IGNORED_RELATIVE_DIRS)
+    if any(rel == ignored or ignored in rel.parents for ignored in IGNORED_RELATIVE_DIRS):
+        return True
+    return len(rel.parts) >= 2 and rel.parts[0] == "tests" and rel.parts[1].startswith("tmp_")
 
 
 def load_manifest(path: Path) -> dict:
@@ -127,7 +129,7 @@ def analyze_skill(
         tokens = estimate_tokens(text)
         total_text_tokens += tokens
         rel = path.relative_to(root)
-        if rel.name == "SKILL.md":
+        if rel == Path("SKILL.md"):
             skill_body_tokens += tokens
             initial_load_tokens += tokens
         else:

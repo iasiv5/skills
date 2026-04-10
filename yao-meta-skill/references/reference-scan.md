@@ -8,14 +8,18 @@ Reference scan has two layers, and they must not be treated equally:
 
 1. **External Benchmark Scan**
    - primary source of patterns
-   - use public GitHub repos, official docs, strong public examples, and world-class products
+   - use high-star public GitHub repos, official docs, strong public examples, and world-class products
    - this layer defines the upper bound for quality
-2. **Local Fit Check**
+2. **User Reference Intake**
+   - a taste-and-standard layer
+   - ask whether the user has reference repos, products, pages, prompts, or systems they admire
+   - learn only the pattern, structure, boundary, or quality bar; never copy wording or private material
+3. **Local Fit Check**
    - secondary calibration layer
    - use local files only for naming, privacy, compatibility, migration, and library-fit constraints
    - this layer should not define the main design pattern
 
-External sources should lead. Local files should calibrate.
+External sources should lead. User references should sharpen direction. Local files should calibrate.
 
 ## Why This Step Exists
 
@@ -25,6 +29,7 @@ A new skill often fails because it starts from an isolated idea instead of a pro
 - cleaner folder and metadata choices
 - more realistic quality gates
 - stronger portability decisions
+- better alignment with the user's own taste and quality bar
 
 ## The Rule
 
@@ -49,6 +54,7 @@ Do not turn this into open-ended research.
 - extract patterns, not long copied content
 - stop as soon as the borrow plan is clear
 - prefer at least `2` external benchmark objects before treating the scan as complete
+- if the user provides references, record what they admire and what should explicitly not be copied
 
 ## Reference Categories
 
@@ -67,10 +73,11 @@ A good scan produces a short report with:
 1. current skill anchor
 2. scan focus
 3. external benchmark objects
-4. local fit constraints
-5. what to borrow
-6. what not to borrow
-7. a compact borrow plan
+4. user-supplied references
+5. local fit constraints
+6. what to borrow
+7. what not to borrow
+8. a compact borrow plan
 
 ## What To Borrow
 

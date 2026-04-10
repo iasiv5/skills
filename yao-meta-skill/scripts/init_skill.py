@@ -4,7 +4,10 @@ import json
 from datetime import date
 from pathlib import Path
 
-from render_reference_scan import render_reference_scan
+from render_intent_dialogue import render_intent_dialogue
+from render_iteration_directions import render_iteration_directions
+from render_reference_scan import parse_reference, render_reference_scan
+from render_review_viewer import render_review_viewer
 from render_skill_overview import render_skill_overview
 
 
@@ -34,15 +37,23 @@ README_TEMPLATE = """# {title}
 ## How To Use
 
 1. Load the skill through `SKILL.md`.
-2. Follow the workflow steps in `SKILL.md`.
-3. Check `reports/skill-overview.html` if you want a fast visual explanation of the package.
+2. Start with `reports/intent-dialogue.md` to tighten the real job, outputs, exclusions, and the standards you care about.
+3. Open `reports/reference-scan.md` to capture external benchmarks and any user-supplied references worth learning from.
+4. Follow the workflow steps in `SKILL.md`.
+5. Check `reports/skill-overview.html` if you want a fast visual explanation of the package.
+6. Open `reports/review-viewer.html` for a compact visual review of the package.
+7. Review `reports/iteration-directions.md` for the three most valuable next moves.
 
 ## Package Map
 
 - `SKILL.md`: trigger and workflow entrypoint
 - `agents/interface.yaml`: portable interface metadata
 - `manifest.json`: lifecycle and packaging metadata
+- `reports/intent-dialogue.md`: front-loaded discovery questions for better boundary design and clearer human alignment
+- `reports/reference-scan.md`: benchmark notes from public references, user references, and local constraints
 - `reports/skill-overview.html`: visual overview report
+- `reports/review-viewer.html`: compact review page for architecture, usage, feedback, and next steps
+- `reports/iteration-directions.md`: the top three next iteration directions
 """
 
 
@@ -73,17 +84,47 @@ compatibility:
 """
 
 
-def build_manifest(name: str) -> dict:
+MODE_CONFIG = {
+    "scaffold": {
+        "maturity_tier": "scaffold",
+        "lifecycle_stage": "scaffold",
+        "context_budget_tier": "scaffold",
+        "review_cadence": "per-release",
+    },
+    "production": {
+        "maturity_tier": "production",
+        "lifecycle_stage": "active",
+        "context_budget_tier": "production",
+        "review_cadence": "monthly",
+    },
+    "library": {
+        "maturity_tier": "library",
+        "lifecycle_stage": "active",
+        "context_budget_tier": "library",
+        "review_cadence": "quarterly",
+    },
+    "governed": {
+        "maturity_tier": "governed",
+        "lifecycle_stage": "governed",
+        "context_budget_tier": "governed",
+        "review_cadence": "monthly",
+    },
+}
+
+
+def build_manifest(name: str, mode: str, archetype: str) -> dict:
+    mode_payload = MODE_CONFIG.get(mode, MODE_CONFIG["scaffold"])
     return {
         "name": name,
         "version": "0.1.0",
         "owner": "Yao Team",
         "updated_at": str(date.today()),
         "status": "active",
-        "maturity_tier": "scaffold",
-        "lifecycle_stage": "scaffold",
-        "context_budget_tier": "scaffold",
-        "review_cadence": "per-release",
+        "maturity_tier": mode_payload["maturity_tier"],
+        "lifecycle_stage": mode_payload["lifecycle_stage"],
+        "context_budget_tier": mode_payload["context_budget_tier"],
+        "review_cadence": mode_payload["review_cadence"],
+        "skill_archetype": archetype,
         "target_platforms": [
             "openai",
             "claude",
@@ -98,56 +139,95 @@ def build_manifest(name: str) -> dict:
     }
 
 
+def initialize_skill(
+    name: str,
+    description: str,
+    title: str | None = None,
+    output_dir: str = ".",
+    mode: str = "scaffold",
+    archetype: str = "scaffold",
+    external_references: list[dict] | None = None,
+    user_references: list[dict] | None = None,
+    local_constraints: list[dict] | None = None,
+) -> dict:
+    title = title or name.replace("-", " ").title()
+    root = Path(output_dir).resolve() / name
+    (root / "agents").mkdir(parents=True, exist_ok=True)
+    (root / "references").mkdir(exist_ok=True)
+    (root / "scripts").mkdir(exist_ok=True)
+    (root / "reports").mkdir(exist_ok=True)
+    (root / "SKILL.md").write_text(
+        SKILL_TEMPLATE.format(name=name, description=json.dumps(description, ensure_ascii=False), title=title),
+        encoding="utf-8",
+    )
+    (root / "README.md").write_text(
+        README_TEMPLATE.format(name=name, description=description, title=title),
+        encoding="utf-8",
+    )
+    (root / "agents" / "interface.yaml").write_text(
+        INTERFACE_TEMPLATE.format(
+            name=name,
+            title=title,
+            short_description=description[:80],
+            default_prompt=description.rstrip("."),
+        ),
+        encoding="utf-8",
+    )
+    (root / "manifest.json").write_text(
+        json.dumps(build_manifest(name, mode, archetype), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    overview = render_skill_overview(root)
+    intent_dialogue = render_intent_dialogue(root)
+    reference_scan = render_reference_scan(root, [*(external_references or []), *(user_references or []), *(local_constraints or [])])
+    iteration_directions = render_iteration_directions(root)
+    review_viewer = render_review_viewer(root)
+    return {
+        "ok": True,
+        "root": str(root),
+        "mode": mode,
+        "archetype": archetype,
+        "artifacts": {
+            "readme": str(root / "README.md"),
+            "manifest": str(root / "manifest.json"),
+            "skill_overview_html": overview["artifacts"]["html"],
+            "skill_overview_json": overview["artifacts"]["json"],
+            "intent_dialogue_md": intent_dialogue["artifacts"]["markdown"],
+            "intent_dialogue_json": intent_dialogue["artifacts"]["json"],
+            "reference_scan_md": reference_scan["artifacts"]["markdown"],
+            "reference_scan_json": reference_scan["artifacts"]["json"],
+            "iteration_directions_md": iteration_directions["artifacts"]["markdown"],
+            "iteration_directions_json": iteration_directions["artifacts"]["json"],
+            "review_viewer_html": review_viewer["artifacts"]["html"],
+            "review_viewer_json": review_viewer["artifacts"]["json"],
+        },
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Initialize a minimal skill package.")
     parser.add_argument("name", help="skill folder and frontmatter name")
     parser.add_argument("--description", default="Describe what the skill does and when to use it.")
     parser.add_argument("--title", default=None)
     parser.add_argument("--output-dir", default=".")
+    parser.add_argument("--mode", choices=sorted(MODE_CONFIG.keys()), default="scaffold")
+    parser.add_argument("--archetype", choices=sorted(MODE_CONFIG.keys()), default="scaffold")
+    parser.add_argument("--external-reference", action="append", default=[])
+    parser.add_argument("--user-reference", action="append", default=[])
+    parser.add_argument("--local-constraint", action="append", default=[])
     args = parser.parse_args()
-
-    title = args.title or args.name.replace("-", " ").title()
-    root = Path(args.output_dir).resolve() / args.name
-    (root / "agents").mkdir(parents=True, exist_ok=True)
-    (root / "references").mkdir(exist_ok=True)
-    (root / "scripts").mkdir(exist_ok=True)
-    (root / "reports").mkdir(exist_ok=True)
-    (root / "SKILL.md").write_text(SKILL_TEMPLATE.format(name=args.name, description=args.description, title=title), encoding="utf-8")
-    (root / "README.md").write_text(
-        README_TEMPLATE.format(name=args.name, description=args.description, title=title),
-        encoding="utf-8",
+    result = initialize_skill(
+        args.name,
+        args.description,
+        args.title,
+        args.output_dir,
+        args.mode,
+        args.archetype,
+        external_references=[parse_reference(item, "external") for item in args.external_reference],
+        user_references=[parse_reference(item, "user") for item in args.user_reference],
+        local_constraints=[parse_reference(item, "local") for item in args.local_constraint],
     )
-    (root / "agents" / "interface.yaml").write_text(
-        INTERFACE_TEMPLATE.format(
-            name=args.name,
-            title=title,
-            short_description=args.description[:80],
-            default_prompt=args.description.rstrip("."),
-        ),
-        encoding="utf-8",
-    )
-    (root / "manifest.json").write_text(
-        json.dumps(build_manifest(args.name), ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    overview = render_skill_overview(root)
-    reference_scan = render_reference_scan(root, [])
-    print(
-        json.dumps(
-            {
-                "ok": True,
-                "root": str(root),
-                "artifacts": {
-                    "readme": str(root / "README.md"),
-                    "manifest": str(root / "manifest.json"),
-                    **overview["artifacts"],
-                    **reference_scan["artifacts"],
-                },
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

@@ -9,8 +9,15 @@
 - 清晰的触发面
 - 精简的 `SKILL.md`
 - 可选的 references、scripts 和 evals
-- 深度起草前先做一轮受控的 benchmark/reference scan
+- 深度起草前先做一轮更有人味的意图对话，先理解真实任务、输出物、边界和用户在意的标准
+- 深度起草前先做一轮受控的 benchmark/reference scan，以 GitHub 高星项目、官方文档和世界级公开对象为优先参考源
+- 会主动询问用户是否有希望借鉴的参考对象，只学习其中的模式抽象、结构和标准，不复制原文或私密内容
 - 新建 skill 时自动生成一份极简白底 HTML 可视化说明
+- 首次建包后会自动给出 3 个最有价值的下一步迭代方向
+- 提供一个紧凑的 HTML review viewer，方便第一次人工理解和评审
+- 提供一个轻量 feedback log，不必每次都走完整 promotion 流程
+- 提供一个 with-skill vs baseline 的对比报告，便于快速看增量收益
+- 提供一个 archetype-aware 的 quickstart，引导新 skill 落到 scaffold、production、library 或 governed 的合适形态
 - 中性的源元数据以及面向不同客户端的适配层
 - 内建的治理、晋升和 portability 检查
 
@@ -34,14 +41,41 @@ flowchart LR
 - **执行**：通过统一 CLI 完成创建、校验、优化和晋升。
 - **产出**：最终得到 skill 包，以及评测、治理和 portability 证据。
 
-## Quick Start
+## 对比快照
+
+下面这个表更适合拿来判断“哪种系统更适合当前场景”。它是一个面向场景的比较快照，不是适用于所有情境的绝对结论。
+
+| 评分维度 | skill-creator | yao-meta-skill | 说明 |
+| --- | ---: | ---: | --- |
+| 上手门槛 | 9 | 6 | `skill-creator` 语言更亲切、对话更直觉；`yao-meta-skill` 概念更多，学习曲线更陡。 |
+| 灵活性 | 9 | 7 | `skill-creator` 更自由；`yao-meta-skill` 的流程更明确、更结构化。 |
+| 方法论深度 | 5 | 9.5 | `yao-meta-skill` 有更完整的 skill engineering doctrine、archetypes、gate selection、governance 和 resource boundaries。 |
+| 评估严谨度 | 7 | 9.5 | `yao-meta-skill` 更强调 layered holdout、route confusion、adversarial checks 和 promotion gates。 |
+| 人工评审体验 | 9 | 5 | `skill-creator` 的人工评审体验更直观；`yao-meta-skill` 目前仍以报告驱动为主。 |
+| 治理与生命周期 | 2 | 9.5 | `yao-meta-skill` 把重要 skill 当成可治理资产，具备 maturity、review cadence 和 promotion evidence。 |
+| 跨环境复用 | 4 | 9 | `yao-meta-skill` 采用中性元数据、adapter、degradation rule 和 portability checks。 |
+| 工具链完整度 | 6 | 9.5 | `yao-meta-skill` 提供更完整的工具链、统一 CLI、CI 和报告系统。 |
+| 迭代效率 | 8 | 7 | `skill-creator` 在快速小循环上更轻；`yao-meta-skill` 会为了质量门和证据多付出一些流程成本。 |
+| 文档质量 | 7 | 9 | `yao-meta-skill` 现在提供多语言文档、案例、失败案例库和方法论文档。 |
+| 适合个人使用 | 9 | 6 | `skill-creator` 更适合个人快速试作。 |
+| 适合团队/组织 | 5 | 9.5 | `yao-meta-skill` 更适合团队复用、治理、CI 和长期维护。 |
+| 综合 | 6.7 | 8.0 | 核心取舍很清楚：一个偏轻量对话流，一个偏工程化和治理化。 |
+
+## 适用场景
+
+- 如果你要的是**个人快速试作、边聊边做、轻量起稿**，更适合 `skill-creator`。
+- 如果你要的是**团队复用、显式边界、质量门、治理、可移植性和长期维护**，更适合 `yao-meta-skill`。
+- 一个很实用的组合方式是：先用更对话式的系统做第一版，再用 `yao-meta-skill` 把它加固成团队可复用的正式资产。
+
+## 快速开始
 
 1. 先描述你想沉淀成 skill 的 workflow、prompt 集合或重复任务。
-2. 先做一轮简短的参考扫描，以 GitHub 和世界级公开对象为主来源，本地文件只做适配和隐私校准。
-3. 使用 `yao-meta-skill` 以 scaffold、production 或 library 模式生成或改进 skill 包。
-4. 新建 skill 后，会默认附带 `reports/skill-overview.html` 和 `reports/reference-scan.md`，方便理解架构、逻辑、使用方法和可借鉴对象。
+2. 先做一轮简短但更有人味的意图对话，把真实任务、输出物、边界、约束和你在意的质量标准说清楚。
+3. 再做一轮参考扫描，优先参考 GitHub 高星项目、官方文档和世界级公开对象，同时也会问你有没有想借鉴的参考；本地文件只做适配和隐私校准。
+4. 使用 archetype-aware 的 `quickstart` 或完整作者流，在 scaffold、production、library 或 governed 模式下生成或改进 skill 包。
+5. 新建 skill 后，会默认附带 `reports/intent-dialogue.md`、`reports/skill-overview.html`、`reports/review-viewer.html`、`reports/reference-scan.md` 和 `reports/iteration-directions.md`；后续还可以通过 feedback log 和 baseline compare 快速收集意见、查看增量收益，而不必每次都走完整 promotion 流程。
 
-## Results
+## 当前结果
 
 - 当前 `make test` 可通过
 - 当前回归集下 trigger eval 为 `0` 误触发、`0` 漏触发

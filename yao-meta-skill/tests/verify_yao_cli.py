@@ -9,12 +9,13 @@ ROOT = Path(__file__).resolve().parent.parent
 CLI = ROOT / "scripts" / "yao.py"
 
 
-def run(*args: str) -> dict:
+def run(*args: str, input_text: str | None = None) -> dict:
     proc = subprocess.run(
         [sys.executable, str(CLI), *args],
         cwd=ROOT,
         capture_output=True,
         text=True,
+        input=input_text,
     )
     payload = json.loads(proc.stdout)
     return {
@@ -36,8 +37,23 @@ def main() -> None:
     created = Path(init_result["payload"]["root"])
     assert (created / "SKILL.md").exists(), created
     assert (created / "README.md").exists(), created
+    assert (created / "reports" / "intent-dialogue.md").exists(), created
     assert (created / "reports" / "skill-overview.html").exists(), created
+    assert (created / "reports" / "review-viewer.html").exists(), created
     assert (created / "reports" / "reference-scan.md").exists(), created
+    assert (created / "reports" / "iteration-directions.md").exists(), created
+
+    quickstart_result = run(
+        "quickstart",
+        "--output-dir",
+        str(tmp_root),
+        input_text="quickstart-skill\nTurn rough notes into a reusable package.\nA reusable markdown workflow.\nproduction\nproduction\nA top-tier internal workflow product\nhigh-star GitHub repo, official docs\nprivacy and naming\n",
+    )
+    assert quickstart_result["ok"], quickstart_result
+    quickstart_root = Path(quickstart_result["payload"]["root"])
+    assert (quickstart_root / "reports" / "review-viewer.html").exists(), quickstart_root
+    assert quickstart_result["payload"]["archetype"] == "production", quickstart_result
+    assert quickstart_result["payload"]["references"]["user_references"] == ["A top-tier internal workflow product"], quickstart_result
 
     validate_result = run("validate", str(created))
     assert validate_result["ok"], validate_result
@@ -47,20 +63,54 @@ def main() -> None:
     assert skill_report_result["ok"], skill_report_result
     assert skill_report_result["payload"]["artifacts"]["html"].endswith("reports/skill-overview.html"), skill_report_result
 
+    review_viewer_result = run("review-viewer", str(created))
+    assert review_viewer_result["ok"], review_viewer_result
+    assert review_viewer_result["payload"]["artifacts"]["html"].endswith("reports/review-viewer.html"), review_viewer_result
+
     reference_scan_result = run(
         "reference-scan",
         str(created),
         "--external-reference",
         "World Class Method::method::Borrow the smallest repeatable evaluation loop.::Do not copy heavy ceremony.",
+        "--user-reference",
+        "Product I Admire::taste::Learn the calm structure and clarity of output.::Do not copy wording.",
         "--local-constraint",
         "Local Naming::structure::Keep folder naming aligned with the local library.::Do not inherit private references.",
     )
     assert reference_scan_result["ok"], reference_scan_result
     assert reference_scan_result["payload"]["artifacts"]["markdown"].endswith("reports/reference-scan.md"), reference_scan_result
+    assert len(reference_scan_result["payload"]["summary"]["user_references"]) == 1, reference_scan_result
+
+    intent_result = run("intent-dialogue", str(created))
+    assert intent_result["ok"], intent_result
+    assert intent_result["payload"]["artifacts"]["markdown"].endswith("reports/intent-dialogue.md"), intent_result
+
+    directions_result = run("iteration-directions", str(created))
+    assert directions_result["ok"], directions_result
+    assert directions_result["payload"]["artifacts"]["markdown"].endswith("reports/iteration-directions.md"), directions_result
+
+    feedback_result = run(
+        "feedback",
+        str(created),
+        "--note",
+        "Keep the first version light and tighten exclusions before adding scripts.",
+        "--rating",
+        "4",
+        "--category",
+        "boundary",
+        "--recommended-action",
+        "tighten-trigger",
+    )
+    assert feedback_result["ok"], feedback_result
+    assert feedback_result["payload"]["feedback"]["summary"]["count"] == 1, feedback_result
 
     optimize_result = run("optimize-description", "--target", "root")
     assert optimize_result["ok"], optimize_result
     assert optimize_result["payload"]["winner"]["label"] == "Current", optimize_result
+
+    baseline_compare_result = run("baseline-compare")
+    assert baseline_compare_result["ok"], baseline_compare_result
+    assert baseline_compare_result["payload"]["summary"]["target_count"] == 3, baseline_compare_result
 
     promote_result = run("promote-check")
     assert promote_result["ok"], promote_result

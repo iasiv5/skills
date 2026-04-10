@@ -39,15 +39,36 @@ def extract_title(body: str, fallback: str) -> str:
 
 
 def parse_reference(value: str, source: str) -> dict:
-    parts = [part.strip() for part in value.split("::")]
-    while len(parts) < 4:
-        parts.append("")
-    name, category, borrow, avoid = parts[:4]
+    if "::" in value:
+        parts = [part.strip() for part in value.split("::")]
+        while len(parts) < 4:
+            parts.append("")
+        name, category, borrow, avoid = parts[:4]
+    else:
+        name, category, borrow, avoid = value.strip(), "", "", ""
+    defaults = {
+        "external": (
+            "general",
+            "Extract the strongest reusable method, structure, or execution pattern.",
+            "Do not copy brand language, heavyweight process, or source-specific constraints.",
+        ),
+        "user": (
+            "taste",
+            "Learn what quality, tone, workflow shape, or operating standard the user wants to preserve.",
+            "Do not copy wording, confidential material, or source-specific implementation details.",
+        ),
+        "local": (
+            "general",
+            "Keep the new skill compatible with real local constraints that matter.",
+            "Do not inherit private or outdated patterns just because they already exist locally.",
+        ),
+    }
+    default_category, default_borrow, default_avoid = defaults.get(source, defaults["external"])
     return {
         "name": name or "Unnamed reference",
-        "category": category or "general",
-        "borrow": borrow or "Capture the reusable pattern, not the prose.",
-        "avoid": avoid or "Do not copy source-specific language or unnecessary weight.",
+        "category": category or default_category,
+        "borrow": borrow or default_borrow,
+        "avoid": avoid or default_avoid,
         "source": source,
     }
 
@@ -84,10 +105,11 @@ def infer_scan_focus(skill_dir: Path, description: str) -> list[dict]:
     return checks[:4]
 
 
-def split_references(references: list[dict]) -> tuple[list[dict], list[dict]]:
+def split_references(references: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
     externals = [item for item in references if item.get("source") == "external"]
+    users = [item for item in references if item.get("source") == "user"]
     locals_ = [item for item in references if item.get("source") == "local"]
-    return externals, locals_
+    return externals, users, locals_
 
 
 def build_summary(skill_dir: Path, references: list[dict]) -> dict:
@@ -97,11 +119,12 @@ def build_summary(skill_dir: Path, references: list[dict]) -> dict:
     description = frontmatter.get("description", "No description found.")
     title = extract_title(body, name.replace("-", " ").title())
     focus = infer_scan_focus(skill_dir, description)
-    external_references, local_constraints = split_references(references)
+    external_references, user_references, local_constraints = split_references(references)
 
     borrow_plan = [
-        "External benchmark first: let world-class references define the upper bound for method, structure, execution, or portability.",
-        "Local fit second: use local assets only to detect naming conflicts, private dependencies, or compatibility constraints.",
+        "External benchmark first: let high-quality public references define the upper bound for method, structure, execution, or portability.",
+        "User references second: use them to understand taste, standards, and directional preferences without copying source phrasing.",
+        "Local fit third: use local assets only to detect naming conflicts, private dependencies, or compatibility constraints.",
         "Borrow patterns, not prose: extract loops, boundaries, metadata, and operator flow without copying source-specific language.",
         "Keep the package light: reject any borrowed pattern that increases context cost faster than it increases reliability.",
     ]
@@ -115,9 +138,10 @@ def build_summary(skill_dir: Path, references: list[dict]) -> dict:
         "description": description,
         "scan_focus": focus,
         "external_references": external_references,
+        "user_references": user_references,
         "local_constraints": local_constraints,
         "borrow_plan": borrow_plan,
-        "priority_rule": "External benchmark objects set the pattern ceiling. Local files only calibrate fit, risk, and compatibility.",
+        "priority_rule": "External benchmark objects set the pattern ceiling. User references refine taste and standards. Local files only calibrate fit, risk, and compatibility.",
         "non_goals": [
             "Do not copy source prose or branding into the new skill.",
             "Do not import gates that cost more context than they save.",
@@ -168,6 +192,28 @@ def render_markdown(summary: dict) -> str:
                 "- No explicit external benchmark objects recorded yet.",
                 "- Recommended: capture 2 to 5 external references at most.",
                 "- Suggested mix: one method reference, one structure reference, one execution or portability reference.",
+                "",
+            ]
+        )
+
+    lines.extend(["## User-Supplied References", ""])
+    if summary["user_references"]:
+        for ref in summary["user_references"]:
+            lines.extend(
+                [
+                    f"### {ref['name']}",
+                    f"- Category: `{ref['category']}`",
+                    f"- Learn from: {ref['borrow']}",
+                    f"- Do not copy: {ref['avoid']}",
+                    "",
+                ]
+            )
+    else:
+        lines.extend(
+            [
+                "- No user-supplied references recorded yet.",
+                "- Ask whether the user has a repo, product, page, workflow, or prompt example worth learning from.",
+                "- Treat these as pattern references only, not as text to be copied.",
                 "",
             ]
         )
@@ -230,6 +276,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Render a benchmark-oriented reference scan for a skill package.")
     parser.add_argument("skill_dir", nargs="?", default=".")
     parser.add_argument("--external-reference", action="append", default=[], help="Format: name::category::borrow::avoid")
+    parser.add_argument("--user-reference", action="append", default=[], help="Format: name::category::borrow::avoid")
     parser.add_argument("--local-constraint", action="append", default=[], help="Format: name::category::borrow::avoid")
     parser.add_argument("--reference", action="append", default=[], help="Legacy alias for --external-reference.")
     parser.add_argument("--output-md")
@@ -237,6 +284,7 @@ def main() -> None:
     args = parser.parse_args()
 
     refs = [parse_reference(item, "external") for item in [*args.external_reference, *args.reference]]
+    refs.extend(parse_reference(item, "user") for item in args.user_reference)
     refs.extend(parse_reference(item, "local") for item in args.local_constraint)
     result = render_reference_scan(
         Path(args.skill_dir),

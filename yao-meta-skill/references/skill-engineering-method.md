@@ -5,11 +5,13 @@ This doctrine defines the default method for turning messy workflow material int
 ## Core Loop
 
 1. Decide whether the request should become a skill at all.
-2. Choose the smallest viable archetype.
-3. Set one clear capability boundary.
-4. Write and test the trigger description before expanding the body.
-5. Add only the gates that match the risk.
-6. Package and govern the skill only as far as real reuse demands.
+2. Run a short intent dialogue to capture the real job, outputs, exclusions, and constraints.
+3. Choose the smallest viable archetype.
+4. Set one clear capability boundary.
+5. Write and test the trigger description before expanding the body.
+6. Add only the gates that match the risk.
+7. Ship the first routeable package, then pick the three highest-value next iteration directions.
+8. Package and govern the skill only as far as real reuse demands.
 
 ## Phase 1: Qualification
 
@@ -31,7 +33,22 @@ Reject skill creation when the request is only:
 
 See [Non-Skill Decision Tree](non-skill-decision-tree.md).
 
-## Phase 2: Archetype Selection
+## Phase 2: Intent Dialogue
+
+Before deep authoring, ask only the questions that change the package design.
+
+- open with a human, teacher-like framing rather than a cold field list
+- let the user answer naturally first; offer a tiny template only as an optional shortcut
+- what recurring job should the skill own
+- what real inputs will users hand to it
+- what outputs must it produce
+- what near-neighbor requests should stay out of scope
+- whether the user has reference systems, repos, or products worth learning from
+- what constraints matter: privacy, naming, portability, governance, or local fit
+
+See [Intent Dialogue](intent-dialogue.md).
+
+## Phase 3: Archetype Selection
 
 Choose the lightest archetype that fits the job.
 
@@ -42,7 +59,7 @@ Choose the lightest archetype that fits the job.
 
 See [Skill Archetypes](skill-archetypes.md).
 
-## Phase 3: Boundary Design
+## Phase 4: Boundary Design
 
 Every skill should answer four questions clearly:
 
@@ -53,20 +70,21 @@ Every skill should answer four questions clearly:
 
 Boundary work comes before polishing prose.
 
-## Phase 4: Reference Scan
+## Phase 5: Reference Scan
 
 Run a short benchmark pass before deep authoring.
 
 - scan `3-5` reference objects at most
-- prioritize external GitHub and official benchmark sources first
-- use local files second, only for fit, privacy, and compatibility calibration
+- prioritize high-star external GitHub and official benchmark sources first
+- ask for user-supplied references second, but extract only patterns and standards
+- use local files third, only for fit, privacy, and compatibility calibration
 - choose from method, structure, execution, portability, and domain patterns
 - extract only what improves reliability or clarity
 - record what not to borrow so the new skill stays light
 
 See [Reference Scan Strategy](reference-scan.md).
 
-## Phase 5: Trigger-First Authoring
+## Phase 6: Trigger-First Authoring
 
 Author the frontmatter `description` before expanding the body.
 
@@ -84,7 +102,7 @@ Trigger quality is improved through:
 - adversarial holdout
 - route confusion
 
-## Phase 6: Gate Selection
+## Phase 7: Gate Selection
 
 Add gates by risk, not by habit.
 
@@ -95,7 +113,18 @@ Add gates by risk, not by habit.
 
 See [Gate Selection](gate-selection.md).
 
-## Phase 7: Promotion
+## Phase 8: First Iteration Philosophy
+
+The first package is a routeable baseline, not the final answer.
+
+- improve trigger and exclusions before growing prose
+- add one execution asset before adding many documents
+- surface the three highest-value next moves so authors do not expand in every direction at once
+- prefer the smallest step that increases reliability more than context cost
+
+See [Iteration Philosophy](iteration-philosophy.md).
+
+## Phase 9: Promotion
 
 A candidate route or package is promotable only when:
 

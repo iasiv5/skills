@@ -19,8 +19,14 @@ It turns rough workflows, transcripts, prompts, notes, and runbooks into reusabl
 - a clear trigger surface
 - a lean `SKILL.md`
 - optional references, scripts, and evals
-- a controlled benchmark scan before deep authoring
+- a front-loaded intent dialogue that starts from the user's real work, desired outcome, and quality bar
+- a controlled benchmark scan that prefers high-quality public references first and asks whether the user has examples worth learning from
 - a generated visual HTML overview for each newly initialized skill
+- a compact HTML review viewer for first-pass human review
+- three high-value next iteration directions after the first package is created
+- a lightweight feedback log that does not require a full promotion cycle
+- a baseline compare report for with-skill vs baseline review
+- an archetype-aware quickstart that steers new packages toward scaffold, production, library, or governed fits
 - neutral source metadata plus client-specific adapters
 - governance, promotion, and portability checks built into the default flow
 
@@ -44,21 +50,51 @@ Read it in 10 seconds:
 - **Run**: use the unified CLI to build, validate, optimize, and promote.
 - **Outputs**: ship a reusable skill plus evidence, governance signals, and portability artifacts.
 
+## Comparison Snapshot
+
+This is a scenario-oriented benchmark shared with the project. It is most useful when deciding which system fits a workflow, not as a universal claim that one approach beats every other approach in every context.
+
+| Dimension | skill-creator | yao-meta-skill | What it means |
+| --- | ---: | ---: | --- |
+| Onboarding friction | 9 | 6 | `skill-creator` is friendlier and more conversational; `yao-meta-skill` has more concepts and a steeper learning curve. |
+| Flexibility | 9 | 7 | `skill-creator` is more free-form; `yao-meta-skill` uses a more explicit process. |
+| Method depth | 5 | 9.5 | `yao-meta-skill` has a fuller engineering doctrine with archetypes, gate selection, governance, and resource boundaries. |
+| Evaluation rigor | 7 | 9.5 | `yao-meta-skill` emphasizes layered holdouts, route confusion, adversarial checks, and promotion gates. |
+| Human review experience | 9 | 5 | `skill-creator` has the more intuitive review UX; `yao-meta-skill` is still mostly report-driven. |
+| Governance and lifecycle | 2 | 9.5 | `yao-meta-skill` treats important skills as managed assets with maturity, review cadence, and promotion evidence. |
+| Cross-environment portability | 4 | 9 | `yao-meta-skill` is built around neutral metadata, adapters, degradation rules, and portability checks. |
+| Toolchain completeness | 6 | 9.5 | `yao-meta-skill` ships with a much broader toolchain, unified CLI, CI, and report generation. |
+| Iteration speed | 8 | 7 | `skill-creator` can feel faster for quick cycles; `yao-meta-skill` spends more effort on gates and evidence. |
+| Documentation quality | 7 | 9 | `yao-meta-skill` offers multi-language docs, examples, failure cases, and method doctrine. |
+| Best for solo use | 9 | 6 | `skill-creator` is easier for fast personal iteration. |
+| Best for teams and organizations | 5 | 9.5 | `yao-meta-skill` fits team reuse, governance, CI, and long-term maintenance better. |
+| Overall | 6.7 | 8.0 | The tradeoff is straightforward: lighter conversation flow versus stronger engineering and governance. |
+
+## Best-Fit Scenarios
+
+- Choose **skill-creator** when the main goal is fast solo ideation, flexible interaction, and quick iteration with a lighter process.
+- Choose **yao-meta-skill** when the goal is to build a reusable asset with explicit boundaries, evaluation gates, governance, portability, and long-term maintainability.
+- A practical hybrid pattern is: use a conversational creator to get a first draft, then use `yao-meta-skill` to harden the package, add evidence, and make it team-ready.
+
 ## Quick Start
 
 1. Describe the workflow, prompt set, or repeated task you want to turn into a skill.
-2. Run a short reference scan with external benchmarks first, then use local files only for fit and privacy checks.
-3. Use `yao-meta-skill` to generate or improve the package in scaffold, production, or library mode.
-4. Run `context_sizer.py`, `resource_boundary_check.py`, `governance_check.py`, `trigger_eval.py`, and `cross_packager.py` as needed to validate and export the result.
+2. Start with a short, human intent dialogue so the real job, outputs, exclusions, constraints, and standards are explicit.
+3. Run a short reference scan with high-quality public benchmarks first, then ask whether the user has examples worth learning from; use local files only for fit and privacy checks.
+4. Use the archetype-aware `quickstart` or the full authoring flow to generate or improve the package in scaffold, production, library, or governed mode.
+5. Review the generated `reports/intent-dialogue.md`, `reports/skill-overview.html`, and `reports/iteration-directions.md` before adding more structure.
 
 Or use the unified authoring CLI:
 
 ```bash
-python3 scripts/yao.py init my-skill --description "Describe what the skill does."
+python3 scripts/yao.py quickstart --output-dir .
 python3 scripts/yao.py reference-scan my-skill \
   --external-reference "World Class Method::method::Borrow a tight evaluation loop.::Do not copy heavy process." \
+  --user-reference "A product or repo I admire::taste::Learn the clarity and operating standard.::Do not copy wording." \
   --local-constraint "Current Library Naming::structure::Keep naming aligned with the local skill library.::Do not inherit private references."
-python3 scripts/yao.py skill-report my-skill
+python3 scripts/yao.py review-viewer my-skill
+python3 scripts/yao.py feedback my-skill --note "Tighten exclusions before adding scripts." --rating 4 --category boundary
+python3 scripts/yao.py baseline-compare
 python3 scripts/yao.py package . --platform generic --output-dir dist
 ```
 
@@ -95,6 +131,7 @@ Unified authoring flow:
 python3 scripts/yao.py init my-skill --description "Describe what the skill does."
 python3 scripts/yao.py validate my-skill
 python3 scripts/yao.py workspace-flow --target root --label first-pass
+python3 scripts/yao.py review-viewer my-skill
 python3 scripts/yao.py review --target root
 python3 scripts/yao.py release-snapshot --target root --label release-candidate
 python3 scripts/yao.py package . --platform openai --platform claude --platform generic --output-dir dist --zip
@@ -159,6 +196,7 @@ Full reports: [reports/eval_suite.json](reports/eval_suite.json) and [reports/fa
 - promotion evidence is summarized in [reports/iteration_ledger.md](reports/iteration_ledger.md)
 - promotion decisions are published in [reports/promotion_decisions.md](reports/promotion_decisions.md)
 - candidate lifecycle states are published in [reports/candidate_registry.md](reports/candidate_registry.md)
+- lightweight with-skill vs baseline comparison is published in [reports/baseline-compare.md](reports/baseline-compare.md)
 - context budget summaries are tracked in [reports/context_budget.md](reports/context_budget.md)
 - portability status is tracked in [reports/portability_score.md](reports/portability_score.md)
 
@@ -201,9 +239,11 @@ The design logic is simple:
 The repository now treats method as a first-class asset instead of scattered guidance.
 
 - [Skill Engineering Method](references/skill-engineering-method.md)
+- [Intent Dialogue](references/intent-dialogue.md)
 - [Reference Scan Strategy](references/reference-scan.md)
 - [Skill Archetypes](references/skill-archetypes.md)
 - [Gate Selection](references/gate-selection.md)
+- [Iteration Philosophy](references/iteration-philosophy.md)
 - [Non-Skill Decision Tree](references/non-skill-decision-tree.md)
 - [Regression Cause Taxonomy](references/regression-cause-taxonomy.md)
 - [Human Review Template](references/human-review-template.md)

@@ -9,8 +9,15 @@ Il transforme des workflows bruts, des transcripts, des prompts, des notes et de
 - une surface de déclenchement claire
 - un `SKILL.md` léger
 - des references, scripts et evals optionnels
-- un benchmark/reference scan contrôlé avant l'authoring profond
+- un dialogue d'intention plus humain avant l'authoring approfondi, pour comprendre le vrai travail, la sortie attendue, les frontières et le niveau d'exigence
+- un benchmark/reference scan contrôlé avant l'authoring profond, en donnant la priorité aux dépôts GitHub très reconnus, aux documentations officielles et aux références publiques de niveau mondial
+- une demande explicite de références fournies par l'utilisateur quand elles existent, afin d'apprendre des modèles, pas de copier le texte ni du contenu privé
 - un rapport HTML minimaliste en fond blanc généré automatiquement pour chaque nouveau skill
+- trois directions d'itération à plus forte valeur après la première création
+- un review viewer HTML compact pour accélérer la première revue humaine
+- un feedback log léger pour éviter de lancer tout le flux de promotion à chaque tour
+- un rapport with-skill vs baseline pour visualiser rapidement le gain incrémental
+- un quickstart sensible aux archetypes pour orienter un nouveau skill vers scaffold, production, library ou governed
 - des métadonnées sources neutres et des adaptateurs spécifiques au client
 - des contrôles de gouvernance, de promotion et de portabilité intégrés au flux standard
 
@@ -34,14 +41,41 @@ Lecture en 10 secondes :
 - **Exécution** : la CLI unifiée construit, valide, optimise et promeut le skill.
 - **Sorties** : on obtient un skill package réutilisable avec ses preuves d'évaluation, de gouvernance et de portabilité.
 
-## Quick Start
+## Comparatif rapide
+
+Le tableau ci-dessous est un comparatif orienté scénario. Il aide à choisir le bon système selon le contexte, plutôt qu'à prétendre qu'une approche domine toutes les autres dans tous les cas.
+
+| Dimension | skill-creator | yao-meta-skill | Ce que cela signifie |
+| --- | ---: | ---: | --- |
+| Facilité de prise en main | 9 | 6 | `skill-creator` est plus conversationnel et intuitif ; `yao-meta-skill` demande plus d'apprentissage. |
+| Flexibilité | 9 | 7 | `skill-creator` est plus libre ; `yao-meta-skill` suit un processus plus explicite. |
+| Profondeur méthodologique | 5 | 9.5 | `yao-meta-skill` possède une doctrine plus complète : archetypes, gates, governance et resource boundaries. |
+| Rigueur d'évaluation | 7 | 9.5 | `yao-meta-skill` insiste sur les holdouts multiples, la route confusion, l'adversarial et les promotion gates. |
+| Expérience de revue humaine | 9 | 5 | `skill-creator` offre une expérience de revue plus directe ; `yao-meta-skill` reste surtout piloté par des rapports. |
+| Gouvernance et cycle de vie | 2 | 9.5 | `yao-meta-skill` traite les skills importantes comme des actifs gérés avec maturité, cadence de revue et preuves de promotion. |
+| Portabilité inter-environnements | 4 | 9 | `yao-meta-skill` repose sur des métadonnées neutres, des adaptateurs, des règles de dégradation et des contrôles de portabilité. |
+| Complétude de la toolchain | 6 | 9.5 | `yao-meta-skill` apporte une toolchain plus large avec CLI unifiée, CI et génération de rapports. |
+| Vitesse d'itération | 8 | 7 | `skill-creator` paraît plus rapide pour les petites boucles ; `yao-meta-skill` accepte plus de friction pour gagner en preuves. |
+| Qualité de la documentation | 7 | 9 | `yao-meta-skill` fournit docs multilingues, exemples, failure library et méthode formalisée. |
+| Pertinence pour un usage individuel | 9 | 6 | `skill-creator` est plus naturel pour un usage personnel rapide. |
+| Pertinence pour une équipe / organisation | 5 | 9.5 | `yao-meta-skill` est mieux adapté à la réutilisation en équipe, à la CI, à la gouvernance et à la maintenance longue. |
+| Global | 6.7 | 8.0 | Le compromis est clair : flux conversationnel léger d'un côté, ingénierie et gouvernance plus fortes de l'autre. |
+
+## Scénarios recommandés
+
+- Choisissez **skill-creator** si votre besoin principal est l'idéation rapide en solo, l'interaction souple et un processus léger.
+- Choisissez **yao-meta-skill** si vous voulez un actif réutilisable avec frontières explicites, gates d'évaluation, gouvernance, portabilité et maintenance à long terme.
+- Un schéma hybride utile consiste à produire un premier jet avec un creator conversationnel, puis à utiliser `yao-meta-skill` pour durcir le package et le rendre prêt pour une équipe.
+
+## Démarrage rapide
 
 1. Décrivez le workflow, l'ensemble de prompts ou la tâche répétée que vous voulez transformer en skill.
-2. Lancez un court reference scan en privilégiant GitHub et les objets publics de référence ; les fichiers locaux ne servent ensuite qu'à l'ajustement, à la confidentialité et à la compatibilité.
-3. Utilisez `yao-meta-skill` pour générer ou améliorer le paquet en mode scaffold, production ou library.
-4. Chaque nouveau skill reçoit aussi `reports/skill-overview.html` et `reports/reference-scan.md`, pour comprendre rapidement son architecture, sa logique, son usage et ses références utiles.
+2. Commencez par un court dialogue d'intention plus humain pour clarifier le vrai travail, les sorties attendues, les exclusions, les contraintes et les standards qui comptent pour vous.
+3. Lancez ensuite un court reference scan en privilégiant les dépôts GitHub à forte reconnaissance, les documentations officielles et les références publiques de haut niveau ; le système vous demandera aussi si vous avez des exemples à faire étudier. Les fichiers locaux ne servent ensuite qu'à l'ajustement, à la confidentialité et à la compatibilité.
+4. Utilisez le `quickstart` sensible aux archetypes ou le flux complet d'authoring pour générer ou améliorer le paquet en mode scaffold, production, library ou governed.
+5. Chaque nouveau skill reçoit aussi `reports/intent-dialogue.md`, `reports/skill-overview.html`, `reports/review-viewer.html`, `reports/reference-scan.md` et `reports/iteration-directions.md`. Ensuite, le feedback log et le baseline compare permettent de boucler rapidement sans lancer tout le flux de promotion.
 
-## Results
+## Résultats actuels
 
 - `make test` passe actuellement
 - sur le jeu de régression courant, trigger eval a `0` faux positifs et `0` faux négatifs

@@ -99,19 +99,176 @@ def resolve_promotion_target(name: str) -> str:
     return PROMOTION_TARGETS[name]
 
 
-def command_init(args: argparse.Namespace) -> int:
-    result = run_script(
-        "init_skill.py",
+def baseline_compare_args() -> list[str]:
+    args = []
+    for label, target in TARGETS.items():
+        args.extend(["--entry", f"{label}::{target['output_json']}"])
+    args.extend(
         [
-            args.name,
-            "--description",
-            args.description,
-            "--output-dir",
-            args.output_dir,
-            *(["--title", args.title] if args.title else []),
-        ],
+            "--output-json",
+            str(ROOT / "reports" / "baseline-compare.json"),
+            "--output-md",
+            str(ROOT / "reports" / "baseline-compare.md"),
+        ]
     )
+    return args
+
+
+def prompt_with_default(label: str, default: str) -> str:
+    sys.stderr.write(f"{label} [{default}]: ")
+    sys.stderr.flush()
+    value = sys.stdin.readline().strip()
+    return value or default
+
+
+def prompt_optional_entries(label: str) -> list[str]:
+    sys.stderr.write(f"{label} [none]: ")
+    sys.stderr.flush()
+    value = sys.stdin.readline().strip()
+    if not value or value.lower() in {"none", "no", "n"}:
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+ARCHETYPE_MODE = {
+    "scaffold": "scaffold",
+    "production": "production",
+    "library": "library",
+    "governed": "governed",
+}
+
+
+def infer_archetype(job: str, description: str) -> tuple[str, str]:
+    text = f"{job} {description}".lower()
+    if any(token in text for token in ("incident", "compliance", "security", "release", "govern", "audit", "policy")):
+        return "governed", "The request looks operationally sensitive, so governed is the safest default."
+    if any(token in text for token in ("shared", "cross-team", "library", "portable", "platform", "reusable across")):
+        return "library", "The request signals multi-team reuse or portability, so library is the better fit."
+    if any(token in text for token in ("review", "checklist", "team", "workflow", "process", "standardize")):
+        return "production", "The request looks team-reused and repeatable, so production fits better than scaffold."
+    return "scaffold", "The request still looks exploratory or lightweight, so scaffold keeps the first package lean."
+
+
+def archetype_guidance(archetype: str) -> dict:
+    mapping = {
+        "scaffold": {
+            "first_gate": "trigger and exclusions",
+            "focus": "keep the first package small and avoid governance overhead",
+        },
+        "production": {
+            "first_gate": "trigger plus one execution or eval asset",
+            "focus": "make the package reliable for team reuse",
+        },
+        "library": {
+            "first_gate": "trigger, portability, and packaging semantics",
+            "focus": "treat the package as a shared capability with visible evidence",
+        },
+        "governed": {
+            "first_gate": "trigger, governance, and review cadence",
+            "focus": "treat the package as a high-trust asset from the start",
+        },
+    }
+    return mapping.get(archetype, mapping["scaffold"])
+
+
+def command_init(args: argparse.Namespace) -> int:
+    cmd = [
+        args.name,
+        "--description",
+        args.description,
+        "--output-dir",
+        args.output_dir,
+        "--mode",
+        args.mode,
+        "--archetype",
+        args.archetype,
+        *(["--title", args.title] if args.title else []),
+    ]
+    for reference in args.external_reference:
+        cmd.extend(["--external-reference", reference])
+    for reference in args.user_reference:
+        cmd.extend(["--user-reference", reference])
+    for constraint in args.local_constraint:
+        cmd.extend(["--local-constraint", constraint])
+    result = run_script("init_skill.py", cmd)
     print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
+def command_quickstart(args: argparse.Namespace) -> int:
+    sys.stderr.write("Let's shape this skill around the real work, the outcome, and the standards you care about before we add structure.\n")
+    sys.stderr.write("If you already have references you admire, bring them in. We'll learn the pattern, not copy the source.\n")
+    name = args.name or prompt_with_default("Skill name", "my-skill")
+    job = args.job or prompt_with_default("What repeated work should this skill quietly take off your hands", "Turn a repeated workflow into a reusable skill.")
+    primary_output = args.primary_output or prompt_with_default("What should it reliably hand back", "A reusable skill package.")
+    description = args.description or f"{job.rstrip('.')} Primary output: {primary_output.rstrip('.')}."
+    inferred_archetype, archetype_reason = infer_archetype(job, description)
+    archetype = args.archetype or prompt_with_default("Archetype (scaffold/production/library/governed)", inferred_archetype)
+    archetype = archetype if archetype in ARCHETYPE_MODE else inferred_archetype
+    default_mode = ARCHETYPE_MODE[archetype]
+    mode = args.mode or prompt_with_default("Mode (scaffold/production/library/governed)", default_mode)
+    mode = mode if mode in ARCHETYPE_MODE.values() else default_mode
+    user_references = args.user_reference or prompt_optional_entries(
+        "Reference examples you want it to learn from (repo, product, page, workflow; comma-separated)"
+    )
+    external_references = args.external_reference or prompt_optional_entries(
+        "Public benchmark objects to scan first (high-star GitHub repo, official doc, product; comma-separated)"
+    )
+    local_constraints = args.local_constraint or prompt_optional_entries(
+        "Local constraints that must still be respected (privacy, naming, compatibility; comma-separated)"
+    )
+    title = args.title or name.replace("-", " ").title()
+    guidance = archetype_guidance(archetype)
+    cmd = [
+        name,
+        "--description",
+        description,
+        "--title",
+        title,
+        "--output-dir",
+        args.output_dir,
+        "--mode",
+        mode,
+        "--archetype",
+        archetype,
+    ]
+    for reference in external_references:
+        cmd.extend(["--external-reference", reference])
+    for reference in user_references:
+        cmd.extend(["--user-reference", reference])
+    for constraint in local_constraints:
+        cmd.extend(["--local-constraint", constraint])
+    result = run_script("init_skill.py", cmd)
+    payload = result["payload"] if result["payload"] is not None else result
+    report = {
+        "ok": result["ok"],
+        "root": payload.get("root"),
+        "mode": mode,
+        "archetype": archetype,
+        "references": {
+            "external_benchmarks": external_references,
+            "user_references": user_references,
+            "local_constraints": local_constraints,
+        },
+        "artifacts": payload.get("artifacts", {}),
+        "guidance": {
+            "archetype_reason": archetype_reason,
+            "why_this_mode": (
+                "Scaffold mode keeps the first package light and lets you postpone governance-heavy work until reuse becomes real."
+                if mode == "scaffold"
+                else "This mode expects stronger lifecycle metadata, validation, and review discipline."
+            ),
+            "first_gate": guidance["first_gate"],
+            "focus": guidance["focus"],
+            "next_steps": [
+                "Open reports/intent-dialogue.md and tighten the real job, outputs, and exclusions.",
+                "Open reports/reference-scan.md and decide which external patterns to borrow and which user references set the quality bar.",
+                "Open reports/review-viewer.html to explain the package to a first-time reviewer.",
+                "Use reports/iteration-directions.md to choose only one high-value next move before adding more files.",
+            ],
+        },
+    }
+    print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
 
 
@@ -191,6 +348,7 @@ def command_report(args: argparse.Namespace) -> int:
             run_script("render_eval_dashboard.py", []),
             run_script("render_description_drift_history.py", []),
             run_script("render_iteration_ledger.py", []),
+            run_script("render_baseline_compare.py", baseline_compare_args()),
             run_script("render_regression_history.py", []),
             run_script("render_context_reports.py", []),
             run_script("render_portability_report.py", []),
@@ -204,6 +362,7 @@ def command_report(args: argparse.Namespace) -> int:
             "route_scorecard": "reports/route_scorecard.json",
             "promotion_decisions": "reports/promotion_decisions.json",
             "iteration_ledger": "reports/iteration_ledger.md",
+            "baseline_compare": "reports/baseline-compare.json",
             "regression_history": "reports/regression_history.md",
             "context_budget": "reports/context_budget.json",
             "portability_score": "reports/portability_score.json",
@@ -225,11 +384,25 @@ def command_skill_report(args: argparse.Namespace) -> int:
     return 0 if result["ok"] else 2
 
 
+def command_review_viewer(args: argparse.Namespace) -> int:
+    skill_dir = str(Path(args.skill_dir).resolve())
+    cmd = [skill_dir]
+    if args.output_html:
+        cmd.extend(["--output-html", args.output_html])
+    if args.output_json:
+        cmd.extend(["--output-json", args.output_json])
+    result = run_script("render_review_viewer.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
 def command_reference_scan(args: argparse.Namespace) -> int:
     skill_dir = str(Path(args.skill_dir).resolve())
     cmd = [skill_dir]
     for reference in args.external_reference:
         cmd.extend(["--external-reference", reference])
+    for reference in args.user_reference:
+        cmd.extend(["--user-reference", reference])
     for constraint in args.local_constraint:
         cmd.extend(["--local-constraint", constraint])
     for reference in args.reference:
@@ -239,6 +412,53 @@ def command_reference_scan(args: argparse.Namespace) -> int:
     if args.output_json:
         cmd.extend(["--output-json", args.output_json])
     result = run_script("render_reference_scan.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
+def command_intent_dialogue(args: argparse.Namespace) -> int:
+    skill_dir = str(Path(args.skill_dir).resolve())
+    cmd = [skill_dir]
+    if args.output_md:
+        cmd.extend(["--output-md", args.output_md])
+    if args.output_json:
+        cmd.extend(["--output-json", args.output_json])
+    result = run_script("render_intent_dialogue.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
+def command_iteration_directions(args: argparse.Namespace) -> int:
+    skill_dir = str(Path(args.skill_dir).resolve())
+    cmd = [skill_dir]
+    if args.output_md:
+        cmd.extend(["--output-md", args.output_md])
+    if args.output_json:
+        cmd.extend(["--output-json", args.output_json])
+    result = run_script("render_iteration_directions.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
+def command_feedback(args: argparse.Namespace) -> int:
+    skill_dir = str(Path(args.skill_dir).resolve())
+    cmd = [skill_dir]
+    if args.note:
+        cmd.extend(["--note", args.note])
+    cmd.extend(["--rating", str(args.rating), "--category", args.category, "--recommended-action", args.recommended_action])
+    result = run_script("collect_feedback.py", cmd)
+    viewer = run_script("render_review_viewer.py", [skill_dir])
+    report = {
+        "ok": result["ok"] and viewer["ok"],
+        "feedback": result["payload"] if result["payload"] is not None else result,
+        "review_viewer": viewer["payload"] if viewer["payload"] is not None else viewer,
+    }
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return 0 if report["ok"] else 2
+
+
+def command_baseline_compare(args: argparse.Namespace) -> int:
+    result = run_script("render_baseline_compare.py", baseline_compare_args())
     print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
 
@@ -299,6 +519,7 @@ def command_workspace_flow(args: argparse.Namespace) -> int:
             {"phase": "report-refresh", "result": run_script("render_eval_dashboard.py", [])},
             {"phase": "report-refresh", "result": run_script("render_description_drift_history.py", [])},
             {"phase": "report-refresh", "result": run_script("render_iteration_ledger.py", [])},
+            {"phase": "report-refresh", "result": run_script("render_baseline_compare.py", baseline_compare_args())},
             {"phase": "report-refresh", "result": run_script("render_regression_history.py", [])},
             {"phase": "report-refresh", "result": run_script("render_context_reports.py", [])},
             {"phase": "report-refresh", "result": run_script("render_portability_report.py", [])},
@@ -394,7 +615,29 @@ def build_parser() -> argparse.ArgumentParser:
     init_cmd.add_argument("--description", default="Describe what the skill does and when to use it.")
     init_cmd.add_argument("--title")
     init_cmd.add_argument("--output-dir", default=".")
+    init_cmd.add_argument("--mode", choices=["scaffold", "production", "library", "governed"], default="scaffold")
+    init_cmd.add_argument("--archetype", choices=["scaffold", "production", "library", "governed"], default="scaffold")
+    init_cmd.add_argument("--external-reference", action="append", default=[])
+    init_cmd.add_argument("--user-reference", action="append", default=[])
+    init_cmd.add_argument("--local-constraint", action="append", default=[])
     init_cmd.set_defaults(func=command_init)
+
+    quickstart_cmd = subparsers.add_parser(
+        "quickstart",
+        help="Interactive fast path for creating a scaffold-first skill package.",
+    )
+    quickstart_cmd.add_argument("--name")
+    quickstart_cmd.add_argument("--job")
+    quickstart_cmd.add_argument("--primary-output")
+    quickstart_cmd.add_argument("--description")
+    quickstart_cmd.add_argument("--title")
+    quickstart_cmd.add_argument("--output-dir", default=".")
+    quickstart_cmd.add_argument("--mode", choices=["scaffold", "production", "library", "governed"])
+    quickstart_cmd.add_argument("--archetype", choices=["scaffold", "production", "library", "governed"])
+    quickstart_cmd.add_argument("--external-reference", action="append", default=[])
+    quickstart_cmd.add_argument("--user-reference", action="append", default=[])
+    quickstart_cmd.add_argument("--local-constraint", action="append", default=[])
+    quickstart_cmd.set_defaults(func=command_quickstart)
 
     validate_cmd = subparsers.add_parser("validate", help="Run validate, lint, governance, and resource checks.")
     validate_cmd.add_argument("skill_dir", nargs="?", default=".")
@@ -452,6 +695,12 @@ def build_parser() -> argparse.ArgumentParser:
     skill_report_cmd.add_argument("--output-json")
     skill_report_cmd.set_defaults(func=command_skill_report)
 
+    review_viewer_cmd = subparsers.add_parser("review-viewer", help="Render a compact HTML review page for a skill package.")
+    review_viewer_cmd.add_argument("skill_dir", nargs="?", default=".")
+    review_viewer_cmd.add_argument("--output-html")
+    review_viewer_cmd.add_argument("--output-json")
+    review_viewer_cmd.set_defaults(func=command_review_viewer)
+
     reference_scan_cmd = subparsers.add_parser(
         "reference-scan",
         help="Render a controlled benchmark scan report for a skill package.",
@@ -459,10 +708,46 @@ def build_parser() -> argparse.ArgumentParser:
     reference_scan_cmd.add_argument("skill_dir", nargs="?", default=".")
     reference_scan_cmd.add_argument("--reference", action="append", default=[])
     reference_scan_cmd.add_argument("--external-reference", action="append", default=[])
+    reference_scan_cmd.add_argument("--user-reference", action="append", default=[])
     reference_scan_cmd.add_argument("--local-constraint", action="append", default=[])
     reference_scan_cmd.add_argument("--output-md")
     reference_scan_cmd.add_argument("--output-json")
     reference_scan_cmd.set_defaults(func=command_reference_scan)
+
+    intent_dialogue_cmd = subparsers.add_parser(
+        "intent-dialogue",
+        help="Render a front-loaded intent dialogue guide for a skill package.",
+    )
+    intent_dialogue_cmd.add_argument("skill_dir", nargs="?", default=".")
+    intent_dialogue_cmd.add_argument("--output-md")
+    intent_dialogue_cmd.add_argument("--output-json")
+    intent_dialogue_cmd.set_defaults(func=command_intent_dialogue)
+
+    iteration_directions_cmd = subparsers.add_parser(
+        "iteration-directions",
+        help="Render the top three next iteration directions for a skill package.",
+    )
+    iteration_directions_cmd.add_argument("skill_dir", nargs="?", default=".")
+    iteration_directions_cmd.add_argument("--output-md")
+    iteration_directions_cmd.add_argument("--output-json")
+    iteration_directions_cmd.set_defaults(func=command_iteration_directions)
+
+    feedback_cmd = subparsers.add_parser(
+        "feedback",
+        help="Capture lightweight reviewer feedback without running the full promotion flow.",
+    )
+    feedback_cmd.add_argument("skill_dir", nargs="?", default=".")
+    feedback_cmd.add_argument("--note")
+    feedback_cmd.add_argument("--rating", type=int, default=3)
+    feedback_cmd.add_argument("--category", default="general")
+    feedback_cmd.add_argument("--recommended-action", default="review")
+    feedback_cmd.set_defaults(func=command_feedback)
+
+    baseline_compare_cmd = subparsers.add_parser(
+        "baseline-compare",
+        help="Render a lightweight with-skill vs baseline comparison across tracked targets.",
+    )
+    baseline_compare_cmd.set_defaults(func=command_baseline_compare)
 
     package_cmd = subparsers.add_parser("package", help="Export compatibility artifacts for selected targets.")
     package_cmd.add_argument("skill_dir", nargs="?", default=".")
