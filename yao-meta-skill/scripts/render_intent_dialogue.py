@@ -100,6 +100,26 @@ def build_questions(focus: str) -> list[dict]:
     return base
 
 
+def build_opening_styles() -> list[dict]:
+    return [
+        {
+            "label": "温柔陪伴型",
+            "best_when": "用户想法还散、还在试探，或者需要先被接住。",
+            "message": "我们先不急着把它说成一个很完整的 skill。你就像跟我聊天一样，先说说你最想让它以后稳稳接住哪类重复工作；如果它做得很理想，最后应该交回你一个什么结果。",
+        },
+        {
+            "label": "专业教练型",
+            "best_when": "用户目标比较明确，希望被高效带着走。",
+            "message": "我们先把这件事讲清楚，再决定 skill 怎么设计。你先告诉我三件事：它要接住的重复任务是什么，别人通常会给它什么材料，最后你希望它交付什么结果。",
+        },
+        {
+            "label": "共创伙伴型",
+            "best_when": "用户已经有一些想法，希望一起打磨，不想被填表。",
+            "message": "我们把这次当成一次共创。你先给我一个粗糙版本就行，我先帮你看它真正的核心任务是什么，再一起决定边界、结构和接下来最值的一步。",
+        },
+    ]
+
+
 def build_summary(skill_dir: Path) -> dict:
     skill_text = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
     frontmatter, body = parse_frontmatter(skill_text)
@@ -108,6 +128,7 @@ def build_summary(skill_dir: Path) -> dict:
     title = extract_title(body, name.replace("-", " ").title())
     focus = classify_focus(description)
     questions = build_questions(focus)
+    opening_styles = build_opening_styles()
     output = {
         "capability_sentence": f"{title} should turn a recurring request into a reliable reusable output without widening the boundary unnecessarily.",
         "required_capture": [
@@ -126,8 +147,20 @@ def build_summary(skill_dir: Path) -> dict:
         "title": title,
         "description": description,
         "focus": focus,
-        "opening_frame": "Let's shape the skill around the real work, the desired outcome, and the standards you care about before we start adding structure.",
+        "opening_frame": "Let's start from the real work, the result you care about, and the standards that matter here. We can make the structure clearer after that.",
         "reference_note": "If you already have examples you admire, bring them in. We will learn the pattern, not copy the source.",
+        "conversation_path": [
+            "Start with the user's own words, not package vocabulary.",
+            "Reflect the job, output, and non-goals back in one clean sentence.",
+            "Only then offer a tiny scaffold if it would help the user move faster.",
+        ],
+        "opening_styles": opening_styles,
+        "optional_scaffold": [
+            "The repeated job it should take over",
+            "The real inputs people will hand to it",
+            "The useful output it should hand back",
+            "What it should clearly refuse",
+        ],
         "questions": questions,
         "output": output,
     }
@@ -143,20 +176,45 @@ def render_markdown(summary: dict) -> str:
         "",
         summary["opening_frame"],
         "",
-        "## Why Start Here",
-        "",
-        "Use this short dialogue before deep authoring. The goal is to learn the real job, output, exclusions, and constraints so the first package is small but accurate.",
-        "",
-        "## Current Anchor",
-        "",
-        f"- Title: `{summary['title']}`",
-        f"- Description: {summary['description']}",
-        f"- Focus: `{summary['focus']}`",
-        f"- Reference note: {summary['reference_note']}",
-        "",
-        "## Questions To Ask",
+        "## Opening Tone Options",
         "",
     ]
+    for item in summary["opening_styles"]:
+        lines.extend(
+            [
+                f"### {item['label']}",
+                "",
+                f"- Best when: {item['best_when']}",
+                f"- Example: {item['message']}",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "## Conversation Path",
+            "",
+        ]
+    )
+    for idx, item in enumerate(summary["conversation_path"], start=1):
+        lines.append(f"{idx}. {item}")
+    lines.extend(
+        [
+            "",
+            "## Why Start Here",
+            "",
+            "Use this short dialogue before deep authoring. The goal is to learn the real job, output, exclusions, and constraints so the first package is small but accurate.",
+            "",
+            "## Current Anchor",
+            "",
+            f"- Title: `{summary['title']}`",
+            f"- Description: {summary['description']}",
+            f"- Focus: `{summary['focus']}`",
+            f"- Reference note: {summary['reference_note']}",
+            "",
+            "## Questions To Ask",
+            "",
+        ]
+    )
     for idx, item in enumerate(summary["questions"], start=1):
         lines.extend(
             [
@@ -171,8 +229,11 @@ def render_markdown(summary: dict) -> str:
             "",
             f"- Capability sentence: {summary['output']['capability_sentence']}",
             f"- Recommended first gate: `{summary['output']['recommended_first_gate']}`",
+            "- Tiny optional scaffold:",
         ]
     )
+    for item in summary["optional_scaffold"]:
+        lines.append(f"  - {item}")
     for item in summary["output"]["required_capture"]:
         lines.append(f"- Capture: `{item}`")
     return "\n".join(lines).strip() + "\n"

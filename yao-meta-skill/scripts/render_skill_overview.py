@@ -66,6 +66,10 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_benchmark(skill_dir: Path) -> dict:
+    return load_json(skill_dir / "reports" / "github-benchmark-scan.json")
+
+
 def extract_title(body: str, fallback: str) -> str:
     for line in body.splitlines():
         if line.startswith("# "):
@@ -179,6 +183,27 @@ def card_items(interface_data: dict, logic_steps: list[str], package_map: list[d
     ]
 
 
+def introduction_lines(description: str) -> list[str]:
+    return [
+        f"This skill is trying to quietly take over: {description}",
+        "Start by clarifying the recurring job, the real input shape, and the output that lets the next person keep moving.",
+        "If the idea is still fuzzy, use the intent dialogue first and let the structure come second.",
+    ]
+
+
+def benchmark_highlights(benchmark: dict) -> list[dict]:
+    highlights = []
+    for repo in benchmark.get("repositories", [])[:3]:
+        highlights.append(
+            {
+                "name": repo.get("full_name", "Unknown repo"),
+                "borrow": repo.get("borrow", [])[:2],
+                "avoid": repo.get("avoid", [])[:1],
+            }
+        )
+    return highlights
+
+
 def build_summary(skill_dir: Path) -> dict:
     skill_text = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
     frontmatter, body = parse_frontmatter(skill_text)
@@ -195,6 +220,7 @@ def build_summary(skill_dir: Path) -> dict:
     usage_steps = summarize_usage(sections, default_prompt, description)
     package_map = package_entries(skill_dir)
     strengths = derive_strengths(skill_dir, manifest)
+    benchmark = load_benchmark(skill_dir)
 
     return {
         "name": name,
@@ -206,6 +232,8 @@ def build_summary(skill_dir: Path) -> dict:
         "package_map": package_map,
         "strengths": strengths,
         "cards": card_items(interface_data, logic_steps, package_map, usage_steps, description),
+        "introduction": introduction_lines(description),
+        "benchmark_highlights": benchmark_highlights(benchmark),
         "metadata": {
             "canonical_format": interface_data.get("compatibility", {}).get("canonical_format", "agent-skills"),
             "targets": interface_data.get("compatibility", {}).get("adapter_targets", []),
@@ -232,9 +260,22 @@ def render_html(summary: dict) -> str:
     target_badges = "".join(f"<span>{html.escape(str(target))}</span>" for target in summary["metadata"]["targets"])
     cards_html = "".join(render_card_body(card) for card in summary["cards"])
     strengths_html = "".join(f"<li>{html.escape(item)}</li>" for item in summary["strengths"])
+    introduction_html = "".join(f"<li>{html.escape(item)}</li>" for item in summary.get("introduction", []))
     package_rows = "".join(
         f"<tr><td>{html.escape(item['path'])}</td><td>{html.escape(item['label'])}</td><td>{html.escape(item['kind'])}</td></tr>"
         for item in summary["package_map"]
+    )
+    benchmark_cards = "".join(
+        (
+            "<div class='card'>"
+            f"<h3>{html.escape(item['name'])}</h3>"
+            "<p><strong>Borrow now</strong></p>"
+            + ("<ul>" + "".join(f"<li>{html.escape(borrow)}</li>" for borrow in item.get("borrow", [])) + "</ul>" if item.get("borrow") else "<p>None yet.</p>")
+            + "<p><strong>Avoid</strong></p>"
+            + ("<ul>" + "".join(f"<li>{html.escape(avoid)}</li>" for avoid in item.get("avoid", [])) + "</ul>" if item.get("avoid") else "<p>None yet.</p>")
+            + "</div>"
+        )
+        for item in summary.get("benchmark_highlights", [])
     )
 
     return f"""<!DOCTYPE html>
@@ -414,6 +455,16 @@ def render_html(summary: dict) -> str:
     <section>
       <div class="section-head">
         <div>
+          <h2>How to introduce this skill</h2>
+          <p>Use this section when a first-time reader needs the shape and intent quickly, before reading the full package.</p>
+        </div>
+        <ul class="strengths">{introduction_html}</ul>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
           <h2>Why It Works</h2>
           <p>These are the strengths the package already makes explicit instead of leaving hidden in prompt text.</p>
         </div>
@@ -435,6 +486,16 @@ def render_html(summary: dict) -> str:
             <tbody>{package_rows}</tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>Patterns worth borrowing now</h2>
+          <p>If a GitHub benchmark scan exists, surface the strongest borrow and avoid cues here instead of hiding them in raw report files.</p>
+        </div>
+        <div class="cards">{benchmark_cards or "<div class='card'><p>No benchmark scan recorded yet. Run the GitHub benchmark scan first.</p></div>"}</div>
       </div>
     </section>
   </div>

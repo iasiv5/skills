@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CLI = ROOT / "scripts" / "yao.py"
+BENCHMARK_FIXTURE_DIR = ROOT / "tests" / "fixtures" / "github_benchmark_scan"
 
 
 def run(*args: str, input_text: str | None = None) -> dict:
@@ -47,13 +48,18 @@ def main() -> None:
         "quickstart",
         "--output-dir",
         str(tmp_root),
-        input_text="quickstart-skill\nTurn rough notes into a reusable package.\nA reusable markdown workflow.\nproduction\nproduction\nA top-tier internal workflow product\nhigh-star GitHub repo, official docs\nprivacy and naming\n",
+        "--github-fixture-dir",
+        str(BENCHMARK_FIXTURE_DIR),
+        input_text="quickstart-skill\nTurn rough notes into a reusable package.\nA reusable markdown workflow.\nlooks right\nproduction\nproduction\nA top-tier internal workflow product\nprivacy and naming\n",
     )
     assert quickstart_result["ok"], quickstart_result
     quickstart_root = Path(quickstart_result["payload"]["root"])
     assert (quickstart_root / "reports" / "review-viewer.html").exists(), quickstart_root
+    assert (quickstart_root / "reports" / "github-benchmark-scan.md").exists(), quickstart_root
     assert quickstart_result["payload"]["archetype"] == "production", quickstart_result
+    assert len(quickstart_result["payload"]["references"]["benchmark_repositories"]) == 3, quickstart_result
     assert quickstart_result["payload"]["references"]["user_references"] == ["A top-tier internal workflow product"], quickstart_result
+    assert quickstart_result["payload"]["guidance"]["experience_note"], quickstart_result
 
     validate_result = run("validate", str(created))
     assert validate_result["ok"], validate_result
@@ -80,6 +86,17 @@ def main() -> None:
     assert reference_scan_result["ok"], reference_scan_result
     assert reference_scan_result["payload"]["artifacts"]["markdown"].endswith("reports/reference-scan.md"), reference_scan_result
     assert len(reference_scan_result["payload"]["summary"]["user_references"]) == 1, reference_scan_result
+
+    github_benchmark_result = run(
+        "github-benchmark-scan",
+        str(created),
+        "--query",
+        "workflow evaluation portability",
+        "--fixture-dir",
+        str(BENCHMARK_FIXTURE_DIR),
+    )
+    assert github_benchmark_result["ok"], github_benchmark_result
+    assert len(github_benchmark_result["payload"]["repositories"]) == 3, github_benchmark_result
 
     intent_result = run("intent-dialogue", str(created))
     assert intent_result["ok"], intent_result

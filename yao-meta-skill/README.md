@@ -20,13 +20,13 @@ It turns rough workflows, transcripts, prompts, notes, and runbooks into reusabl
 - a lean `SKILL.md`
 - optional references, scripts, and evals
 - a front-loaded intent dialogue that starts from the user's real work, desired outcome, and quality bar
-- a controlled benchmark scan that prefers high-quality public references first and asks whether the user has examples worth learning from
+- an automatic GitHub benchmark scan that pulls the top three public repositories first, extracts borrow or avoid patterns, and then asks whether the user has references worth learning from
 - a generated visual HTML overview for each newly initialized skill
-- a compact HTML review viewer for first-pass human review
+- a side-by-side HTML review studio for first-pass human review
 - three high-value next iteration directions after the first package is created
 - a lightweight feedback log that does not require a full promotion cycle
 - a baseline compare report for with-skill vs baseline review
-- an archetype-aware quickstart that steers new packages toward scaffold, production, library, or governed fits
+- a conversation-style, archetype-aware quickstart that steers new packages toward scaffold, production, library, or governed fits
 - neutral source metadata plus client-specific adapters
 - governance, promotion, and portability checks built into the default flow
 
@@ -80,7 +80,7 @@ This is a scenario-oriented benchmark shared with the project. It is most useful
 
 1. Describe the workflow, prompt set, or repeated task you want to turn into a skill.
 2. Start with a short, human intent dialogue so the real job, outputs, exclusions, constraints, and standards are explicit.
-3. Run a short reference scan with high-quality public benchmarks first, then ask whether the user has examples worth learning from; use local files only for fit and privacy checks.
+3. Let `quickstart` run a short GitHub benchmark scan first, study the top three public repositories it retrieves, then ask whether the user has examples worth learning from; use local files only for fit and privacy checks.
 4. Use the archetype-aware `quickstart` or the full authoring flow to generate or improve the package in scaffold, production, library, or governed mode.
 5. Review the generated `reports/intent-dialogue.md`, `reports/skill-overview.html`, and `reports/iteration-directions.md` before adding more structure.
 
@@ -88,6 +88,7 @@ Or use the unified authoring CLI:
 
 ```bash
 python3 scripts/yao.py quickstart --output-dir .
+python3 scripts/yao.py github-benchmark-scan my-skill --query "release workflow portability"
 python3 scripts/yao.py reference-scan my-skill \
   --external-reference "World Class Method::method::Borrow a tight evaluation loop.::Do not copy heavy process." \
   --user-reference "A product or repo I admire::taste::Learn the clarity and operating standard.::Do not copy wording." \

@@ -37,6 +37,12 @@ def load_manifest(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_json(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def extract_sections(body: str) -> dict[str, str]:
     sections: dict[str, list[str]] = {}
     current = "_preamble"
@@ -69,6 +75,8 @@ def direction(priority: int, title: str, why: str, actions: list[str], unlocks: 
         "why": why,
         "actions": actions,
         "unlocks": unlocks,
+        "do_now": "",
+        "wait_on": "",
     }
 
 
@@ -77,6 +85,7 @@ def build_directions(skill_dir: Path) -> tuple[dict, list[dict]]:
     frontmatter, body = parse_frontmatter(skill_text)
     sections = extract_sections(body)
     manifest = load_manifest(skill_dir / "manifest.json")
+    benchmark = load_json(skill_dir / "reports" / "github-benchmark-scan.json")
     description = frontmatter.get("description", "")
     maturity = manifest.get("maturity_tier", "scaffold")
 
@@ -107,6 +116,21 @@ def build_directions(skill_dir: Path) -> tuple[dict, list[dict]]:
                     "Keep the main SKILL.md compact and route-oriented.",
                 ],
                 "Stronger execution quality without bloating the entrypoint.",
+            )
+        )
+    if benchmark.get("repositories"):
+        top_repo = benchmark["repositories"][0]
+        candidates.append(
+            direction(
+                2,
+                "Borrow one proven pattern on purpose",
+                "You already have public benchmark objects. The next gain is to choose one pattern intentionally instead of absorbing everything loosely.",
+                [
+                    f"Read the strongest pattern from {top_repo.get('full_name', 'the top benchmark repo')}.",
+                    "Decide whether to borrow method, structure, execution, or portability, but only one of them first.",
+                    "Record what you will not borrow so the package stays light.",
+                ],
+                "A cleaner package shape with less accidental over-design.",
             )
         )
     if maturity == "scaffold":
@@ -169,11 +193,25 @@ def build_directions(skill_dir: Path) -> tuple[dict, list[dict]]:
         )
 
     chosen = sorted(candidates, key=lambda item: item["priority"])[:3]
+    for index, item in enumerate(chosen, start=1):
+        item["do_now"] = (
+            "Do this first."
+            if index == 1
+            else "Do this after the first move lands cleanly."
+        )
+        item["wait_on"] = (
+            "Wait to add broader structure until this move clearly improves reliability."
+            if index == 1
+            else "Wait until the package has evidence that this extra structure is justified."
+        )
     summary = {
         "skill_name": frontmatter.get("name", skill_dir.name),
         "description": description,
         "maturity_tier": maturity,
         "selection_rule": "Pick the three smallest next steps that increase reliability more than they increase context cost.",
+        "recommended_now": chosen[0]["title"] if chosen else "",
+        "recommended_now_why": chosen[0]["why"] if chosen else "",
+        "defer_for_now": chosen[-1]["title"] if chosen else "",
     }
     return summary, chosen
 
@@ -186,6 +224,9 @@ def render_markdown(summary: dict, directions: list[dict]) -> str:
         "",
         f"- Maturity tier: `{summary['maturity_tier']}`",
         f"- Selection rule: {summary['selection_rule']}",
+        f"- Start here: `{summary['recommended_now']}`",
+        f"- Why first: {summary['recommended_now_why']}",
+        f"- Defer for now: `{summary['defer_for_now']}`",
         "",
         "## Top 3 Next Moves",
         "",
@@ -196,13 +237,15 @@ def render_markdown(summary: dict, directions: list[dict]) -> str:
                 f"### {item['priority']}. {item['title']}",
                 "",
                 f"- Why now: {item['why']}",
+                f"- Timing: {item['do_now']}",
                 "- Recommended actions:",
             ]
         )
         for action in item["actions"]:
             lines.append(f"  - {action}")
-        lines.append(f"- Unlocks: {item['unlocks']}")
-        lines.append("")
+            lines.append(f"- Unlocks: {item['unlocks']}")
+            lines.append(f"- Wait on: {item['wait_on']}")
+            lines.append("")
     return "\n".join(lines).strip() + "\n"
 
 

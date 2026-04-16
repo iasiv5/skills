@@ -2,6 +2,7 @@
 import argparse
 import html
 import json
+import re
 from pathlib import Path
 
 from render_intent_dialogue import render_intent_dialogue
@@ -43,6 +44,11 @@ def load_specific_promotion(skill_dir: Path) -> dict:
     return payload if isinstance(payload, dict) else {}
 
 
+def load_benchmark_summary(skill_dir: Path) -> dict:
+    payload = load_json(skill_dir / "reports" / "github-benchmark-scan.json")
+    return payload if isinstance(payload, dict) else {}
+
+
 def ensure_report_inputs(skill_dir: Path) -> dict:
     overview_json = skill_dir / "reports" / "skill-overview.json"
     intent_json = skill_dir / "reports" / "intent-dialogue.json"
@@ -62,6 +68,7 @@ def ensure_report_inputs(skill_dir: Path) -> dict:
     baseline = load_baseline_summary(skill_dir)
     compare = load_specific_compare(skill_dir)
     promotion = load_specific_promotion(skill_dir)
+    benchmark = load_benchmark_summary(skill_dir)
     return {
         "overview": overview,
         "intent": intent,
@@ -71,6 +78,7 @@ def ensure_report_inputs(skill_dir: Path) -> dict:
         "baseline": baseline,
         "compare": compare,
         "promotion": promotion,
+        "benchmark": benchmark,
     }
 
 
@@ -112,6 +120,80 @@ def compare_rows(compare: dict) -> list[dict]:
     return rows
 
 
+def benchmark_cards(benchmark: dict) -> list[dict]:
+    cards = []
+    for repo in benchmark.get("repositories", [])[:3]:
+        cards.append(
+            {
+                "name": repo.get("full_name", "Unknown repo"),
+                "borrow": repo.get("borrow", [])[:2],
+                "avoid": repo.get("avoid", [])[:1],
+            }
+        )
+    return cards
+
+
+def split_sentences(text: str) -> list[str]:
+    if not text:
+        return []
+    parts = [item.strip() for item in re.split(r"(?<=[.!?])\s+", " ".join(text.split())) if item.strip()]
+    return parts
+
+
+def metric_delta(current: int | float, baseline: int | float) -> str:
+    delta = current - baseline
+    if delta == 0:
+        return "0"
+    return f"{delta:+}"
+
+
+def variant_diff_cards(compare: dict) -> list[dict]:
+    baseline = compare.get("baseline", {})
+    current = compare.get("current_candidate", {})
+    winner = compare.get("winner", {})
+    variants = [
+        ("Baseline", baseline),
+        ("Current", current),
+        (f"Winner — {winner.get('label', 'Winner')}", winner),
+    ]
+    baseline_sentences = split_sentences(baseline.get("description", ""))
+    baseline_set = set(baseline_sentences)
+    baseline_dev = baseline.get("dev", {}).get("total_errors", 0)
+    baseline_holdout = baseline.get("holdout", {}).get("total_errors", 0)
+    cards = []
+    seen = set()
+    for label, payload in variants:
+        if not payload:
+            continue
+        unique_key = (payload.get("description"), payload.get("strategy"), label)
+        if unique_key in seen:
+            continue
+        seen.add(unique_key)
+        description = payload.get("description", "")
+        sentences = split_sentences(description)
+        sentence_set = set(sentences)
+        added = [item for item in sentences if item not in baseline_set][:3]
+        removed = [item for item in baseline_sentences if item not in sentence_set][:2]
+        dev_errors = payload.get("dev", {}).get("total_errors", 0)
+        holdout_errors = payload.get("holdout", {}).get("total_errors", 0)
+        cards.append(
+            {
+                "label": label,
+                "strategy": payload.get("strategy", "existing"),
+                "description": description,
+                "tokens": payload.get("estimated_tokens", 0),
+                "dev_errors": dev_errors,
+                "holdout_errors": holdout_errors,
+                "token_delta": metric_delta(payload.get("estimated_tokens", 0), baseline.get("estimated_tokens", 0)),
+                "dev_delta": metric_delta(dev_errors, baseline_dev),
+                "holdout_delta": metric_delta(holdout_errors, baseline_holdout),
+                "added": added if label != "Baseline" else baseline_sentences[:3],
+                "removed": removed,
+            }
+        )
+    return cards
+
+
 def render_html(report: dict) -> str:
     overview = report["overview"]
     intent = report["intent"]
@@ -122,8 +204,11 @@ def render_html(report: dict) -> str:
     baseline = report.get("baseline", {})
     compare = report.get("compare", {})
     promotion = report.get("promotion", {})
+    benchmark = report.get("benchmark", {})
     architecture = architecture_steps(overview)
     compare_table_rows = compare_rows(compare)
+    benchmark_rows = benchmark_cards(benchmark)
+    variant_cards = variant_diff_cards(compare)
 
     strength_items = "".join(f"<li>{html.escape(item)}</li>" for item in overview.get("strengths", []))
     logic_items = "".join(f"<li>{html.escape(item)}</li>" for item in overview.get("logic_steps", []))
@@ -224,6 +309,55 @@ def render_html(report: dict) -> str:
         )
     else:
         promotion_html = "<p class='minor'>No promotion summary is attached to this package yet.</p>"
+
+    benchmark_html = ""
+    if benchmark_rows:
+        benchmark_html = "".join(
+            (
+                "<div class='direction-card'>"
+                f"<h3>{html.escape(item['name'])}</h3>"
+                "<p><strong>Borrow now</strong></p>"
+                + ("<ul>" + "".join(f"<li>{html.escape(borrow)}</li>" for borrow in item.get('borrow', [])) + "</ul>" if item.get("borrow") else "<p>No borrow cues recorded.</p>")
+                + "<p><strong>Avoid</strong></p>"
+                + ("<ul>" + "".join(f"<li>{html.escape(avoid)}</li>" for avoid in item.get('avoid', [])) + "</ul>" if item.get("avoid") else "<p>No avoid cues recorded.</p>")
+                + "</div>"
+            )
+            for item in benchmark_rows
+        )
+    else:
+        benchmark_html = "<p class='minor'>No GitHub benchmark scan has been attached to this package yet.</p>"
+
+    variant_diff_html = ""
+    if variant_cards:
+        variant_diff_html = "".join(
+            (
+                "<div class='variant-card'>"
+                f"<div class='variant-head'><h3>{html.escape(item['label'])}</h3><span>{html.escape(item['strategy'])}</span></div>"
+                f"<p class='variant-description'>{html.escape(item['description'])}</p>"
+                "<div class='variant-metrics'>"
+                f"<span>tokens {html.escape(str(item['tokens']))} ({html.escape(item['token_delta'])})</span>"
+                f"<span>dev {html.escape(str(item['dev_errors']))} ({html.escape(item['dev_delta'])})</span>"
+                f"<span>holdout {html.escape(str(item['holdout_errors']))} ({html.escape(item['holdout_delta'])})</span>"
+                "</div>"
+                "<div class='variant-cues'>"
+                "<p><strong>Adds relative to baseline</strong></p>"
+                + (
+                    "<ul>" + "".join(f"<li>{html.escape(value)}</li>" for value in item["added"]) + "</ul>"
+                    if item["added"]
+                    else "<p class='minor'>No added cues.</p>"
+                )
+                + "<p><strong>Drops from baseline</strong></p>"
+                + (
+                    "<ul>" + "".join(f"<li>{html.escape(value)}</li>" for value in item["removed"]) + "</ul>"
+                    if item["removed"]
+                    else "<p class='minor'>No dropped cues.</p>"
+                )
+                + "</div></div>"
+            )
+            for item in variant_cards
+        )
+    else:
+        variant_diff_html = "<p class='minor'>No description optimization compare payload is attached yet.</p>"
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -326,6 +460,12 @@ def render_html(report: dict) -> str:
       gap: 16px;
       margin-top: 16px;
     }}
+    .variant-grid {{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }}
     .direction-card {{
       padding: 18px;
     }}
@@ -336,6 +476,48 @@ def render_html(report: dict) -> str:
     .minor {{
       color: var(--muted);
       font-size: 13px;
+    }}
+    .variant-card {{
+      border: 1px solid var(--line);
+      background: var(--white);
+      padding: 18px;
+    }}
+    .variant-head {{
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+    }}
+    .variant-head span {{
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }}
+    .variant-description {{
+      margin: 14px 0;
+      padding-left: 14px;
+      border-left: 2px solid var(--line);
+      color: var(--text);
+    }}
+    .variant-metrics {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }}
+    .variant-metrics span {{
+      border: 1px solid var(--line);
+      background: var(--soft);
+      padding: 6px 10px;
+      font-size: 12px;
+    }}
+    .variant-cues p {{
+      margin: 8px 0 6px;
+    }}
+    .variant-cues ul {{
+      margin: 0 0 12px;
+      padding-left: 18px;
     }}
     table {{
       width: 100%;
@@ -356,7 +538,7 @@ def render_html(report: dict) -> str:
       color: var(--muted);
     }}
     @media (max-width: 1000px) {{
-      .arch-grid, .direction-grid, .grid {{
+      .arch-grid, .direction-grid, .variant-grid, .grid {{
         grid-template-columns: 1fr;
       }}
     }}
@@ -411,6 +593,26 @@ def render_html(report: dict) -> str:
       <div class="panel">
         <h2>Compare view</h2>
         {baseline_html}
+      </div>
+    </section>
+
+    <section>
+      <h2>Variant diff studio</h2>
+      <div class="variant-grid">{variant_diff_html}</div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Reference coach</h2>
+        <div class="direction-grid">{benchmark_html}</div>
+      </div>
+      <div class="panel">
+        <h2>Decide before you deepen</h2>
+        <ul>
+          <li>Choose one pattern to borrow on purpose, not three at once.</li>
+          <li>State one thing this skill will not inherit from the benchmark objects.</li>
+          <li>Only deepen the package after that choice is visible in the boundary or execution flow.</li>
+        </ul>
       </div>
     </section>
 

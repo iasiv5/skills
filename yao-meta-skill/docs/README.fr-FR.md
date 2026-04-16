@@ -10,14 +10,14 @@ Il transforme des workflows bruts, des transcripts, des prompts, des notes et de
 - un `SKILL.md` léger
 - des references, scripts et evals optionnels
 - un dialogue d'intention plus humain avant l'authoring approfondi, pour comprendre le vrai travail, la sortie attendue, les frontières et le niveau d'exigence
-- un benchmark/reference scan contrôlé avant l'authoring profond, en donnant la priorité aux dépôts GitHub très reconnus, aux documentations officielles et aux références publiques de niveau mondial
+- un benchmark scan GitHub automatique avant l'authoring profond, qui récupère d'abord trois dépôts publics très reconnus puis extrait les patterns à reprendre ou à éviter
 - une demande explicite de références fournies par l'utilisateur quand elles existent, afin d'apprendre des modèles, pas de copier le texte ni du contenu privé
 - un rapport HTML minimaliste en fond blanc généré automatiquement pour chaque nouveau skill
 - trois directions d'itération à plus forte valeur après la première création
 - un review viewer HTML compact pour accélérer la première revue humaine
 - un feedback log léger pour éviter de lancer tout le flux de promotion à chaque tour
 - un rapport with-skill vs baseline pour visualiser rapidement le gain incrémental
-- un quickstart sensible aux archetypes pour orienter un nouveau skill vers scaffold, production, library ou governed
+- un quickstart conversationnel, sensible aux archetypes, pour orienter un nouveau skill vers scaffold, production, library ou governed
 - des métadonnées sources neutres et des adaptateurs spécifiques au client
 - des contrôles de gouvernance, de promotion et de portabilité intégrés au flux standard
 
@@ -71,7 +71,7 @@ Le tableau ci-dessous est un comparatif orienté scénario. Il aide à choisir l
 
 1. Décrivez le workflow, l'ensemble de prompts ou la tâche répétée que vous voulez transformer en skill.
 2. Commencez par un court dialogue d'intention plus humain pour clarifier le vrai travail, les sorties attendues, les exclusions, les contraintes et les standards qui comptent pour vous.
-3. Lancez ensuite un court reference scan en privilégiant les dépôts GitHub à forte reconnaissance, les documentations officielles et les références publiques de haut niveau ; le système vous demandera aussi si vous avez des exemples à faire étudier. Les fichiers locaux ne servent ensuite qu'à l'ajustement, à la confidentialité et à la compatibilité.
+3. Laissez d'abord `quickstart` lancer un benchmark scan GitHub pour récupérer trois bons dépôts publics et en extraire les patterns réutilisables ; ajoutez ensuite vos propres références si besoin. Les fichiers locaux ne servent ensuite qu'à l'ajustement, à la confidentialité et à la compatibilité.
 4. Utilisez le `quickstart` sensible aux archetypes ou le flux complet d'authoring pour générer ou améliorer le paquet en mode scaffold, production, library ou governed.
 5. Chaque nouveau skill reçoit aussi `reports/intent-dialogue.md`, `reports/skill-overview.html`, `reports/review-viewer.html`, `reports/reference-scan.md` et `reports/iteration-directions.md`. Ensuite, le feedback log et le baseline compare permettent de boucler rapidement sans lancer tout le flux de promotion.
 

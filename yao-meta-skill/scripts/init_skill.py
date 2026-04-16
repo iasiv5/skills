@@ -4,6 +4,7 @@ import json
 from datetime import date
 from pathlib import Path
 
+from github_benchmark_scan import run_github_benchmark_scan
 from render_intent_dialogue import render_intent_dialogue
 from render_iteration_directions import render_iteration_directions
 from render_reference_scan import parse_reference, render_reference_scan
@@ -50,6 +51,7 @@ README_TEMPLATE = """# {title}
 - `agents/interface.yaml`: portable interface metadata
 - `manifest.json`: lifecycle and packaging metadata
 - `reports/intent-dialogue.md`: front-loaded discovery questions for better boundary design and clearer human alignment
+- `reports/github-benchmark-scan.md`: top public benchmark repositories, extracted patterns, and borrow or avoid notes
 - `reports/reference-scan.md`: benchmark notes from public references, user references, and local constraints
 - `reports/skill-overview.html`: visual overview report
 - `reports/review-viewer.html`: compact review page for architecture, usage, feedback, and next steps
@@ -139,6 +141,24 @@ def build_manifest(name: str, mode: str, archetype: str) -> dict:
     }
 
 
+def dedupe_references(references: list[dict]) -> list[dict]:
+    seen = set()
+    deduped = []
+    for reference in references:
+        key = (
+            reference.get("source"),
+            reference.get("name"),
+            reference.get("category"),
+            reference.get("borrow"),
+            reference.get("avoid"),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(reference)
+    return deduped
+
+
 def initialize_skill(
     name: str,
     description: str,
@@ -149,6 +169,9 @@ def initialize_skill(
     external_references: list[dict] | None = None,
     user_references: list[dict] | None = None,
     local_constraints: list[dict] | None = None,
+    github_query: str | None = None,
+    github_top_n: int = 3,
+    github_fixture_dir: str | None = None,
 ) -> dict:
     title = title or name.replace("-", " ").title()
     root = Path(output_dir).resolve() / name
@@ -179,28 +202,46 @@ def initialize_skill(
     )
     overview = render_skill_overview(root)
     intent_dialogue = render_intent_dialogue(root)
-    reference_scan = render_reference_scan(root, [*(external_references or []), *(user_references or []), *(local_constraints or [])])
+    benchmark_scan = None
+    combined_external_references = [*(external_references or [])]
+    if github_query:
+        benchmark_scan = run_github_benchmark_scan(
+            root,
+            query=github_query,
+            top_n=github_top_n,
+            fixture_dir=Path(github_fixture_dir).resolve() if github_fixture_dir else None,
+        )
+        combined_external_references = [*benchmark_scan.get("external_references", []), *combined_external_references]
+    reference_scan = render_reference_scan(
+        root,
+        dedupe_references([*combined_external_references, *(user_references or []), *(local_constraints or [])]),
+    )
     iteration_directions = render_iteration_directions(root)
     review_viewer = render_review_viewer(root)
+    artifacts = {
+        "readme": str(root / "README.md"),
+        "manifest": str(root / "manifest.json"),
+        "skill_overview_html": overview["artifacts"]["html"],
+        "skill_overview_json": overview["artifacts"]["json"],
+        "intent_dialogue_md": intent_dialogue["artifacts"]["markdown"],
+        "intent_dialogue_json": intent_dialogue["artifacts"]["json"],
+        "reference_scan_md": reference_scan["artifacts"]["markdown"],
+        "reference_scan_json": reference_scan["artifacts"]["json"],
+        "iteration_directions_md": iteration_directions["artifacts"]["markdown"],
+        "iteration_directions_json": iteration_directions["artifacts"]["json"],
+        "review_viewer_html": review_viewer["artifacts"]["html"],
+        "review_viewer_json": review_viewer["artifacts"]["json"],
+    }
+    if benchmark_scan is not None:
+        artifacts["github_benchmark_scan_md"] = benchmark_scan["artifacts"]["markdown"]
+        artifacts["github_benchmark_scan_json"] = benchmark_scan["artifacts"]["json"]
     return {
         "ok": True,
         "root": str(root),
         "mode": mode,
         "archetype": archetype,
-        "artifacts": {
-            "readme": str(root / "README.md"),
-            "manifest": str(root / "manifest.json"),
-            "skill_overview_html": overview["artifacts"]["html"],
-            "skill_overview_json": overview["artifacts"]["json"],
-            "intent_dialogue_md": intent_dialogue["artifacts"]["markdown"],
-            "intent_dialogue_json": intent_dialogue["artifacts"]["json"],
-            "reference_scan_md": reference_scan["artifacts"]["markdown"],
-            "reference_scan_json": reference_scan["artifacts"]["json"],
-            "iteration_directions_md": iteration_directions["artifacts"]["markdown"],
-            "iteration_directions_json": iteration_directions["artifacts"]["json"],
-            "review_viewer_html": review_viewer["artifacts"]["html"],
-            "review_viewer_json": review_viewer["artifacts"]["json"],
-        },
+        "github_benchmark_scan": benchmark_scan,
+        "artifacts": artifacts,
     }
 
 
@@ -215,6 +256,9 @@ def main() -> None:
     parser.add_argument("--external-reference", action="append", default=[])
     parser.add_argument("--user-reference", action="append", default=[])
     parser.add_argument("--local-constraint", action="append", default=[])
+    parser.add_argument("--github-query")
+    parser.add_argument("--github-top-n", type=int, default=3)
+    parser.add_argument("--github-fixture-dir")
     args = parser.parse_args()
     result = initialize_skill(
         args.name,
@@ -226,6 +270,9 @@ def main() -> None:
         external_references=[parse_reference(item, "external") for item in args.external_reference],
         user_references=[parse_reference(item, "user") for item in args.user_reference],
         local_constraints=[parse_reference(item, "local") for item in args.local_constraint],
+        github_query=args.github_query,
+        github_top_n=args.github_top_n,
+        github_fixture_dir=args.github_fixture_dir,
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
 

@@ -10,14 +10,14 @@
 - 軽量な `SKILL.md`
 - 必要に応じた references、scripts、evals
 - 深い authoring の前に、人間味のある短い intent dialogue を行い、本当の仕事、成果物、境界、重視する基準をつかむ
-- 深い authoring の前に、GitHub の高評価リポジトリ、公式ドキュメント、世界水準の公開事例を優先する制御された benchmark/reference scan を 1 回行う
+- 深い authoring の前に、自動 GitHub benchmark scan を 1 回実行し、高評価の公開リポジトリを 3 件取得して borrow / avoid パターンを整理する
 - ユーザー自身の参考例があれば、それも取り込み、文章ではなくパターン・構造・品質基準だけを学ぶ
 - 新しい skill ごとに、白背景の簡潔な HTML overview を自動生成
 - 初回作成後に自動で提示される 3 つの高価値な次の iteration direction
 - 初回の人間レビューを助ける、コンパクトな HTML review viewer
 - 毎回フル promotion flow を通さずに使える軽量 feedback log
 - 増分価値をすばやく確認できる with-skill vs baseline 比較レポート
-- scaffold / production / library / governed を案内する archetype-aware quickstart
+- 会話型 discovery flow として scaffold / production / library / governed を案内する archetype-aware quickstart
 - 中立的なソースメタデータとクライアント別アダプタ
 - ガバナンス、昇格判定、portability チェックを標準フローに内蔵
 
@@ -71,7 +71,7 @@ flowchart LR
 
 1. skill 化したい workflow、prompt 集合、または反復タスクを説明します。
 2. まず短いが人間味のある intent dialogue で、実際の job、outputs、boundary、constraints、重視する品質基準を明確にします。
-3. 次に短い reference scan を行い、GitHub の高評価プロジェクト、公式ドキュメント、世界トップ級の公開対象を優先し、必要ならユーザーの参考例も加えます。ローカル資産は適合確認と privacy 調整だけに使います。
+3. まず `quickstart` に GitHub benchmark scan を走らせ、公開リポジトリ上位 3 件から借りるべきパターンを抽出します。その後で必要ならユーザーの参考例を加えます。ローカル資産は適合確認と privacy 調整だけに使います。
 4. archetype-aware な `quickstart` か完全な authoring flow を使い、scaffold、production、library、governed のいずれかでパッケージを生成または改善します。
 5. 新しく作成した skill には `reports/intent-dialogue.md`、`reports/skill-overview.html`、`reports/review-viewer.html`、`reports/reference-scan.md`、`reports/iteration-directions.md` が付きます。さらに feedback log と baseline compare を使えば、毎回フル promotion flow を回さずに短い改善ループを回せます。
 

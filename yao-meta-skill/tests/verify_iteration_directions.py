@@ -37,6 +37,8 @@ def main() -> None:
     created = Path(init_payload["root"])
     report = run("iteration-directions", str(created))
     assert report["summary"]["selection_rule"], report
+    assert report["summary"]["recommended_now"], report
+    assert report["summary"]["defer_for_now"], report
     assert len(report["directions"]) == 3, report
     titles = {item["title"] for item in report["directions"]}
     assert "Tighten trigger and exclusions" in titles or "Add the first execution asset" in titles, titles

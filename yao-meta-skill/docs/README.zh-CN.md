@@ -10,14 +10,14 @@
 - 精简的 `SKILL.md`
 - 可选的 references、scripts 和 evals
 - 深度起草前先做一轮更有人味的意图对话，先理解真实任务、输出物、边界和用户在意的标准
-- 深度起草前先做一轮受控的 benchmark/reference scan，以 GitHub 高星项目、官方文档和世界级公开对象为优先参考源
+- 深度起草前先做一轮自动 GitHub benchmark scan，先拉取 3 个高星公开项目，提炼 borrow / avoid 模式，再结合用户参考与本地约束
 - 会主动询问用户是否有希望借鉴的参考对象，只学习其中的模式抽象、结构和标准，不复制原文或私密内容
 - 新建 skill 时自动生成一份极简白底 HTML 可视化说明
 - 首次建包后会自动给出 3 个最有价值的下一步迭代方向
 - 提供一个紧凑的 HTML review viewer，方便第一次人工理解和评审
 - 提供一个轻量 feedback log，不必每次都走完整 promotion 流程
 - 提供一个 with-skill vs baseline 的对比报告，便于快速看增量收益
-- 提供一个 archetype-aware 的 quickstart，引导新 skill 落到 scaffold、production、library 或 governed 的合适形态
+- 提供一个更像对话发现流程的 archetype-aware quickstart，引导新 skill 落到 scaffold、production、library 或 governed 的合适形态
 - 中性的源元数据以及面向不同客户端的适配层
 - 内建的治理、晋升和 portability 检查
 
@@ -71,7 +71,7 @@ flowchart LR
 
 1. 先描述你想沉淀成 skill 的 workflow、prompt 集合或重复任务。
 2. 先做一轮简短但更有人味的意图对话，把真实任务、输出物、边界、约束和你在意的质量标准说清楚。
-3. 再做一轮参考扫描，优先参考 GitHub 高星项目、官方文档和世界级公开对象，同时也会问你有没有想借鉴的参考；本地文件只做适配和隐私校准。
+3. 先让 `quickstart` 自动跑一轮 GitHub benchmark scan，读取 3 个高质量公开项目并提炼可借鉴模式；之后再结合你自己的参考对象。本地文件只做适配和隐私校准。
 4. 使用 archetype-aware 的 `quickstart` 或完整作者流，在 scaffold、production、library 或 governed 模式下生成或改进 skill 包。
 5. 新建 skill 后，会默认附带 `reports/intent-dialogue.md`、`reports/skill-overview.html`、`reports/review-viewer.html`、`reports/reference-scan.md` 和 `reports/iteration-directions.md`；后续还可以通过 feedback log 和 baseline compare 快速收集意见、查看增量收益，而不必每次都走完整 promotion 流程。
 

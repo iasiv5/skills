@@ -45,6 +45,8 @@ def main() -> None:
     html_text = html_path.read_text(encoding="utf-8")
     assert "Architecture at a glance" in html_text, html_text[:500]
     assert "Compare view" in html_text, html_text[:500]
+    assert "Variant diff studio" in html_text, html_text[:900]
+    assert "Reference coach" in html_text, html_text[:900]
     assert "Top three next moves" in html_text, html_text[:500]
     print(json.dumps({"ok": True}, ensure_ascii=False, indent=2))
 

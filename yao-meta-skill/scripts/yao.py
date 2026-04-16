@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from github_benchmark_scan import build_query
+
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
@@ -121,6 +123,13 @@ def prompt_with_default(label: str, default: str) -> str:
     return value or default
 
 
+def prompt_optional(label: str, default: str = "skip") -> str:
+    sys.stderr.write(f"{label} [{default}]: ")
+    sys.stderr.flush()
+    value = sys.stdin.readline().strip()
+    return value or default
+
+
 def prompt_optional_entries(label: str) -> list[str]:
     sys.stderr.write(f"{label} [none]: ")
     sys.stderr.flush()
@@ -171,6 +180,17 @@ def archetype_guidance(archetype: str) -> dict:
     return mapping.get(archetype, mapping["scaffold"])
 
 
+def discovery_summary(job: str, primary_output: str, archetype: str, guidance: dict) -> str:
+    return (
+        "\nHere's the shape I'm hearing so far:\n"
+        f"- Repeated job: {job}\n"
+        f"- Desired hand-back: {primary_output}\n"
+        f"- Best starting archetype: {archetype}\n"
+        f"- First gate: {guidance['first_gate']}\n"
+        f"- Current focus: {guidance['focus']}\n"
+    )
+
+
 def command_init(args: argparse.Namespace) -> int:
     cmd = [
         args.name,
@@ -190,33 +210,62 @@ def command_init(args: argparse.Namespace) -> int:
         cmd.extend(["--user-reference", reference])
     for constraint in args.local_constraint:
         cmd.extend(["--local-constraint", constraint])
+    if args.github_query:
+        cmd.extend(["--github-query", args.github_query])
+    cmd.extend(["--github-top-n", str(args.github_top_n)])
+    if args.github_fixture_dir:
+        cmd.extend(["--github-fixture-dir", args.github_fixture_dir])
     result = run_script("init_skill.py", cmd)
     print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
 
 
 def command_quickstart(args: argparse.Namespace) -> int:
-    sys.stderr.write("Let's shape this skill around the real work, the outcome, and the standards you care about before we add structure.\n")
-    sys.stderr.write("If you already have references you admire, bring them in. We'll learn the pattern, not copy the source.\n")
+    sys.stderr.write("Let's start gently. You do not need a polished brief here.\n")
+    sys.stderr.write("Give me the real work in your own words, and I will help turn it into a clean first-pass skill.\n")
+    sys.stderr.write("Before we deepen the package, I will also look at a few strong public GitHub references so we can borrow patterns without copying them.\n")
     name = args.name or prompt_with_default("Skill name", "my-skill")
-    job = args.job or prompt_with_default("What repeated work should this skill quietly take off your hands", "Turn a repeated workflow into a reusable skill.")
-    primary_output = args.primary_output or prompt_with_default("What should it reliably hand back", "A reusable skill package.")
+    job = args.job or prompt_with_default(
+        "In your own words, what repeated work do you most want this skill to quietly take over",
+        "Turn a repeated workflow into a reusable skill.",
+    )
+    primary_output = args.primary_output or prompt_with_default(
+        "If it works beautifully, what should it hand back so you or the next person can keep moving",
+        "A reusable skill package.",
+    )
     description = args.description or f"{job.rstrip('.')} Primary output: {primary_output.rstrip('.')}."
     inferred_archetype, archetype_reason = infer_archetype(job, description)
-    archetype = args.archetype or prompt_with_default("Archetype (scaffold/production/library/governed)", inferred_archetype)
+    guidance = archetype_guidance(inferred_archetype)
+    sys.stderr.write(discovery_summary(job, primary_output, inferred_archetype, guidance))
+    correction = prompt_optional(
+        "If I am off, what is the first thing I should correct before I package this idea",
+        "looks right",
+    )
+    if correction.lower() not in {"looks right", "skip", "none", "no"}:
+        description = f"{description.rstrip('.')} Keep this correction in scope: {correction.rstrip('.')}."
+        inferred_archetype, archetype_reason = infer_archetype(job, description)
+        guidance = archetype_guidance(inferred_archetype)
+        sys.stderr.write("\nThanks. I tightened the frame before moving on.\n")
+        sys.stderr.write(discovery_summary(job, primary_output, inferred_archetype, guidance))
+    archetype = args.archetype or prompt_with_default("I would start with this archetype (scaffold/production/library/governed)", inferred_archetype)
     archetype = archetype if archetype in ARCHETYPE_MODE else inferred_archetype
     default_mode = ARCHETYPE_MODE[archetype]
-    mode = args.mode or prompt_with_default("Mode (scaffold/production/library/governed)", default_mode)
+    mode = args.mode or prompt_with_default("For the first pass, I would keep the mode here (scaffold/production/library/governed)", default_mode)
     mode = mode if mode in ARCHETYPE_MODE.values() else default_mode
+    guidance = archetype_guidance(archetype)
+    sys.stderr.write(
+        f"\nGood. I will treat this as `{archetype}` in `{mode}` mode, so the first pass stays focused on {guidance['focus']}.\n"
+    )
     user_references = args.user_reference or prompt_optional_entries(
-        "Reference examples you want it to learn from (repo, product, page, workflow; comma-separated)"
+        "If there is anything you admire and want me to learn from as pattern hints, send it here (repo, product, page, workflow; comma-separated)"
     )
-    external_references = args.external_reference or prompt_optional_entries(
-        "Public benchmark objects to scan first (high-star GitHub repo, official doc, product; comma-separated)"
-    )
+    external_references = args.external_reference or []
     local_constraints = args.local_constraint or prompt_optional_entries(
-        "Local constraints that must still be respected (privacy, naming, compatibility; comma-separated)"
+        "Tell me any local constraints I must keep in view (privacy, naming, compatibility; comma-separated)"
     )
+    github_query = args.github_query or build_query(" ".join(filter(None, [job, primary_output, description])))
+    sys.stderr.write(f"GitHub benchmark query: {github_query}\n")
+    sys.stderr.write("I will use that query to pull three strong public examples, then surface only the patterns worth borrowing or avoiding.\n")
     title = args.title or name.replace("-", " ").title()
     guidance = archetype_guidance(archetype)
     cmd = [
@@ -231,7 +280,13 @@ def command_quickstart(args: argparse.Namespace) -> int:
         mode,
         "--archetype",
         archetype,
+        "--github-query",
+        github_query,
+        "--github-top-n",
+        str(args.github_top_n),
     ]
+    if args.github_fixture_dir:
+        cmd.extend(["--github-fixture-dir", args.github_fixture_dir])
     for reference in external_references:
         cmd.extend(["--external-reference", reference])
     for reference in user_references:
@@ -240,17 +295,29 @@ def command_quickstart(args: argparse.Namespace) -> int:
         cmd.extend(["--local-constraint", constraint])
     result = run_script("init_skill.py", cmd)
     payload = result["payload"] if result["payload"] is not None else result
+    benchmark_scan = payload.get("github_benchmark_scan") or {}
+    benchmark_repositories = [
+        {
+            "name": repo.get("full_name"),
+            "stars": repo.get("stars"),
+            "url": repo.get("html_url"),
+        }
+        for repo in benchmark_scan.get("repositories", [])
+    ]
     report = {
         "ok": result["ok"],
         "root": payload.get("root"),
         "mode": mode,
         "archetype": archetype,
         "references": {
+            "github_query": github_query,
+            "benchmark_repositories": benchmark_repositories,
             "external_benchmarks": external_references,
             "user_references": user_references,
             "local_constraints": local_constraints,
         },
         "artifacts": payload.get("artifacts", {}),
+        "github_benchmark_scan": benchmark_scan,
         "guidance": {
             "archetype_reason": archetype_reason,
             "why_this_mode": (
@@ -262,10 +329,13 @@ def command_quickstart(args: argparse.Namespace) -> int:
             "focus": guidance["focus"],
             "next_steps": [
                 "Open reports/intent-dialogue.md and tighten the real job, outputs, and exclusions.",
-                "Open reports/reference-scan.md and decide which external patterns to borrow and which user references set the quality bar.",
+                "Open reports/github-benchmark-scan.md and review the top three public benchmark repositories plus their borrow and avoid notes.",
+                "Open reports/reference-scan.md and decide which benchmark patterns to borrow and which user references set the quality bar.",
                 "Open reports/review-viewer.html to explain the package to a first-time reviewer.",
                 "Use reports/iteration-directions.md to choose only one high-value next move before adding more files.",
             ],
+            "borrow_prompt": benchmark_scan.get("borrow_prompt"),
+            "experience_note": "The first pass should feel more like guided co-creation than filling out a worksheet. Use the reports to explain, choose, and only then deepen the package.",
         },
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -412,6 +482,20 @@ def command_reference_scan(args: argparse.Namespace) -> int:
     if args.output_json:
         cmd.extend(["--output-json", args.output_json])
     result = run_script("render_reference_scan.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
+def command_github_benchmark_scan(args: argparse.Namespace) -> int:
+    skill_dir = str(Path(args.skill_dir).resolve())
+    cmd = [skill_dir, "--query", args.query, "--top-n", str(args.top_n)]
+    if args.fixture_dir:
+        cmd.extend(["--fixture-dir", args.fixture_dir])
+    if args.output_md:
+        cmd.extend(["--output-md", args.output_md])
+    if args.output_json:
+        cmd.extend(["--output-json", args.output_json])
+    result = run_script("github_benchmark_scan.py", cmd)
     print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
 
@@ -620,6 +704,9 @@ def build_parser() -> argparse.ArgumentParser:
     init_cmd.add_argument("--external-reference", action="append", default=[])
     init_cmd.add_argument("--user-reference", action="append", default=[])
     init_cmd.add_argument("--local-constraint", action="append", default=[])
+    init_cmd.add_argument("--github-query")
+    init_cmd.add_argument("--github-top-n", type=int, default=3)
+    init_cmd.add_argument("--github-fixture-dir")
     init_cmd.set_defaults(func=command_init)
 
     quickstart_cmd = subparsers.add_parser(
@@ -637,6 +724,9 @@ def build_parser() -> argparse.ArgumentParser:
     quickstart_cmd.add_argument("--external-reference", action="append", default=[])
     quickstart_cmd.add_argument("--user-reference", action="append", default=[])
     quickstart_cmd.add_argument("--local-constraint", action="append", default=[])
+    quickstart_cmd.add_argument("--github-query")
+    quickstart_cmd.add_argument("--github-top-n", type=int, default=3)
+    quickstart_cmd.add_argument("--github-fixture-dir")
     quickstart_cmd.set_defaults(func=command_quickstart)
 
     validate_cmd = subparsers.add_parser("validate", help="Run validate, lint, governance, and resource checks.")
@@ -713,6 +803,18 @@ def build_parser() -> argparse.ArgumentParser:
     reference_scan_cmd.add_argument("--output-md")
     reference_scan_cmd.add_argument("--output-json")
     reference_scan_cmd.set_defaults(func=command_reference_scan)
+
+    github_scan_cmd = subparsers.add_parser(
+        "github-benchmark-scan",
+        help="Search top public GitHub repositories and extract borrow or avoid patterns for a skill.",
+    )
+    github_scan_cmd.add_argument("skill_dir", nargs="?", default=".")
+    github_scan_cmd.add_argument("--query", required=True)
+    github_scan_cmd.add_argument("--top-n", type=int, default=3)
+    github_scan_cmd.add_argument("--fixture-dir")
+    github_scan_cmd.add_argument("--output-md")
+    github_scan_cmd.add_argument("--output-json")
+    github_scan_cmd.set_defaults(func=command_github_benchmark_scan)
 
     intent_dialogue_cmd = subparsers.add_parser(
         "intent-dialogue",

@@ -59,6 +59,8 @@ def main() -> None:
     assert "Skill Overview" in report_html, report_html[:200]
     assert "Architecture" in report_html, report_html[:400]
     assert "Why It Works" in report_html, report_html[:600]
+    assert "How to introduce this skill" in report_html, report_html[:900]
+    assert "Patterns worth borrowing now" in report_html, report_html[:1200]
 
     intent_text = (created / "reports" / "intent-dialogue.md").read_text(encoding="utf-8")
     assert "Questions To Ask" in intent_text, intent_text[:400]

@@ -11,4 +11,5 @@ tests/tmp_reference_scan/
 tests/tmp_iteration_directions/
 tests/tmp_review_viewer/
 tests/tmp_feedback/
+tests/tmp_github_benchmark_scan/
 reports/release_snapshots/
