@@ -31,20 +31,26 @@ AI Agent 原本的联网能力（WebSearch、WebFetch）缺少调度策略和浏
 
 ---
 
-## v2.4.3 能力
+## v2.5.0 能力
 
 | 能力 | 说明 |
 |------|------|
 | 联网工具自动选择 | WebSearch / WebFetch / curl / Jina / CDP，按场景自主判断，可任意组合 |
 | CDP Proxy 浏览器操作 | 直连用户日常 Chrome，天然携带登录态，支持动态页面、交互操作、视频截帧 |
 | 三种点击方式 | `/click`（JS click）、`/clickAt`（CDP 真实鼠标事件）、`/setFiles`（文件上传） |
+| 本地 Chrome 书签/历史检索 | `find-url.mjs` 查询公网搜不到的目标（内部系统）或用户访问过的页面，支持关键词/时间窗/访问频度排序 |
 | 并行分治 | 多目标时分发子 Agent 并行执行，共享一个 Proxy，tab 级隔离 |
 | 站点经验积累 | 按域名存储操作经验（URL 模式、平台特征、已知陷阱），跨 session 复用 |
 | 媒体提取 | 从 DOM 直取图片/视频 URL，或对视频任意时间点截帧分析 |
 
-**v2.4.3 更新：**
+**v2.5.0 更新：**
+- **本地 Chrome 资源检索** — 新增 `scripts/find-url.mjs`，从本地 Chrome 书签/历史按关键词/时间窗/访问频度定位 URL。典型场景：用户提到组织内部系统（"我们的 XX 平台"等公网搜不到的目标）、回查之前访问过但不记得地址的页面、查看最近高频访问网站等（场景感谢 @MVPGFC 在 #60 提出）
+
+<details><summary>v2.4.3 更新</summary>
+
 - **修复 CLAUDE_SKILL_DIR 路径问题** — bash 代码块改用 `${CLAUDE_SKILL_DIR}` 字符串替换语法，修复 Windows Git Bash 路径转换错误和变量未设置问题（#47 #46）
 - **站点经验列表合并到前置检查** — 启动检查通过后自动输出已有站点经验列表，移除不可靠的 `!` 内联注入
+</details>
 
 <details><summary>v2.4.1 更新</summary>
 
@@ -128,7 +134,10 @@ curl -s -X POST "http://localhost:3456/setFiles?target=ID" \
 curl -s "http://localhost:3456/screenshot?target=ID&file=/tmp/shot.png"     # 截图
 curl -s "http://localhost:3456/scroll?target=ID&direction=bottom"           # 滚动
 curl -s "http://localhost:3456/close?target=ID"                             # 关闭 tab
+curl -s "http://localhost:3456/health"                                      # 查看状态（含 managedTabs 数量）
 ```
+
+Proxy 会自动追踪通过 `/new` 创建的 tab，闲置 15 分钟后自动关闭，防止 Agent 异常退出时留下孤儿 tab。可通过环境变量 `CDP_TAB_IDLE_TIMEOUT`（单位毫秒）调整超时时间。
 
 ## ⚠️ 使用前提醒
 
@@ -157,5 +166,9 @@ MIT · 作者：[一泽 Eze](https://github.com/eze-is) · [官网](https://web-
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=eze-is/web-access&type=Date)](https://star-history.com/#eze-is/web-access&Date)
+
+## Clawhub Download History
+
+[![Download History](https://skill-history.com/chart/eze-is/web-access.svg)](https://skill-history.com/eze-is/web-access)
 
 <img width="1280" height="306" alt="image" src="https://github.com/user-attachments/assets/2afa25c2-3730-413e-b40f-94e52567249d" />
