@@ -142,8 +142,8 @@ echo "{\"agent\":\"<id>\",\"reason\":\"<reason>\",\"ts\":\"$(date -u +%FT%TZ)\"}
 
 **三层防御**：
 
-1. **Stop hook 层**（自动）：每次主会话 Stop 时扫一次 `$HOME/.claude/pua/loop-*.md`，stale 的直接清理（已在 `pua-loop-hook.sh` 实现）
-2. **SessionStart hook 层**（自动）：新会话启动时扫 state 目录，stale 的提示用户确认
+1. **Stop hook 层**（可选）：如果宿主支持 Stop hook，可在主会话结束时扫一次 `$HOME/.claude/pua/loop-*.md`，stale 的直接清理
+2. **会话初始化层**（可选）：如果宿主支持启动注入，可在新会话开始时扫 state 目录，stale 的提示用户确认
 3. **用户显式**（手动）：`/pua:reap-orphans` 一键扫描 + 回收
 
 ---
@@ -170,17 +170,17 @@ PUA 的 14 个 slash 命令在本协议下的生命周期语义：
 
 ## §自治 — 插件自动启动场景
 
-因为 PUA 是 `default=true` 自动加载的，不能假设用户会主动清理。所以关键是让 hook 长出 GC 能力：
+如果宿主把 PUA 配成默认加载，不能假设用户会主动清理；如果 PUA 只在本地显式启用，这一节可以按需采用。关键是：有 hook 就用 hook 做 GC，没有 hook 也不能阻塞主流程。
 
 | Hook 事件 | 自治行为 | 实际落地 |
 |----------|---------|---------|
-| `SessionStart` | 扫 stale loop state，提示用户确认回收 | ✅ `session-restore.sh` |
-| `PreCompact` | dump 活跃 agent 清单到 HANDOFF | ✅ inline prompt hook |
-| `Stop`（主会话） | 走 loop 逻辑 + stale 兜底清理 | ✅ `pua-loop-hook.sh` + Gate 0 防御 |
-| `SubagentStop` | **agent 完成会计**：写 teardown.jsonl + 从 active-agents.json 移除 | ✅ `subagent-teardown.sh`（v3.1 新增） |
-| `PostToolUse:Task`（计划） | spawn 时记录 agent_id 到 active-agents.json | ⏳ 待实现（需 Claude Code 该事件支持） |
+| `SessionStart` | 扫 stale loop state，提示用户确认回收 | 可选，宿主支持时启用 |
+| `PreCompact` | dump 活跃 agent 清单到 HANDOFF | 可选，宿主支持时启用 |
+| `Stop`（主会话） | 走 loop 逻辑 + stale 兜底清理 | 可选，宿主支持时启用 |
+| `SubagentStop` | **agent 完成会计**：写 teardown.jsonl + 从 active-agents.json 移除 | 可选，宿主支持时启用 |
+| `PostToolUse:Task`（计划） | spawn 时记录 agent_id 到 active-agents.json | 可选，宿主支持时启用 |
 
-**重要**：Claude Code 中 Stop 事件**仅**主会话触发，subagent 的 Stop 事件不会传到 Stop 钩子——所以监控 subagent 必须用独立的 SubagentStop 注册。pua-loop-hook.sh 的 Gate 0 保留作为"防御层"兜住未来调度变化，但不是必需防线。
+**重要**：这些都是宿主能力增强，不是本地纯行为版的前提条件。没有对应 hook 时，应退化为显式命令或人工清理，而不是让 skill 失效。
 
 ---
 
