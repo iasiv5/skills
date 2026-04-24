@@ -39,9 +39,11 @@ def main() -> None:
     assert (created / "SKILL.md").exists(), created
     assert (created / "README.md").exists(), created
     assert (created / "reports" / "intent-dialogue.md").exists(), created
+    assert (created / "reports" / "intent-confidence.md").exists(), created
     assert (created / "reports" / "skill-overview.html").exists(), created
     assert (created / "reports" / "review-viewer.html").exists(), created
     assert (created / "reports" / "reference-scan.md").exists(), created
+    assert (created / "reports" / "reference-synthesis.md").exists(), created
     assert (created / "reports" / "iteration-directions.md").exists(), created
 
     quickstart_result = run(
@@ -50,16 +52,59 @@ def main() -> None:
         str(tmp_root),
         "--github-fixture-dir",
         str(BENCHMARK_FIXTURE_DIR),
-        input_text="quickstart-skill\nTurn rough notes into a reusable package.\nA reusable markdown workflow.\nlooks right\nproduction\nproduction\nA top-tier internal workflow product\nprivacy and naming\n",
+        input_text=(
+            "quickstart-skill\n"
+            "Turn messy release notes into a reusable release brief skill.\n"
+            "release notes, changelog snippets\n"
+            "A reusable markdown release brief.\n"
+            "looks right\n"
+            "It should not publish blog posts or send email.\n"
+            "consistency, portability\n"
+            "production\n"
+            "production\n"
+            "\n"
+            "privacy and naming\n"
+        ),
     )
     assert quickstart_result["ok"], quickstart_result
     quickstart_root = Path(quickstart_result["payload"]["root"])
     assert (quickstart_root / "reports" / "review-viewer.html").exists(), quickstart_root
     assert (quickstart_root / "reports" / "github-benchmark-scan.md").exists(), quickstart_root
+    assert (quickstart_root / "reports" / "intent-confidence.md").exists(), quickstart_root
+    assert (quickstart_root / "reports" / "reference-synthesis.md").exists(), quickstart_root
     assert quickstart_result["payload"]["archetype"] == "production", quickstart_result
-    assert len(quickstart_result["payload"]["references"]["benchmark_repositories"]) == 3, quickstart_result
-    assert quickstart_result["payload"]["references"]["user_references"] == ["A top-tier internal workflow product"], quickstart_result
     assert quickstart_result["payload"]["guidance"]["experience_note"], quickstart_result
+    assert quickstart_result["payload"]["intent_confidence"]["score"] >= 70, quickstart_result
+    assert quickstart_result["payload"]["recommendation"]["summary"], quickstart_result
+    assert quickstart_result["payload"]["reference_mode"]["mode"] == "silent", quickstart_result
+    assert quickstart_result["payload"]["reviewer_evidence"]["artifacts"]["reference_synthesis"].endswith(
+        "reports/reference-synthesis.md"
+    ), quickstart_result
+    assert "uncertainty_or_conflict" not in quickstart_result["payload"], quickstart_result
+
+    quickstart_conflict_result = run(
+        "quickstart",
+        "--output-dir",
+        str(tmp_root),
+        "--github-fixture-dir",
+        str(BENCHMARK_FIXTURE_DIR),
+        input_text=(
+            "quickstart-conflict-skill\n"
+            "Turn repeated release notes into a governed release command skill.\n"
+            "release notes, changelog snippets\n"
+            "A governed release packet.\n"
+            "looks right\n"
+            "It should not publish blog posts or send email.\n"
+            "auditability, portability\n"
+            "governed\n"
+            "governed\n"
+            "Minimal vibe helper::taste::Keep the first pass fast, minimal, and lightweight.::Do not add review, governance, or approval steps.\n"
+            "privacy and naming\n"
+        ),
+    )
+    assert quickstart_conflict_result["ok"], quickstart_conflict_result
+    assert quickstart_conflict_result["payload"]["reference_mode"]["mode"] == "explicit", quickstart_conflict_result
+    assert quickstart_conflict_result["payload"]["uncertainty_or_conflict"]["conflicts"], quickstart_conflict_result
 
     validate_result = run("validate", str(created))
     assert validate_result["ok"], validate_result
@@ -98,9 +143,17 @@ def main() -> None:
     assert github_benchmark_result["ok"], github_benchmark_result
     assert len(github_benchmark_result["payload"]["repositories"]) == 3, github_benchmark_result
 
+    intent_confidence_result = run("intent-confidence", str(created))
+    assert intent_confidence_result["ok"], intent_confidence_result
+    assert intent_confidence_result["payload"]["summary"]["score"] >= 0, intent_confidence_result
+
     intent_result = run("intent-dialogue", str(created))
     assert intent_result["ok"], intent_result
     assert intent_result["payload"]["artifacts"]["markdown"].endswith("reports/intent-dialogue.md"), intent_result
+
+    reference_synthesis_result = run("reference-synthesis", str(created))
+    assert reference_synthesis_result["ok"], reference_synthesis_result
+    assert reference_synthesis_result["payload"]["artifacts"]["markdown"].endswith("reports/reference-synthesis.md"), reference_synthesis_result
 
     directions_result = run("iteration-directions", str(created))
     assert directions_result["ok"], directions_result

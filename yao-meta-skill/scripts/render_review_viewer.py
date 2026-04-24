@@ -5,9 +5,11 @@ import json
 import re
 from pathlib import Path
 
+from render_intent_confidence import render_intent_confidence
 from render_intent_dialogue import render_intent_dialogue
 from render_iteration_directions import render_iteration_directions
 from render_reference_scan import render_reference_scan
+from render_reference_synthesis import render_reference_synthesis
 from render_skill_overview import render_skill_overview
 
 
@@ -49,28 +51,41 @@ def load_benchmark_summary(skill_dir: Path) -> dict:
     return payload if isinstance(payload, dict) else {}
 
 
+def load_reference_synthesis_summary(skill_dir: Path) -> dict:
+    payload = load_json(skill_dir / "reports" / "reference-synthesis.json")
+    return payload if isinstance(payload, dict) else {}
+
+
 def ensure_report_inputs(skill_dir: Path) -> dict:
     overview_json = skill_dir / "reports" / "skill-overview.json"
+    intent_confidence_json = skill_dir / "reports" / "intent-confidence.json"
     intent_json = skill_dir / "reports" / "intent-dialogue.json"
     reference_json = skill_dir / "reports" / "reference-scan.json"
+    reference_synthesis_json = skill_dir / "reports" / "reference-synthesis.json"
     directions_json = skill_dir / "reports" / "iteration-directions.json"
 
     overview_payload = load_json(overview_json) if overview_json.exists() else {}
+    intent_confidence_payload = load_json(intent_confidence_json) if intent_confidence_json.exists() else {}
     intent_payload = load_json(intent_json) if intent_json.exists() else {}
     reference_payload = load_json(reference_json) if reference_json.exists() else {}
+    reference_synthesis_payload = load_json(reference_synthesis_json) if reference_synthesis_json.exists() else {}
     directions_payload = load_json(directions_json) if directions_json.exists() else {}
 
-    overview = overview_payload or render_skill_overview(skill_dir)["summary"]
+    intent_confidence = intent_confidence_payload or render_intent_confidence(skill_dir)["summary"]
     intent = intent_payload or render_intent_dialogue(skill_dir)["summary"]
     reference = reference_payload or render_reference_scan(skill_dir, [])["summary"]
+    reference_synthesis = reference_synthesis_payload or render_reference_synthesis(skill_dir)["summary"]
+    overview = overview_payload or render_skill_overview(skill_dir)["summary"]
     iteration = directions_payload.get("summary", {}) or render_iteration_directions(skill_dir)["summary"]
     feedback = load_feedback_summary(skill_dir)
     baseline = load_baseline_summary(skill_dir)
     compare = load_specific_compare(skill_dir)
     promotion = load_specific_promotion(skill_dir)
     benchmark = load_benchmark_summary(skill_dir)
+    reference_synthesis = load_reference_synthesis_summary(skill_dir)
     return {
         "overview": overview,
+        "intent_confidence": intent_confidence,
         "intent": intent,
         "reference": reference,
         "iteration": directions_payload if directions_payload else {"summary": iteration, "directions": []},
@@ -79,6 +94,7 @@ def ensure_report_inputs(skill_dir: Path) -> dict:
         "compare": compare,
         "promotion": promotion,
         "benchmark": benchmark,
+        "reference_synthesis": reference_synthesis,
     }
 
 
@@ -128,6 +144,19 @@ def benchmark_cards(benchmark: dict) -> list[dict]:
                 "name": repo.get("full_name", "Unknown repo"),
                 "borrow": repo.get("borrow", [])[:2],
                 "avoid": repo.get("avoid", [])[:1],
+            }
+        )
+    return cards
+
+
+def synthesis_cards(reference_synthesis: dict) -> list[dict]:
+    cards = []
+    for track in reference_synthesis.get("source_tracks", [])[:3]:
+        cards.append(
+            {
+                "name": track.get("name", "Unknown track"),
+                "borrow": [track.get("borrow", "")] if track.get("borrow") else [],
+                "avoid": [track.get("avoid", "")] if track.get("avoid") else [],
             }
         )
     return cards
@@ -197,6 +226,7 @@ def variant_diff_cards(compare: dict) -> list[dict]:
 def render_html(report: dict) -> str:
     overview = report["overview"]
     intent = report["intent"]
+    intent_confidence = report.get("intent_confidence", {})
     reference = report["reference"]
     iteration = report["iteration"]
     directions = iteration.get("directions", [])[:3]
@@ -205,9 +235,11 @@ def render_html(report: dict) -> str:
     compare = report.get("compare", {})
     promotion = report.get("promotion", {})
     benchmark = report.get("benchmark", {})
+    reference_synthesis = report.get("reference_synthesis", {})
     architecture = architecture_steps(overview)
     compare_table_rows = compare_rows(compare)
     benchmark_rows = benchmark_cards(benchmark)
+    synthesis_rows = synthesis_cards(reference_synthesis)
     variant_cards = variant_diff_cards(compare)
 
     strength_items = "".join(f"<li>{html.escape(item)}</li>" for item in overview.get("strengths", []))
@@ -326,6 +358,23 @@ def render_html(report: dict) -> str:
         )
     else:
         benchmark_html = "<p class='minor'>No GitHub benchmark scan has been attached to this package yet.</p>"
+
+    synthesis_html = ""
+    if synthesis_rows:
+        synthesis_html = "".join(
+            (
+                "<div class='direction-card'>"
+                f"<h3>{html.escape(item['name'])}</h3>"
+                "<p><strong>Borrow now</strong></p>"
+                + ("<ul>" + "".join(f"<li>{html.escape(borrow)}</li>" for borrow in item.get('borrow', [])) + "</ul>" if item.get("borrow") else "<p>No borrow cues recorded.</p>")
+                + "<p><strong>Avoid</strong></p>"
+                + ("<ul>" + "".join(f"<li>{html.escape(avoid)}</li>" for avoid in item.get('avoid', [])) + "</ul>" if item.get("avoid") else "<p>No avoid cues recorded.</p>")
+                + "</div>"
+            )
+            for item in synthesis_rows
+        )
+    else:
+        synthesis_html = "<p class='minor'>No multi-source synthesis has been generated yet.</p>"
 
     variant_diff_html = ""
     if variant_cards:
@@ -555,6 +604,7 @@ def render_html(report: dict) -> str:
         <span>archetype: {html.escape(str(overview.get('metadata', {}).get('skill_archetype', 'scaffold')))}</span>
         <span>format: {html.escape(str(overview.get('metadata', {}).get('canonical_format', 'agent-skills')))}</span>
         <span>updated: {html.escape(str(overview.get('metadata', {}).get('updated_at', 'n/a')))}</span>
+        <span>intent confidence: {html.escape(str(intent_confidence.get('score', 'n/a')))} / 100</span>
       </div>
     </section>
 
@@ -613,6 +663,18 @@ def render_html(report: dict) -> str:
           <li>State one thing this skill will not inherit from the benchmark objects.</li>
           <li>Only deepen the package after that choice is visible in the boundary or execution flow.</li>
         </ul>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Reference synthesis</h2>
+        <div class="direction-grid">{synthesis_html}</div>
+      </div>
+      <div class="panel">
+        <h2>Borrow now</h2>
+        <ul>{"".join(f"<li>{html.escape(item)}</li>" for item in reference_synthesis.get('synthesis', {}).get('borrow_now', [])[:4]) or "<li>No synthesis borrow cues recorded yet.</li>"}</ul>
+        <p class="minor">{html.escape(reference_synthesis.get('synthesis', {}).get('decision_prompt', 'Run the reference synthesis after the benchmark scan to decide what to borrow next.'))}</p>
       </div>
     </section>
 

@@ -5,7 +5,7 @@ import os
 import re
 from pathlib import Path
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 from urllib.request import Request, urlopen
 
 
@@ -15,6 +15,7 @@ USER_AGENT = "yao-meta-skill/1.0"
 DEFAULT_TOP_N = 3
 DEFAULT_PER_PAGE = 8
 MIN_STARS = 50
+ALLOWED_API_HOSTS = {"api.github.com"}
 
 STOPWORDS = {
     "the",
@@ -100,8 +101,15 @@ def github_headers() -> dict[str, str]:
     return headers
 
 
+def ensure_allowed_api_url(url: str) -> str:
+    parsed = urlparse(url)
+    if parsed.scheme != "https" or parsed.hostname not in ALLOWED_API_HOSTS:
+        raise ValueError(f"Refusing outbound request to non-GitHub API host: {url}")
+    return url
+
+
 def api_get(url: str) -> dict[str, Any]:
-    request = Request(url, headers=github_headers())
+    request = Request(ensure_allowed_api_url(url), headers=github_headers())
     with urlopen(request, timeout=15) as response:  # nosec B310 - GitHub API fetch
         data = response.read().decode("utf-8")
     return json.loads(data)
@@ -154,7 +162,10 @@ def fetch_readme(full_name: str, fixture_bundle: dict[str, Any] | None = None) -
         return fixture_bundle.get("readmes", {}).get(full_name, "")
 
     url = f"{API_ROOT}/repos/{full_name}/readme"
-    request = Request(url, headers={**github_headers(), "Accept": "application/vnd.github.raw+json"})
+    request = Request(
+        ensure_allowed_api_url(url),
+        headers={**github_headers(), "Accept": "application/vnd.github.raw+json"},
+    )
     with urlopen(request, timeout=15) as response:  # nosec B310 - GitHub API fetch
         return response.read().decode("utf-8", errors="replace")
 
@@ -344,6 +355,7 @@ def run_github_benchmark_scan(
             "ok": True,
             "query": query,
             "source": "fixture" if fixture_bundle is not None else "github-api",
+            "network_boundary": "github-api-only",
             "repositories": repo_summaries,
             "cross_repo": cross_repo,
             "external_references": [repo_to_external_reference(repo) for repo in repo_summaries],
@@ -355,6 +367,7 @@ def run_github_benchmark_scan(
             "ok": False,
             "query": query,
             "source": "fixture" if fixture_bundle is not None else "github-api",
+            "network_boundary": "github-api-only",
             "repositories": [],
             "cross_repo": {
                 "borrow": [],

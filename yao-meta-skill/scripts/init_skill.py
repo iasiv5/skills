@@ -5,9 +5,11 @@ from datetime import date
 from pathlib import Path
 
 from github_benchmark_scan import run_github_benchmark_scan
+from render_intent_confidence import render_intent_confidence
 from render_intent_dialogue import render_intent_dialogue
 from render_iteration_directions import render_iteration_directions
 from render_reference_scan import parse_reference, render_reference_scan
+from render_reference_synthesis import render_reference_synthesis
 from render_review_viewer import render_review_viewer
 from render_skill_overview import render_skill_overview
 
@@ -40,10 +42,12 @@ README_TEMPLATE = """# {title}
 1. Load the skill through `SKILL.md`.
 2. Start with `reports/intent-dialogue.md` to tighten the real job, outputs, exclusions, and the standards you care about.
 3. Open `reports/reference-scan.md` to capture external benchmarks and any user-supplied references worth learning from.
-4. Follow the workflow steps in `SKILL.md`.
-5. Check `reports/skill-overview.html` if you want a fast visual explanation of the package.
-6. Open `reports/review-viewer.html` for a compact visual review of the package.
-7. Review `reports/iteration-directions.md` for the three most valuable next moves.
+4. Review `reports/intent-confidence.md` to see whether the real job, inputs, outputs, and exclusions are clear enough yet.
+5. Open `reports/reference-synthesis.md` to see the GitHub benchmarks plus curated official, research, and principle tracks in one place.
+6. Follow the workflow steps in `SKILL.md`.
+7. Check `reports/skill-overview.html` if you want a fast visual explanation of the package.
+8. Open `reports/review-viewer.html` for a compact visual review of the package.
+9. Review `reports/iteration-directions.md` for the three most valuable next moves.
 
 ## Package Map
 
@@ -51,8 +55,10 @@ README_TEMPLATE = """# {title}
 - `agents/interface.yaml`: portable interface metadata
 - `manifest.json`: lifecycle and packaging metadata
 - `reports/intent-dialogue.md`: front-loaded discovery questions for better boundary design and clearer human alignment
+- `reports/intent-confidence.md`: current clarity score, open gaps, and the next follow-up questions worth asking
 - `reports/github-benchmark-scan.md`: top public benchmark repositories, extracted patterns, and borrow or avoid notes
 - `reports/reference-scan.md`: benchmark notes from public references, user references, and local constraints
+- `reports/reference-synthesis.md`: a combined view of GitHub benchmarks plus curated world-class pattern tracks
 - `reports/skill-overview.html`: visual overview report
 - `reports/review-viewer.html`: compact review page for architecture, usage, feedback, and next steps
 - `reports/iteration-directions.md`: the top three next iteration directions
@@ -172,6 +178,7 @@ def initialize_skill(
     github_query: str | None = None,
     github_top_n: int = 3,
     github_fixture_dir: str | None = None,
+    intent_context: dict | None = None,
 ) -> dict:
     title = title or name.replace("-", " ").title()
     root = Path(output_dir).resolve() / name
@@ -200,7 +207,7 @@ def initialize_skill(
         json.dumps(build_manifest(name, mode, archetype), ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
-    overview = render_skill_overview(root)
+    intent_confidence = render_intent_confidence(root, context=intent_context)
     intent_dialogue = render_intent_dialogue(root)
     benchmark_scan = None
     combined_external_references = [*(external_references or [])]
@@ -216,17 +223,24 @@ def initialize_skill(
         root,
         dedupe_references([*combined_external_references, *(user_references or []), *(local_constraints or [])]),
     )
+    reference_synthesis = render_reference_synthesis(root)
+    overview = render_skill_overview(root)
     iteration_directions = render_iteration_directions(root)
     review_viewer = render_review_viewer(root)
     artifacts = {
         "readme": str(root / "README.md"),
         "manifest": str(root / "manifest.json"),
+        "intent_confidence_md": intent_confidence["artifacts"]["markdown"],
+        "intent_confidence_json": intent_confidence["artifacts"]["json"],
+        "intent_context_json": intent_confidence["artifacts"]["context_json"],
         "skill_overview_html": overview["artifacts"]["html"],
         "skill_overview_json": overview["artifacts"]["json"],
         "intent_dialogue_md": intent_dialogue["artifacts"]["markdown"],
         "intent_dialogue_json": intent_dialogue["artifacts"]["json"],
         "reference_scan_md": reference_scan["artifacts"]["markdown"],
         "reference_scan_json": reference_scan["artifacts"]["json"],
+        "reference_synthesis_md": reference_synthesis["artifacts"]["markdown"],
+        "reference_synthesis_json": reference_synthesis["artifacts"]["json"],
         "iteration_directions_md": iteration_directions["artifacts"]["markdown"],
         "iteration_directions_json": iteration_directions["artifacts"]["json"],
         "review_viewer_html": review_viewer["artifacts"]["html"],
@@ -241,6 +255,8 @@ def initialize_skill(
         "mode": mode,
         "archetype": archetype,
         "github_benchmark_scan": benchmark_scan,
+        "intent_confidence": intent_confidence["summary"],
+        "reference_synthesis": reference_synthesis["summary"],
         "artifacts": artifacts,
     }
 
@@ -259,6 +275,13 @@ def main() -> None:
     parser.add_argument("--github-query")
     parser.add_argument("--github-top-n", type=int, default=3)
     parser.add_argument("--github-fixture-dir")
+    parser.add_argument("--intent-job")
+    parser.add_argument("--intent-real-input", action="append", default=[])
+    parser.add_argument("--intent-primary-output")
+    parser.add_argument("--intent-exclusion", action="append", default=[])
+    parser.add_argument("--intent-constraint", action="append", default=[])
+    parser.add_argument("--intent-standard", action="append", default=[])
+    parser.add_argument("--intent-correction", default="")
     args = parser.parse_args()
     result = initialize_skill(
         args.name,
@@ -273,6 +296,17 @@ def main() -> None:
         github_query=args.github_query,
         github_top_n=args.github_top_n,
         github_fixture_dir=args.github_fixture_dir,
+        intent_context={
+            "job": args.intent_job or args.description,
+            "real_inputs": args.intent_real_input,
+            "primary_output": args.intent_primary_output or "",
+            "description": args.description,
+            "exclusions": args.intent_exclusion,
+            "constraints": args.intent_constraint,
+            "standards": args.intent_standard,
+            "correction": args.intent_correction,
+            "user_references": [parse_reference(item, "user")["name"] for item in args.user_reference],
+        },
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
 

@@ -52,7 +52,7 @@ def classify_focus(description: str) -> str:
 def build_questions(focus: str) -> list[dict]:
     base = [
         {
-            "question": "If this skill worked beautifully, what recurring job would it quietly take off the user's plate every time?",
+            "question": "If this skill worked beautifully, what recurring job would it reliably handle for the user every time?",
             "why": "This reveals the real job-to-be-done and gives the package a humane center instead of a guessed prompt shape.",
         },
         {
@@ -156,7 +156,7 @@ def build_summary(skill_dir: Path) -> dict:
         ],
         "opening_styles": opening_styles,
         "optional_scaffold": [
-            "The repeated job it should take over",
+            "The repeated job it should reliably handle",
             "The real inputs people will hand to it",
             "The useful output it should hand back",
             "What it should clearly refuse",

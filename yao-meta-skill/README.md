@@ -19,8 +19,8 @@ It turns rough workflows, transcripts, prompts, notes, and runbooks into reusabl
 - a clear trigger surface
 - a lean `SKILL.md`
 - optional references, scripts, and evals
-- a front-loaded intent dialogue that starts from the user's real work, desired outcome, and quality bar
-- an automatic GitHub benchmark scan that pulls the top three public repositories first, extracts borrow or avoid patterns, and then asks whether the user has references worth learning from
+- a front-loaded intent dialogue with an intent confidence gate, so the system keeps clarifying when the true job, outputs, exclusions, or standards are still fuzzy
+- a silent-by-default GitHub benchmark scan plus reference synthesis that studies top public repositories and world-class pattern tracks, then surfaces only real conflicts or uncertainty to the user
 - a generated visual HTML overview for each newly initialized skill
 - a side-by-side HTML review studio for first-pass human review
 - three high-value next iteration directions after the first package is created
@@ -50,39 +50,38 @@ Read it in 10 seconds:
 - **Run**: use the unified CLI to build, validate, optimize, and promote.
 - **Outputs**: ship a reusable skill plus evidence, governance signals, and portability artifacts.
 
-## Comparison Snapshot
+## Weighted Quality Benchmark
 
-This is a scenario-oriented benchmark shared with the project. It is most useful when deciding which system fits a workflow, not as a universal claim that one approach beats every other approach in every context.
+This benchmark is a project-level engineering review, scored from `0-10` per dimension and weighted to `100`. GitHub stars are intentionally excluded because they measure ecosystem heat, not meta-skill engineering quality.
 
-| Dimension | skill-creator | yao-meta-skill | What it means |
-| --- | ---: | ---: | --- |
-| Onboarding friction | 9 | 6 | `skill-creator` is friendlier and more conversational; `yao-meta-skill` has more concepts and a steeper learning curve. |
-| Flexibility | 9 | 7 | `skill-creator` is more free-form; `yao-meta-skill` uses a more explicit process. |
-| Method depth | 5 | 9.5 | `yao-meta-skill` has a fuller engineering doctrine with archetypes, gate selection, governance, and resource boundaries. |
-| Evaluation rigor | 7 | 9.5 | `yao-meta-skill` emphasizes layered holdouts, route confusion, adversarial checks, and promotion gates. |
-| Human review experience | 9 | 5 | `skill-creator` has the more intuitive review UX; `yao-meta-skill` is still mostly report-driven. |
-| Governance and lifecycle | 2 | 9.5 | `yao-meta-skill` treats important skills as managed assets with maturity, review cadence, and promotion evidence. |
-| Cross-environment portability | 4 | 9 | `yao-meta-skill` is built around neutral metadata, adapters, degradation rules, and portability checks. |
-| Toolchain completeness | 6 | 9.5 | `yao-meta-skill` ships with a much broader toolchain, unified CLI, CI, and report generation. |
-| Iteration speed | 8 | 7 | `skill-creator` can feel faster for quick cycles; `yao-meta-skill` spends more effort on gates and evidence. |
-| Documentation quality | 7 | 9 | `yao-meta-skill` offers multi-language docs, examples, failure cases, and method doctrine. |
-| Best for solo use | 9 | 6 | `skill-creator` is easier for fast personal iteration. |
-| Best for teams and organizations | 5 | 9.5 | `yao-meta-skill` fits team reuse, governance, CI, and long-term maintenance better. |
-| Overall | 6.7 | 8.0 | The tradeoff is straightforward: lighter conversation flow versus stronger engineering and governance. |
+Weighted score formula: `sum(score / 10 * weight)`.
+
+| Meta Skill | Method Depth 15 | Context Discipline 10 | Toolchain 15 | Eval/Test Rigor 20 | Governance 15 | Portability 10 | Onboarding/Review 5 | Local Reliability 10 | Weighted Score |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Yao Meta Skill | 9.5 | 8.0 | 9.5 | 9.5 | 9.5 | 9.0 | 6.5 | 9.5 | 91.5 |
+| Anthropic Skill Creator | 9.0 | 6.5 | 8.5 | 7.5 | 4.0 | 5.0 | 7.5 | 5.0 | 67.5 |
+| OpenAI Skill Creator | 8.5 | 9.5 | 5.0 | 2.0 | 3.0 | 4.0 | 8.5 | 4.0 | 50.5 |
+
+| Rank | Meta Skill | Score | Core Positioning |
+| ---: | --- | ---: | --- |
+| 1 | Yao Meta Skill | 91.5 | A complete engineering, evaluation, governance, and portability system for reusable skills. |
+| 2 | Anthropic Skill Creator | 67.5 | Strong methodology and iteration loop, with weaker local execution reliability and governance coverage. |
+| 3 | OpenAI Skill Creator | 50.5 | Best treated as a concise skill-writing method guide rather than a full engineering system. |
 
 ## Best-Fit Scenarios
 
-- Choose **skill-creator** when the main goal is fast solo ideation, flexible interaction, and quick iteration with a lighter process.
-- Choose **yao-meta-skill** when the goal is to build a reusable asset with explicit boundaries, evaluation gates, governance, portability, and long-term maintainability.
-- A practical hybrid pattern is: use a conversational creator to get a first draft, then use `yao-meta-skill` to harden the package, add evidence, and make it team-ready.
+- Choose **Yao Meta Skill** when the target is a reusable team asset with explicit boundaries, trigger evaluation, governance, packaging, portability, and local execution checks.
+- Choose **Anthropic Skill Creator** when the target is a conversation-first creation loop and the priority is human-guided iteration over repository-level governance.
+- Choose **OpenAI Skill Creator** when the target is a compact reference for writing lean skill instructions and keeping context small.
+- A practical hybrid pattern is still useful: draft conversationally, then use `yao-meta-skill` to harden the package, add evidence, and make it team-ready.
 
 ## Quick Start
 
 1. Describe the workflow, prompt set, or repeated task you want to turn into a skill.
 2. Start with a short, human intent dialogue so the real job, outputs, exclusions, constraints, and standards are explicit.
-3. Let `quickstart` run a short GitHub benchmark scan first, study the top three public repositories it retrieves, then ask whether the user has examples worth learning from; use local files only for fit and privacy checks.
+3. Let `quickstart` clarify intent first, then run silent benchmark scan and reference synthesis; it only surfaces explicit questions when intent is still unclear or when there is a real design conflict.
 4. Use the archetype-aware `quickstart` or the full authoring flow to generate or improve the package in scaffold, production, library, or governed mode.
-5. Review the generated `reports/intent-dialogue.md`, `reports/skill-overview.html`, and `reports/iteration-directions.md` before adding more structure.
+5. Review the generated `reports/intent-dialogue.md`, `reports/intent-confidence.md`, `reports/reference-synthesis.md`, `reports/skill-overview.html`, and `reports/iteration-directions.md` before adding more structure.
 
 Or use the unified authoring CLI:
 
@@ -189,8 +188,9 @@ Full reports: [reports/eval_suite.json](reports/eval_suite.json) and [reports/fa
 - failure library regressions: anti-pattern families pass automated checks
 - governance and resource-boundary checks are part of the default test path
 - root governance maturity score: `90/100`; governed benchmark example: `95/100`
-- context budgets: root `971/1000`, complex benchmark `790/1000`, governed benchmark `760/1000`
-- quality density: root `133.9`, complex benchmark `164.6`, governed benchmark `171.1`
+- CJK-aware trigger matching is now covered by explicit Chinese build, packaging, eval, and near-neighbor cases
+- context budgets: root `994/1000`, complex benchmark `790/1000`, governed benchmark `760/1000`
+- quality density: root `130.8`, complex benchmark `164.6`, governed benchmark `171.1`
 - regression milestones are tracked in [reports/regression_history.md](reports/regression_history.md)
 - description drift history is tracked in [reports/description_drift_history.md](reports/description_drift_history.md)
 - route confusion is tracked in [reports/route_scorecard.md](reports/route_scorecard.md)
@@ -203,17 +203,18 @@ Full reports: [reports/eval_suite.json](reports/eval_suite.json) and [reports/fa
 
 ## Current Strengths
 
-In the latest weighted review shared with the project, Yao scored strongest in the dimensions that define a production-grade meta-skill system:
+The latest weighted review puts Yao at `91.5/100`. The strongest dimensions are the ones that matter most when skills become long-lived team assets:
 
-- **Method completeness `9.8`**: the repository now has a formal doctrine for skill engineering, gate selection, non-skill decisions, lifecycle governance, and resource boundaries.
-- **Engineering toolchain `9.8`**: authoring, validation, packaging, reporting, promotion checks, and CI are wired into one operational toolchain rather than scattered scripts.
-- **Governance, maintenance, and safety `9.8`**: important skills can carry lifecycle state, review cadence, maturity score, trust boundaries, and promotion evidence.
-- **Evaluation loop `9.7`**: trigger quality is checked with train/dev/holdout, blind holdout, adversarial holdout, judge-backed blind eval, drift history, and promotion gates.
-- **Portability and packaging `9.6`**: the source stays neutral while adapters, degradation rules, and packaging contracts preserve reusable semantics across target environments.
-- **Trigger and boundary design `9.5`**: route confusion, anti-pattern regressions, and promotion policy make trigger quality an auditable routing problem instead of a loose prompt-writing exercise.
-- **Context efficiency `9.4`**: the entrypoint stays compact, context budgets are tiered, and quality density is tracked instead of only raw token counts.
+- **Method depth `9.5`**: formal skill engineering doctrine, archetypes, gate selection, non-skill decisions, lifecycle governance, and resource boundaries.
+- **Toolchain completeness `9.5`**: authoring, validation, benchmark scan, description optimization, report generation, promotion checks, packaging, CI, and portability checks are wired into one operational flow.
+- **Eval and test rigor `9.5`**: trigger quality is checked with train/dev/holdout, blind holdout, adversarial holdout, judge-backed blind eval, route confusion, drift history, and promotion gates.
+- **Governance and lifecycle `9.5`**: important skills can carry owner, lifecycle state, review cadence, maturity score, trust boundaries, promotion decisions, and regression history.
+- **Local execution reliability `9.5`**: the repository is executable locally through `make test`, `make ci-test`, and the unified `scripts/yao.py` authoring CLI.
+- **Portability and distribution `9.0`**: neutral source metadata, client adapters, degradation rules, packaging contracts, and portability scoring preserve reusable semantics across target environments.
+- **Context discipline `8.0`**: the entrypoint is still held under budget, but this is tracked as a live constraint because the system now carries more reports, examples, benchmark assets, and generated evidence.
+- **Onboarding and review experience `6.5`**: quickstart, HTML overview, side-by-side review viewer, and feedback logs have improved the first-run experience, but this remains the clearest UX improvement area.
 
-The overall direction is deliberate: keep the entrypoint light, make the evaluation loop strict, and treat governance as a first-class part of skill quality.
+The current direction is deliberate: keep the entrypoint light, make evaluation hard to fake, make governance visible, and continue reducing the friction of first-time creation and review.
 
 ## Why Yao
 

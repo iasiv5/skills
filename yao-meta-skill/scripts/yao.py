@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from github_benchmark_scan import build_query
+from render_intent_confidence import assess_intent_confidence
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -139,6 +140,27 @@ def prompt_optional_entries(label: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def update_context_slot(context: dict, slot: str, answer: str, list_mode: bool) -> None:
+    value = answer.strip()
+    if not value or value.lower() in {"skip", "none", "no", "n"}:
+        return
+    if list_mode:
+        context[slot] = [item.strip() for item in value.split(",") if item.strip()]
+    else:
+        context[slot] = value
+
+
+def intent_confidence_note(summary: dict) -> str:
+    lines = [
+        f"\nIntent confidence: {summary['score']}/100 ({summary['band']}).",
+        f"- Recommended action: {summary['recommended_action']}",
+    ]
+    if summary.get("gaps"):
+        top_gap = summary["gaps"][0]
+        lines.append(f"- Biggest gap: {top_gap['label']} — {top_gap['reason']}")
+    return "\n".join(lines) + "\n"
+
+
 ARCHETYPE_MODE = {
     "scaffold": "scaffold",
     "production": "production",
@@ -191,6 +213,39 @@ def discovery_summary(job: str, primary_output: str, archetype: str, guidance: d
     )
 
 
+def reference_visibility(reference_synthesis: dict) -> dict:
+    synthesis = reference_synthesis.get("synthesis", {}) if isinstance(reference_synthesis, dict) else {}
+    visibility = synthesis.get("visibility", {}) if isinstance(synthesis, dict) else {}
+    reasons = list(visibility.get("reasons", []))
+    mode = visibility.get("mode", "explicit" if reasons else "silent")
+    return {
+        "mode": mode,
+        "user_decision_required": mode == "explicit",
+        "reasons": reasons,
+        "conflicts": synthesis.get("conflicts", []),
+    }
+
+
+def recommendation_from_synthesis(reference_synthesis: dict, visibility: dict) -> dict:
+    synthesis = reference_synthesis.get("synthesis", {}) if isinstance(reference_synthesis, dict) else {}
+    recommendation = synthesis.get("recommendation", {}) if isinstance(synthesis, dict) else {}
+    borrow_now = recommendation.get("borrow_now") or synthesis.get("borrow_now", [])
+    avoid_now = recommendation.get("avoid_for_now") or synthesis.get("avoid_now", [])
+    summary = recommendation.get("summary") or (
+        f"Start with {borrow_now[0]} Avoid {avoid_now[0]} for the first pass."
+        if borrow_now and avoid_now
+        else "Start with the smallest high-confidence pattern and keep the first pass light."
+    )
+    why = recommendation.get("why") or "This recommendation comes from the benchmark synthesis and current intent confidence."
+    return {
+        "summary": summary,
+        "borrow_now": borrow_now[:2],
+        "avoid_for_now": avoid_now[:2],
+        "why": why,
+        "user_decision_required": visibility["user_decision_required"],
+    }
+
+
 def command_init(args: argparse.Namespace) -> int:
     cmd = [
         args.name,
@@ -215,6 +270,20 @@ def command_init(args: argparse.Namespace) -> int:
     cmd.extend(["--github-top-n", str(args.github_top_n)])
     if args.github_fixture_dir:
         cmd.extend(["--github-fixture-dir", args.github_fixture_dir])
+    if args.intent_job:
+        cmd.extend(["--intent-job", args.intent_job])
+    for item in args.intent_real_input:
+        cmd.extend(["--intent-real-input", item])
+    if args.intent_primary_output:
+        cmd.extend(["--intent-primary-output", args.intent_primary_output])
+    for item in args.intent_exclusion:
+        cmd.extend(["--intent-exclusion", item])
+    for item in args.intent_constraint:
+        cmd.extend(["--intent-constraint", item])
+    for item in args.intent_standard:
+        cmd.extend(["--intent-standard", item])
+    if args.intent_correction:
+        cmd.extend(["--intent-correction", args.intent_correction])
     result = run_script("init_skill.py", cmd)
     print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
@@ -223,17 +292,31 @@ def command_init(args: argparse.Namespace) -> int:
 def command_quickstart(args: argparse.Namespace) -> int:
     sys.stderr.write("Let's start gently. You do not need a polished brief here.\n")
     sys.stderr.write("Give me the real work in your own words, and I will help turn it into a clean first-pass skill.\n")
-    sys.stderr.write("Before we deepen the package, I will also look at a few strong public GitHub references so we can borrow patterns without copying them.\n")
+    sys.stderr.write("While we shape the first pass, I will quietly check a few strong public patterns in the background and only surface them if there is real uncertainty or a design conflict.\n")
     name = args.name or prompt_with_default("Skill name", "my-skill")
     job = args.job or prompt_with_default(
-        "In your own words, what repeated work do you most want this skill to quietly take over",
+        "In your own words, what repeated work do you most want this skill to reliably handle",
         "Turn a repeated workflow into a reusable skill.",
+    )
+    real_inputs = args.real_input or prompt_optional_entries(
+        "What material will people actually hand to this skill in practice (comma-separated)"
     )
     primary_output = args.primary_output or prompt_with_default(
         "If it works beautifully, what should it hand back so you or the next person can keep moving",
         "A reusable skill package.",
     )
     description = args.description or f"{job.rstrip('.')} Primary output: {primary_output.rstrip('.')}."
+    intent_context = {
+        "job": job,
+        "real_inputs": real_inputs,
+        "primary_output": primary_output,
+        "description": description,
+        "exclusions": [],
+        "constraints": [],
+        "standards": [],
+        "correction": "",
+        "user_references": [],
+    }
     inferred_archetype, archetype_reason = infer_archetype(job, description)
     guidance = archetype_guidance(inferred_archetype)
     sys.stderr.write(discovery_summary(job, primary_output, inferred_archetype, guidance))
@@ -243,10 +326,22 @@ def command_quickstart(args: argparse.Namespace) -> int:
     )
     if correction.lower() not in {"looks right", "skip", "none", "no"}:
         description = f"{description.rstrip('.')} Keep this correction in scope: {correction.rstrip('.')}."
+        intent_context["description"] = description
+        intent_context["correction"] = correction
         inferred_archetype, archetype_reason = infer_archetype(job, description)
         guidance = archetype_guidance(inferred_archetype)
         sys.stderr.write("\nThanks. I tightened the frame before moving on.\n")
         sys.stderr.write(discovery_summary(job, primary_output, inferred_archetype, guidance))
+    confidence = assess_intent_confidence(intent_context)
+    sys.stderr.write(intent_confidence_note(confidence))
+    if not confidence["gate_passed"]:
+        sys.stderr.write("Before I package this idea, I want to close the highest-leverage gaps instead of guessing.\n")
+        for follow_up in confidence.get("follow_up_questions", [])[:2]:
+            answer = prompt_optional(follow_up["question"], "skip")
+            update_context_slot(intent_context, follow_up["slot"], answer, follow_up["list"])
+        confidence = assess_intent_confidence(intent_context)
+        sys.stderr.write("\nI tightened the intent frame once more before moving on.\n")
+        sys.stderr.write(intent_confidence_note(confidence))
     archetype = args.archetype or prompt_with_default("I would start with this archetype (scaffold/production/library/governed)", inferred_archetype)
     archetype = archetype if archetype in ARCHETYPE_MODE else inferred_archetype
     default_mode = ARCHETYPE_MODE[archetype]
@@ -260,12 +355,14 @@ def command_quickstart(args: argparse.Namespace) -> int:
         "If there is anything you admire and want me to learn from as pattern hints, send it here (repo, product, page, workflow; comma-separated)"
     )
     external_references = args.external_reference or []
-    local_constraints = args.local_constraint or prompt_optional_entries(
+    prompted_constraints = args.constraint if getattr(args, "constraint", None) else ([] if args.local_constraint else prompt_optional_entries(
         "Tell me any local constraints I must keep in view (privacy, naming, compatibility; comma-separated)"
-    )
+    ))
+    local_constraints = args.local_constraint or prompted_constraints or intent_context.get("constraints", [])
+    intent_context["user_references"] = user_references
+    intent_context["constraints"] = local_constraints
+    confidence = assess_intent_confidence(intent_context)
     github_query = args.github_query or build_query(" ".join(filter(None, [job, primary_output, description])))
-    sys.stderr.write(f"GitHub benchmark query: {github_query}\n")
-    sys.stderr.write("I will use that query to pull three strong public examples, then surface only the patterns worth borrowing or avoiding.\n")
     title = args.title or name.replace("-", " ").title()
     guidance = archetype_guidance(archetype)
     cmd = [
@@ -284,7 +381,21 @@ def command_quickstart(args: argparse.Namespace) -> int:
         github_query,
         "--github-top-n",
         str(args.github_top_n),
+        "--intent-job",
+        job,
+        "--intent-primary-output",
+        primary_output,
     ]
+    for item in real_inputs:
+        cmd.extend(["--intent-real-input", item])
+    for item in intent_context.get("exclusions", []):
+        cmd.extend(["--intent-exclusion", item])
+    for item in intent_context.get("constraints", []):
+        cmd.extend(["--intent-constraint", item])
+    for item in intent_context.get("standards", []):
+        cmd.extend(["--intent-standard", item])
+    if intent_context.get("correction"):
+        cmd.extend(["--intent-correction", intent_context["correction"]])
     if args.github_fixture_dir:
         cmd.extend(["--github-fixture-dir", args.github_fixture_dir])
     for reference in external_references:
@@ -295,29 +406,53 @@ def command_quickstart(args: argparse.Namespace) -> int:
         cmd.extend(["--local-constraint", constraint])
     result = run_script("init_skill.py", cmd)
     payload = result["payload"] if result["payload"] is not None else result
-    benchmark_scan = payload.get("github_benchmark_scan") or {}
-    benchmark_repositories = [
-        {
-            "name": repo.get("full_name"),
-            "stars": repo.get("stars"),
-            "url": repo.get("html_url"),
-        }
-        for repo in benchmark_scan.get("repositories", [])
+    reference_synthesis = payload.get("reference_synthesis") or {}
+    visibility = reference_visibility(reference_synthesis)
+    recommendation = recommendation_from_synthesis(reference_synthesis, visibility)
+    sys.stderr.write(f"\nRecommendation: {recommendation['summary']}\n")
+    if visibility["user_decision_required"]:
+        if visibility["conflicts"]:
+            sys.stderr.write(f"I am surfacing this because there is a real design conflict: {visibility['conflicts'][0]['summary']}\n")
+        else:
+            sys.stderr.write("I am surfacing this because intent is still settling and the package should not deepen on guesswork.\n")
+    else:
+        sys.stderr.write("I will keep the underlying benchmark evidence in the reviewer reports and move ahead with this recommendation.\n")
+
+    next_steps = [
+        "Open reports/intent-dialogue.md and tighten the real job, outputs, and exclusions.",
+        "Open reports/review-viewer.html to explain the package to a first-time reviewer.",
+        "Use reports/iteration-directions.md to choose only one high-value next move before adding more files.",
     ]
+    if visibility["user_decision_required"]:
+        next_steps.insert(
+            1,
+            "Open reports/reference-synthesis.md if you want to inspect why the recommendation was surfaced and which tradeoff needs a call.",
+        )
     report = {
         "ok": result["ok"],
         "root": payload.get("root"),
         "mode": mode,
         "archetype": archetype,
-        "references": {
-            "github_query": github_query,
-            "benchmark_repositories": benchmark_repositories,
-            "external_benchmarks": external_references,
-            "user_references": user_references,
-            "local_constraints": local_constraints,
-        },
         "artifacts": payload.get("artifacts", {}),
-        "github_benchmark_scan": benchmark_scan,
+        "intent_confidence": {
+            "score": confidence["score"],
+            "band": confidence["band"],
+            "gate_passed": confidence["gate_passed"],
+            "recommended_action": confidence["recommended_action"],
+        },
+        "recommendation": recommendation,
+        "reference_mode": {
+            "mode": visibility["mode"],
+            "user_decision_required": visibility["user_decision_required"],
+        },
+        "reviewer_evidence": {
+            "visibility": "full evidence in reports and review-viewer",
+            "artifacts": {
+                "benchmark_scan": payload.get("artifacts", {}).get("github_benchmark_scan_md"),
+                "reference_synthesis": payload.get("artifacts", {}).get("reference_synthesis_md"),
+                "review_viewer": payload.get("artifacts", {}).get("review_viewer_html"),
+            },
+        },
         "guidance": {
             "archetype_reason": archetype_reason,
             "why_this_mode": (
@@ -327,17 +462,19 @@ def command_quickstart(args: argparse.Namespace) -> int:
             ),
             "first_gate": guidance["first_gate"],
             "focus": guidance["focus"],
-            "next_steps": [
-                "Open reports/intent-dialogue.md and tighten the real job, outputs, and exclusions.",
-                "Open reports/github-benchmark-scan.md and review the top three public benchmark repositories plus their borrow and avoid notes.",
-                "Open reports/reference-scan.md and decide which benchmark patterns to borrow and which user references set the quality bar.",
-                "Open reports/review-viewer.html to explain the package to a first-time reviewer.",
-                "Use reports/iteration-directions.md to choose only one high-value next move before adding more files.",
-            ],
-            "borrow_prompt": benchmark_scan.get("borrow_prompt"),
-            "experience_note": "The first pass should feel more like guided co-creation than filling out a worksheet. Use the reports to explain, choose, and only then deepen the package.",
+            "next_steps": next_steps,
+            "experience_note": (
+                "The first pass should feel more like guided co-creation than a worksheet. "
+                "The system should make benchmark and pattern calls quietly unless there is a real reason to ask you to choose."
+            ),
         },
     }
+    if visibility["user_decision_required"]:
+        report["uncertainty_or_conflict"] = {
+            "reasons": visibility["reasons"],
+            "conflicts": visibility["conflicts"],
+            "note": "A design decision still needs your input before the package should be deepened.",
+        }
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
 
@@ -416,12 +553,14 @@ def command_report(args: argparse.Namespace) -> int:
             run_script("build_confusion_matrix.py", []),
             run_script("promotion_checker.py", []),
             run_script("render_eval_dashboard.py", []),
+            run_script("render_intent_confidence.py", [str(ROOT)]),
             run_script("render_description_drift_history.py", []),
             run_script("render_iteration_ledger.py", []),
             run_script("render_baseline_compare.py", baseline_compare_args()),
             run_script("render_regression_history.py", []),
             run_script("render_context_reports.py", []),
             run_script("render_portability_report.py", []),
+            run_script("render_reference_synthesis.py", [str(ROOT)]),
         ]
     )
     report = {
@@ -431,11 +570,13 @@ def command_report(args: argparse.Namespace) -> int:
             "eval_results": "reports/eval_suite.json",
             "route_scorecard": "reports/route_scorecard.json",
             "promotion_decisions": "reports/promotion_decisions.json",
+            "intent_confidence": "reports/intent-confidence.json",
             "iteration_ledger": "reports/iteration_ledger.md",
             "baseline_compare": "reports/baseline-compare.json",
             "regression_history": "reports/regression_history.md",
             "context_budget": "reports/context_budget.json",
             "portability_score": "reports/portability_score.json",
+            "reference_synthesis": "reports/reference-synthesis.json",
         },
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -500,6 +641,20 @@ def command_github_benchmark_scan(args: argparse.Namespace) -> int:
     return 0 if result["ok"] else 2
 
 
+def command_intent_confidence(args: argparse.Namespace) -> int:
+    skill_dir = str(Path(args.skill_dir).resolve())
+    cmd = [skill_dir]
+    if args.context_json:
+        cmd.extend(["--context-json", args.context_json])
+    if args.output_md:
+        cmd.extend(["--output-md", args.output_md])
+    if args.output_json:
+        cmd.extend(["--output-json", args.output_json])
+    result = run_script("render_intent_confidence.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
 def command_intent_dialogue(args: argparse.Namespace) -> int:
     skill_dir = str(Path(args.skill_dir).resolve())
     cmd = [skill_dir]
@@ -508,6 +663,18 @@ def command_intent_dialogue(args: argparse.Namespace) -> int:
     if args.output_json:
         cmd.extend(["--output-json", args.output_json])
     result = run_script("render_intent_dialogue.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
+def command_reference_synthesis(args: argparse.Namespace) -> int:
+    skill_dir = str(Path(args.skill_dir).resolve())
+    cmd = [skill_dir]
+    if args.output_md:
+        cmd.extend(["--output-md", args.output_md])
+    if args.output_json:
+        cmd.extend(["--output-json", args.output_json])
+    result = run_script("render_reference_synthesis.py", cmd)
     print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
 
@@ -707,6 +874,13 @@ def build_parser() -> argparse.ArgumentParser:
     init_cmd.add_argument("--github-query")
     init_cmd.add_argument("--github-top-n", type=int, default=3)
     init_cmd.add_argument("--github-fixture-dir")
+    init_cmd.add_argument("--intent-job")
+    init_cmd.add_argument("--intent-real-input", action="append", default=[])
+    init_cmd.add_argument("--intent-primary-output")
+    init_cmd.add_argument("--intent-exclusion", action="append", default=[])
+    init_cmd.add_argument("--intent-constraint", action="append", default=[])
+    init_cmd.add_argument("--intent-standard", action="append", default=[])
+    init_cmd.add_argument("--intent-correction")
     init_cmd.set_defaults(func=command_init)
 
     quickstart_cmd = subparsers.add_parser(
@@ -715,6 +889,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     quickstart_cmd.add_argument("--name")
     quickstart_cmd.add_argument("--job")
+    quickstart_cmd.add_argument("--real-input", action="append", default=[])
     quickstart_cmd.add_argument("--primary-output")
     quickstart_cmd.add_argument("--description")
     quickstart_cmd.add_argument("--title")
@@ -724,6 +899,7 @@ def build_parser() -> argparse.ArgumentParser:
     quickstart_cmd.add_argument("--external-reference", action="append", default=[])
     quickstart_cmd.add_argument("--user-reference", action="append", default=[])
     quickstart_cmd.add_argument("--local-constraint", action="append", default=[])
+    quickstart_cmd.add_argument("--constraint", action="append", default=[])
     quickstart_cmd.add_argument("--github-query")
     quickstart_cmd.add_argument("--github-top-n", type=int, default=3)
     quickstart_cmd.add_argument("--github-fixture-dir")
@@ -816,6 +992,16 @@ def build_parser() -> argparse.ArgumentParser:
     github_scan_cmd.add_argument("--output-json")
     github_scan_cmd.set_defaults(func=command_github_benchmark_scan)
 
+    intent_confidence_cmd = subparsers.add_parser(
+        "intent-confidence",
+        help="Render a confidence report for how well the real job, inputs, outputs, and exclusions are understood.",
+    )
+    intent_confidence_cmd.add_argument("skill_dir", nargs="?", default=".")
+    intent_confidence_cmd.add_argument("--context-json")
+    intent_confidence_cmd.add_argument("--output-md")
+    intent_confidence_cmd.add_argument("--output-json")
+    intent_confidence_cmd.set_defaults(func=command_intent_confidence)
+
     intent_dialogue_cmd = subparsers.add_parser(
         "intent-dialogue",
         help="Render a front-loaded intent dialogue guide for a skill package.",
@@ -824,6 +1010,15 @@ def build_parser() -> argparse.ArgumentParser:
     intent_dialogue_cmd.add_argument("--output-md")
     intent_dialogue_cmd.add_argument("--output-json")
     intent_dialogue_cmd.set_defaults(func=command_intent_dialogue)
+
+    reference_synthesis_cmd = subparsers.add_parser(
+        "reference-synthesis",
+        help="Render a multi-source reference synthesis report for a skill package.",
+    )
+    reference_synthesis_cmd.add_argument("skill_dir", nargs="?", default=".")
+    reference_synthesis_cmd.add_argument("--output-md")
+    reference_synthesis_cmd.add_argument("--output-json")
+    reference_synthesis_cmd.set_defaults(func=command_reference_synthesis)
 
     iteration_directions_cmd = subparsers.add_parser(
         "iteration-directions",

@@ -9,6 +9,18 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
+SAFE_ENV_KEYS = (
+    "HOME",
+    "LANG",
+    "LC_ALL",
+    "PATH",
+    "PYTHONPATH",
+    "PYTHONIOENCODING",
+    "TEMP",
+    "TERM",
+    "TMP",
+    "TMPDIR",
+)
 DEFAULT_TARGETS = [
     "eval",
     "eval-suite",
@@ -57,6 +69,8 @@ def run_target(target: str, index: int, total: int, tail_lines: int) -> None:
     start = time.perf_counter()
     with tempfile.NamedTemporaryFile(prefix=f"ci-{target}-", suffix=".log", delete=False) as handle:
         log_path = Path(handle.name)
+    child_env = {key: os.environ[key] for key in SAFE_ENV_KEYS if key in os.environ}
+    child_env["CI"] = "1"
     try:
         with log_path.open("w", encoding="utf-8") as log_file:
             proc = subprocess.run(
@@ -65,7 +79,7 @@ def run_target(target: str, index: int, total: int, tail_lines: int) -> None:
                 stdout=log_file,
                 stderr=subprocess.STDOUT,
                 text=True,
-                env={**os.environ, "CI": "1"},
+                env=child_env,
             )
         elapsed = time.perf_counter() - start
         if proc.returncode != 0:

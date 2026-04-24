@@ -47,6 +47,7 @@ def main() -> None:
     assert "Compare view" in html_text, html_text[:500]
     assert "Variant diff studio" in html_text, html_text[:900]
     assert "Reference coach" in html_text, html_text[:900]
+    assert "Reference synthesis" in html_text, html_text[:1200]
     assert "Top three next moves" in html_text, html_text[:500]
     print(json.dumps({"ok": True}, ensure_ascii=False, indent=2))
 

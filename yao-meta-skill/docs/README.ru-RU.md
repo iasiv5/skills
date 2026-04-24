@@ -9,8 +9,8 @@
 - понятной поверхностью срабатывания
 - компактным `SKILL.md`
 - необязательными references, scripts и evals
-- более человечным коротким intent dialogue перед глубокой разработкой, чтобы сначала понять реальную работу, ожидаемый результат, границы и важные для пользователя стандарты
-- автоматическим GitHub benchmark scan до глубокого authoring: сначала он подбирает три сильных публичных репозитория и извлекает patterns, которые стоит заимствовать или избегать
+- более человечным коротким intent dialogue перед глубокой разработкой, с intent confidence gate: если реальная работа, результат, exclusions или стандарты все еще неясны, система продолжает уточнять
+- silent-by-default GitHub benchmark scan и reference synthesis до глубокого authoring: система изучает сильные публичные репозитории и world-class pattern tracks, а пользователю явно показывает только реальные конфликты или неопределенность
 - явным запросом пользовательских референсов, если они есть, чтобы перенимать паттерны, структуру и стандарты качества, а не копировать формулировки или приватный материал
 - автоматически создаваемым минималистичным HTML-обзором на белом фоне для каждого нового skill
 - тремя наиболее ценными направлениями следующей итерации после первого создания
@@ -41,60 +41,61 @@ flowchart LR
 - **Исполнение**: единый CLI создает, проверяет, оптимизирует и продвигает skill.
 - **Выходы**: результатом становится skill package плюс доказательства оценки, governance и portability.
 
-## Сравнительный снимок
+## Взвешенный quality benchmark
 
-Ниже — сравнительный снимок, ориентированный на сценарии использования. Он полезен для выбора подходящего инструмента под конкретный контекст, а не как универсальное заявление о том, что один подход лучше другого всегда и везде.
+Это инженерная оценка проекта. Каждое измерение оценивается по шкале `0-10`, затем пересчитывается в `100` баллов с учетом веса. GitHub stars не включаются, потому что они отражают популярность экосистемы, а не инженерное качество meta-skill.
 
-| Измерение | skill-creator | yao-meta-skill | Что это означает |
-| --- | ---: | ---: | --- |
-| Порог входа | 9 | 6 | `skill-creator` более дружелюбен и разговорен; `yao-meta-skill` содержит больше концепций и требует большего входного усилия. |
-| Гибкость | 9 | 7 | `skill-creator` более свободный по стилю; `yao-meta-skill` опирается на более явный процесс. |
-| Глубина методологии | 5 | 9.5 | `yao-meta-skill` имеет более полную doctrine: archetypes, gate selection, governance и resource boundaries. |
-| Строгость оценки | 7 | 9.5 | `yao-meta-skill` делает акцент на layered holdout, route confusion, adversarial checks и promotion gates. |
-| Опыт ручного ревью | 9 | 5 | У `skill-creator` более удобный review UX; `yao-meta-skill` пока в основном опирается на отчеты. |
-| Governance и lifecycle | 2 | 9.5 | `yao-meta-skill` рассматривает важные skills как управляемые активы с maturity, review cadence и promotion evidence. |
-| Переносимость между средами | 4 | 9 | `yao-meta-skill` строится вокруг neutral metadata, adapters, degradation rules и portability checks. |
-| Полнота toolchain | 6 | 9.5 | `yao-meta-skill` дает более широкую toolchain с unified CLI, CI и системой отчетов. |
-| Скорость итераций | 8 | 7 | `skill-creator` может быть быстрее в коротких циклах; `yao-meta-skill` сознательно тяжелее ради quality gates и evidence. |
-| Качество документации | 7 | 9 | `yao-meta-skill` уже имеет многоязычную документацию, examples, failure library и formal method docs. |
-| Лучше для индивидуального использования | 9 | 6 | `skill-creator` лучше подходит для быстрого личного прототипирования. |
-| Лучше для команд / организаций | 5 | 9.5 | `yao-meta-skill` лучше подходит для командного reuse, CI, governance и долгосрочной поддержки. |
-| Итог | 6.7 | 8.0 | Компромисс прямой: более легкий conversational flow против более сильной engineering и governance системы. |
+Формула взвешенного балла: `sum(score / 10 * weight)`.
+
+| Meta Skill | Методология 15 | Context discipline 10 | Toolchain 15 | Eval/tests 20 | Governance 15 | Portability 10 | Onboarding/review 5 | Local reliability 10 | Weighted score |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Yao Meta Skill | 9.5 | 8.0 | 9.5 | 9.5 | 9.5 | 9.0 | 6.5 | 9.5 | 91.5 |
+| Anthropic Skill Creator | 9.0 | 6.5 | 8.5 | 7.5 | 4.0 | 5.0 | 7.5 | 5.0 | 67.5 |
+| OpenAI Skill Creator | 8.5 | 9.5 | 5.0 | 2.0 | 3.0 | 4.0 | 8.5 | 4.0 | 50.5 |
+
+| Место | Meta Skill | Балл | Основное позиционирование |
+| ---: | --- | ---: | --- |
+| 1 | Yao Meta Skill | 91.5 | Полная система engineering, evaluation, governance и portability для переиспользуемых skills. |
+| 2 | Anthropic Skill Creator | 67.5 | Сильная методология и итерационный цикл, но слабее local execution reliability и governance coverage. |
+| 3 | OpenAI Skill Creator | 50.5 | Лучше как краткое руководство по написанию skills, чем как полноценная engineering system. |
 
 ## Подходящие сценарии
 
-- Выбирайте **skill-creator**, если вам важнее быстрое solo-идеирование, гибкий диалог и легкий процесс.
-- Выбирайте **yao-meta-skill**, если нужен переиспользуемый актив с явными границами, evaluation gates, governance, portability и долгосрочной поддержкой.
+- Выбирайте **Yao Meta Skill**, если нужен командный переиспользуемый актив с явными границами, evaluation gates, governance, portability и долгосрочной поддержкой.
+- Выбирайте **Anthropic Skill Creator**, если вам важнее conversation-first creation loop и итерация с сильным human guidance.
+- Выбирайте **OpenAI Skill Creator**, если вам нужен краткий reference по написанию lean skills и context discipline.
 - Практичный гибридный вариант: сначала получить первый черновик через conversation-driven creator, а затем использовать `yao-meta-skill`, чтобы усилить пакет и сделать его team-ready.
 
 ## Быстрый старт
 
 1. Опишите workflow, набор prompts или повторяющуюся задачу, которую хотите превратить в skill.
 2. Сначала проведите короткий, но более человечный intent dialogue, чтобы уточнить реальную job-to-be-done, outputs, exclusions, constraints и те стандарты качества, которые для вас важны.
-3. Сначала позвольте `quickstart` выполнить GitHub benchmark scan: он найдёт три сильных публичных репозитория и выделит полезные patterns. После этого при необходимости добавьте собственные референсы. Локальные файлы используются только для адаптации, приватности и совместимости.
+3. Сначала позвольте `quickstart` прояснить намерение, затем тихо выполнить benchmark scan и reference synthesis. Явные уточнения поднимаются только тогда, когда intent все еще неясен или между маршрутами проектирования есть реальный конфликт.
 4. Используйте archetype-aware `quickstart` или полный authoring flow, чтобы сгенерировать или улучшить пакет в режиме scaffold, production, library или governed.
-5. Каждый новый skill также получает `reports/intent-dialogue.md`, `reports/skill-overview.html`, `reports/review-viewer.html`, `reports/reference-scan.md` и `reports/iteration-directions.md`. После этого feedback log и baseline compare позволяют запускать короткий цикл улучшений без полного promotion flow.
+5. Каждый новый skill также получает `reports/intent-dialogue.md`, `reports/intent-confidence.md`, `reports/reference-synthesis.md`, `reports/skill-overview.html`, `reports/review-viewer.html` и `reports/iteration-directions.md`. После этого feedback log и baseline compare позволяют запускать короткий цикл улучшений без полного promotion flow.
 
 ## Текущие результаты
 
 - `make test` сейчас проходит
 - на текущем regression-наборе trigger eval дает `0` false positives и `0` false negatives
 - все три набора train / dev / holdout проходят
+- реальные китайские формулировки теперь включены в trigger eval, например `做一个 skill`, `沉淀成可复用能力`, `优化已有 skill`, `补 trigger 评测`
 - packaging contracts для `openai`, `claude` и `generic` проходят проверку
 
 ## Текущие сильные стороны
 
-В последней взвешенной оценке проекта Yao сильнее всего выглядит в тех измерениях, которые действительно определяют production-grade meta-skill system:
+В последней взвешенной оценке Yao набирает `91.5/100`. Его сильные стороны сосредоточены в том, что нужно для долговечных командных skill-активов:
 
-- **Полнота методологии `9.8`**: в репозитории уже есть формальная skill engineering doctrine, covering gate selection, non-skill decisions, governance и resource boundaries.
-- **Инженерная toolchain `9.8`**: инициализация, валидация, оптимизация, отчеты, promotion checks, packaging и CI связаны в единый operational flow.
-- **Governance / maintenance / safety `9.8`**: важные skills могут иметь lifecycle state, review cadence, maturity score, trust boundaries и promotion evidence.
-- **Evaluation loop `9.7`**: качество trigger проверяется через train/dev/holdout, blind holdout, adversarial holdout, judge-backed blind eval, drift history и promotion gates.
-- **Portability / packaging `9.6`**: исходники остаются нейтральными, а adapters, degradation rules и packaging contracts сохраняют переносимую семантику между целевыми средами.
-- **Trigger и boundary design `9.5`**: route confusion, anti-pattern regressions и promotion policy превращают качество trigger в аудируемую routing-задачу.
-- **Context efficiency `9.4`**: entrypoint остается компактным, context budgets имеют tier-структуру, а quality density тоже измеряется.
+- **Глубина методологии `9.5`**: формальная skill engineering doctrine, archetypes, gate selection, non-skill decisions, governance и resource boundaries.
+- **Полнота toolchain `9.5`**: initialization, validation, benchmark scan, description optimization, reporting, promotion checks, packaging, CI и portability checks связаны в один operational flow.
+- **Строгость Eval / tests `9.5`**: train/dev/holdout, blind holdout, adversarial holdout, judge-backed blind eval, route confusion, drift history и promotion gates покрыты.
+- **Governance / lifecycle `9.5`**: важные skills могут иметь owner, lifecycle, review cadence, maturity score, trust boundary, promotion decision и regression history.
+- **Local execution reliability `9.5`**: репозиторий проверяется локально через `make test`, `make ci-test` и unified CLI.
+- **Portability / distribution `9.0`**: neutral metadata, adapters, degradation rules, packaging contracts и portability score сохраняют переносимую семантику между средами.
+- **Context discipline `8.0`**: entrypoint остается в рамках budget, но эта метрика отслеживается как живое ограничение, потому что система несет больше reports, examples, benchmark assets и evidence.
+- **Onboarding / review experience `6.5`**: quickstart, HTML overview, side-by-side review viewer и feedback log улучшили первый опыт, но это все еще главный UX-направление для улучшения.
 
-Общий вектор здесь осознанный: легкий вход, строгий evaluation loop и governance как часть качества skill.
+Общий вектор здесь осознанный: легкий вход, сложная для имитации evaluation, видимая governance и снижение трения первого создания и ручного review.
 
 ## Почему Yao
 

@@ -46,8 +46,12 @@ def main() -> None:
     assert (created / "manifest.json").exists(), created
     assert (created / "reports" / "intent-dialogue.md").exists(), created
     assert (created / "reports" / "intent-dialogue.json").exists(), created
+    assert (created / "reports" / "intent-confidence.md").exists(), created
+    assert (created / "reports" / "intent-confidence.json").exists(), created
     assert (created / "reports" / "skill-overview.html").exists(), created
     assert (created / "reports" / "skill-overview.json").exists(), created
+    assert (created / "reports" / "reference-synthesis.md").exists(), created
+    assert (created / "reports" / "reference-synthesis.json").exists(), created
     assert (created / "reports" / "iteration-directions.md").exists(), created
     assert (created / "reports" / "iteration-directions.json").exists(), created
 
@@ -61,6 +65,7 @@ def main() -> None:
     assert "Why It Works" in report_html, report_html[:600]
     assert "How to introduce this skill" in report_html, report_html[:900]
     assert "Patterns worth borrowing now" in report_html, report_html[:1200]
+    assert "Reference synthesis" in report_html, report_html[:1500]
 
     intent_text = (created / "reports" / "intent-dialogue.md").read_text(encoding="utf-8")
     assert "Questions To Ask" in intent_text, intent_text[:400]

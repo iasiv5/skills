@@ -1,0 +1,79 @@
+{
+  "score": 30,
+  "band": "low",
+  "gate_passed": false,
+  "strengths": [
+    "The recurring job is concrete enough to anchor the package."
+  ],
+  "gaps": [
+    {
+      "key": "real_inputs",
+      "label": "Real inputs are missing",
+      "reason": "Without real inputs, it is hard to choose assets, scripts, or examples.",
+      "severity": "high"
+    },
+    {
+      "key": "primary_output",
+      "label": "Primary output is missing",
+      "reason": "The package does not yet know what it must hand back.",
+      "severity": "high"
+    },
+    {
+      "key": "exclusions",
+      "label": "Near-neighbor exclusions are missing",
+      "reason": "The route may blur into nearby requests without an exclusion list.",
+      "severity": "high"
+    },
+    {
+      "key": "constraints",
+      "label": "Constraints are missing",
+      "reason": "The package does not yet know which tradeoffs matter most.",
+      "severity": "high"
+    },
+    {
+      "key": "standards",
+      "label": "Quality bar is implied, not explicit",
+      "reason": "The first evaluation target is still underspecified.",
+      "severity": "medium"
+    }
+  ],
+  "follow_up_questions": [
+    {
+      "slot": "real_inputs",
+      "question": "What material will people actually hand to this skill in practice?",
+      "why": "Real input shape decides whether references, scripts, or examples are needed.",
+      "list": true,
+      "label": "Real inputs are missing",
+      "severity": "high"
+    },
+    {
+      "slot": "primary_output",
+      "question": "What finished hand-back should this skill return so the next person can keep moving?",
+      "why": "The output is the anchor for package design and review.",
+      "list": false,
+      "label": "Primary output is missing",
+      "severity": "high"
+    },
+    {
+      "slot": "exclusions",
+      "question": "What nearby requests should this skill clearly leave out so the boundary stays clean?",
+      "why": "Exclusions are the fastest route to better trigger quality.",
+      "list": true,
+      "label": "Near-neighbor exclusions are missing",
+      "severity": "high"
+    }
+  ],
+  "anchor_sentence": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, or notes. Use when asked to create a skill, turn a repeated process into a reusable skill, improve an existing skill, add evals, or package a skill for team reuse.",
+  "recommended_action": "Pause before deep authoring and close the highest-leverage gaps first.",
+  "context": {
+    "job": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, or notes. Use when asked to create a skill, turn a repeated process into a reusable skill, improve an existing skill, add evals, or package a skill for team reuse.",
+    "real_inputs": [],
+    "primary_output": "",
+    "description": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, or notes. Use when asked to create a skill, turn a repeated process into a reusable skill, improve an existing skill, add evals, or package a skill for team reuse.",
+    "exclusions": [],
+    "constraints": [],
+    "standards": [],
+    "correction": "",
+    "user_references": []
+  }
+}

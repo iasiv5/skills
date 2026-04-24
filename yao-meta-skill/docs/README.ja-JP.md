@@ -9,8 +9,8 @@
 - 明確なトリガー面
 - 軽量な `SKILL.md`
 - 必要に応じた references、scripts、evals
-- 深い authoring の前に、人間味のある短い intent dialogue を行い、本当の仕事、成果物、境界、重視する基準をつかむ
-- 深い authoring の前に、自動 GitHub benchmark scan を 1 回実行し、高評価の公開リポジトリを 3 件取得して borrow / avoid パターンを整理する
+- 深い authoring の前に、人間味のある短い intent dialogue を行い、intent confidence gate で理解が十分かを判定する。不十分なら 1〜2 個の高レバレッジ質問を追加する
+- 深い authoring の前に、GitHub benchmark scan と reference synthesis を静かに実行し、高品質な公開リポジトリと world-class pattern tracks を参照する。実際に衝突や不確実性があるときだけユーザーに明示する
 - ユーザー自身の参考例があれば、それも取り込み、文章ではなくパターン・構造・品質基準だけを学ぶ
 - 新しい skill ごとに、白背景の簡潔な HTML overview を自動生成
 - 初回作成後に自動で提示される 3 つの高価値な次の iteration direction
@@ -41,60 +41,61 @@ flowchart LR
 - **実行**: 統一 CLI で作成、検証、最適化、昇格を進めます。
 - **出力**: 最終的に skill package と、評価・ガバナンス・移植性の証拠が残ります。
 
-## 比較スナップショット
+## 加重品質ベンチマーク
 
-この表は「どちらが今の目的に合っているか」を判断するためのシナリオ指向の比較スナップショットです。あらゆる場面で一方が絶対的に優れていると主張するものではありません。
+これはプロジェクトのエンジニアリング品質レビューです。各項目を `0-10` で評価し、重みづけして `100` 点満点に換算します。GitHub stars は、エコシステム上の注目度を示すもので、meta-skill の工学的品質を直接示すものではないため、総合点には含めません。
 
-| 評価軸 | skill-creator | yao-meta-skill | 意味 |
-| --- | ---: | ---: | --- |
-| 立ち上がりやすさ | 9 | 6 | `skill-creator` は会話的で直感的。`yao-meta-skill` は概念が多く学習コストが高めです。 |
-| 柔軟性 | 9 | 7 | `skill-creator` の方が自由度が高く、`yao-meta-skill` は手順がより明示的です。 |
-| 方法論の深さ | 5 | 9.5 | `yao-meta-skill` は doctrine、archetypes、gate selection、governance、resource boundaries がより揃っています。 |
-| 評価の厳密さ | 7 | 9.5 | `yao-meta-skill` は layered holdout、route confusion、adversarial checks、promotion gates を重視します。 |
-| 人間によるレビュー体験 | 9 | 5 | `skill-creator` の方がレビュー UX は直感的で、`yao-meta-skill` はまだ report 中心です。 |
-| ガバナンスとライフサイクル | 2 | 9.5 | `yao-meta-skill` は重要な skill を maturity、review cadence、promotion evidence を持つ管理対象として扱います。 |
-| クロス環境の移植性 | 4 | 9 | `yao-meta-skill` は neutral metadata、adapter、degradation rule、portability checks を備えています。 |
-| ツールチェーンの完成度 | 6 | 9.5 | `yao-meta-skill` は統一 CLI、CI、レポート生成まで含む広い toolchain を持ちます。 |
-| 反復の速さ | 8 | 7 | `skill-creator` は軽い反復が速く、`yao-meta-skill` は品質ゲートの分だけ少し重くなります。 |
-| 文書品質 | 7 | 9 | `yao-meta-skill` は多言語 docs、examples、failure library、method doctrine を持ちます。 |
-| 個人利用への適性 | 9 | 6 | `skill-creator` は個人の素早い試作に向いています。 |
-| チーム / 組織への適性 | 5 | 9.5 | `yao-meta-skill` はチーム再利用、CI、ガバナンス、長期保守に向いています。 |
-| 総合 | 6.7 | 8.0 | トレードオフは明快です。軽い会話フローか、より強い engineering と governance か、の違いです。 |
+加重スコアの式: `sum(score / 10 * weight)`。
+
+| Meta Skill | 方法論 15 | 文脈規律 10 | ツールチェーン 15 | Eval/テスト 20 | ガバナンス 15 | 移植性 10 | 導入/レビュー 5 | ローカル信頼性 10 | 加重スコア |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Yao Meta Skill | 9.5 | 8.0 | 9.5 | 9.5 | 9.5 | 9.0 | 6.5 | 9.5 | 91.5 |
+| Anthropic Skill Creator | 9.0 | 6.5 | 8.5 | 7.5 | 4.0 | 5.0 | 7.5 | 5.0 | 67.5 |
+| OpenAI Skill Creator | 8.5 | 9.5 | 5.0 | 2.0 | 3.0 | 4.0 | 8.5 | 4.0 | 50.5 |
+
+| 順位 | Meta Skill | スコア | 中核ポジション |
+| ---: | --- | ---: | --- |
+| 1 | Yao Meta Skill | 91.5 | 工学化、評価化、ガバナンス化、移植性まで含む完全な meta-skill システム。 |
+| 2 | Anthropic Skill Creator | 67.5 | 方法論と反復ループは強いが、ローカル実行信頼性とガバナンス範囲は弱めです。 |
+| 3 | OpenAI Skill Creator | 50.5 | 完全な工学システムというより、簡潔な skill 作成ガイドとして有用です。 |
 
 ## 適したシナリオ
 
-- **個人で素早く試作したい、会話しながら固めたい、軽く始めたい**なら `skill-creator` が向いています。
-- **チーム再利用、明確な境界、評価ゲート、ガバナンス、移植性、長期保守**を重視するなら `yao-meta-skill` が向いています。
+- **チーム再利用、明確な境界、評価ゲート、ガバナンス、移植性、長期保守**を重視するなら `Yao Meta Skill` が向いています。
+- **会話優先の作成ループと人間主導の反復**を重視するなら `Anthropic Skill Creator` が向いています。
+- **簡潔な skill 作成ガイドと文脈規律の見本**が必要なら `OpenAI Skill Creator` が向いています。
 - 実務的な組み合わせとしては、会話的な creator で初稿を作り、その後 `yao-meta-skill` で harden して team-ready な asset にする、という流れが有効です。
 
 ## クイックスタート
 
 1. skill 化したい workflow、prompt 集合、または反復タスクを説明します。
 2. まず短いが人間味のある intent dialogue で、実際の job、outputs、boundary、constraints、重視する品質基準を明確にします。
-3. まず `quickstart` に GitHub benchmark scan を走らせ、公開リポジトリ上位 3 件から借りるべきパターンを抽出します。その後で必要ならユーザーの参考例を加えます。ローカル資産は適合確認と privacy 調整だけに使います。
+3. まず `quickstart` で意図を澄ませ、その後 benchmark scan と reference synthesis を静かに実行します。意図がまだ曖昧なとき、または設計ルートに本当の衝突があるときだけ、追加確認を明示します。
 4. archetype-aware な `quickstart` か完全な authoring flow を使い、scaffold、production、library、governed のいずれかでパッケージを生成または改善します。
-5. 新しく作成した skill には `reports/intent-dialogue.md`、`reports/skill-overview.html`、`reports/review-viewer.html`、`reports/reference-scan.md`、`reports/iteration-directions.md` が付きます。さらに feedback log と baseline compare を使えば、毎回フル promotion flow を回さずに短い改善ループを回せます。
+5. 新しく作成した skill には `reports/intent-dialogue.md`、`reports/intent-confidence.md`、`reports/reference-synthesis.md`、`reports/skill-overview.html`、`reports/review-viewer.html`、`reports/iteration-directions.md` が付きます。さらに feedback log と baseline compare を使えば、毎回フル promotion flow を回さずに短い改善ループを回せます。
 
 ## 現在の結果
 
 - 現在 `make test` は通過
 - 現在の回帰セットでは trigger eval が `0` false positives / `0` false negatives
 - train / dev / holdout の 3 層評価が通過
+- 中国語の実利用表現も trigger 評価に追加済みです。例: `做一个 skill`、`沉淀成可复用能力`、`优化已有 skill`、`补 trigger 评测`
 - `openai`、`claude`、`generic` の packaging contract が通過
 
 ## 現在の強み
 
-最新の加重レビューでは、Yao の強みは production-grade な meta-skill を支える次の領域に集中しています。
+最新の加重レビューでは、Yao は `91.5/100` です。強みは、長く使うチーム資産としての skill に必要な領域に集中しています。
 
-- **方法論の完成度 `9.8`**: skill engineering method、gate selection、non-skill decision、governance、resource boundary が正式な体系として揃っています。
-- **エンジニアリングツールチェーン `9.8`**: 初期化、検証、最適化、レポート、昇格判定、パッケージ化、CI が一つの運用フローに接続されています。
-- **ガバナンス / 保守 / 安全性 `9.8`**: 重要な skill に lifecycle、review cadence、maturity score、trust boundary、promotion evidence を持たせられます。
-- **評価ループ `9.7`**: train/dev/holdout、blind holdout、adversarial holdout、judge-backed blind eval、drift history、promotion gate まで備えています。
-- **移植性 / パッケージング `9.6`**: ソースは中立のまま保ち、adapter、degradation rule、packaging contract で環境間の再利用性を担保します。
-- **トリガーと境界設計 `9.5`**: route confusion、anti-pattern regression、promotion policy により、trigger 品質を監査可能な routing 問題として扱います。
-- **コンテキスト効率 `9.4`**: エントリポイントは小さく保たれ、context budget は tier 化され、quality density も追跡されます。
+- **方法論の深さ `9.5`**: skill engineering doctrine、archetype、gate selection、non-skill decision、governance、resource boundary が体系化されています。
+- **ツールチェーン完成度 `9.5`**: 初期化、検証、benchmark scan、description optimization、レポート、昇格判定、パッケージ化、CI、portability checks が一つの運用フローに接続されています。
+- **Eval / テスト厳密性 `9.5`**: train/dev/holdout、blind holdout、adversarial holdout、judge-backed blind eval、route confusion、drift history、promotion gate を備えています。
+- **ガバナンス / ライフサイクル `9.5`**: 重要な skill に owner、lifecycle、review cadence、maturity score、trust boundary、promotion decision、regression history を持たせられます。
+- **ローカル実行信頼性 `9.5`**: `make test`、`make ci-test`、統一 CLI でローカル再現できます。
+- **移植性 / 配布 `9.0`**: ソースは中立に保ち、adapter、degradation rule、packaging contract、portability score で環境間の再利用性を担保します。
+- **文脈規律 / 精簡性 `8.0`**: エントリポイントは budget 内に保たれていますが、レポート、例、benchmark、証拠資産が増えたため、継続的な制約として追跡しています。
+- **導入 / レビュー体験 `6.5`**: quickstart、HTML overview、side-by-side review viewer、feedback log により初回体験は改善しましたが、ここは次に最も伸ばすべき UX 領域です。
 
-全体の方向性は明確です。入口は軽く、評価は厳しく、ガバナンスは skill 品質の一部として扱います。
+全体の方向性は明確です。入口は軽く、評価は厳しく、ガバナンスは見える形にし、初回作成と人間レビューの摩擦をさらに下げていきます。
 
 ## なぜ Yao なのか
 

@@ -1,0 +1,92 @@
+{
+  "skill_name": "yao-meta-skill",
+  "description": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, or notes. Use when asked to create a skill, turn a repeated process into a reusable skill, improve an existing skill, add evals, or package a skill for team reuse.",
+  "intent_confidence": {
+    "score": 30,
+    "band": "low",
+    "gate_passed": false
+  },
+  "github_benchmarks": [],
+  "source_tracks": [
+    {
+      "source_type": "official",
+      "name": "Official workflow product ergonomics",
+      "evidence_mode": "curated-pattern-track",
+      "matched_keywords": [
+        "workflow"
+      ],
+      "borrow": "Borrow a first-time operator flow that explains itself before it asks for more structure.",
+      "avoid": "Do not mimic product polish that adds UI bulk without improving clarity.",
+      "why_relevant": "This track matches: workflow."
+    },
+    {
+      "source_type": "research",
+      "name": "Hypothesis-test-learn loop",
+      "evidence_mode": "curated-pattern-track",
+      "matched_keywords": [
+        "general fit"
+      ],
+      "borrow": "Borrow a small hypothesis-test-learn loop so the first revision is evidence-backed.",
+      "avoid": "Do not create experimental overhead that exceeds the skill's real risk tier.",
+      "why_relevant": "This track matches: general fit."
+    },
+    {
+      "source_type": "principles",
+      "name": "Boundary-first design",
+      "evidence_mode": "curated-pattern-track",
+      "matched_keywords": [
+        "general fit"
+      ],
+      "borrow": "Borrow the discipline of defining what the skill should not own before growing the package.",
+      "avoid": "Do not expand execution assets until route boundaries stay clean.",
+      "why_relevant": "This track matches: general fit."
+    }
+  ],
+  "synthesis": {
+    "borrow_now": [
+      "Borrow a first-time operator flow that explains itself before it asks for more structure.",
+      "Borrow a small hypothesis-test-learn loop so the first revision is evidence-backed.",
+      "Borrow the discipline of defining what the skill should not own before growing the package."
+    ],
+    "avoid_now": [
+      "Do not mimic product polish that adds UI bulk without improving clarity.",
+      "Do not create experimental overhead that exceeds the skill's real risk tier.",
+      "Do not expand execution assets until route boundaries stay clean."
+    ],
+    "quality_risers": [
+      "Use GitHub repositories for concrete package and workflow patterns.",
+      "Use curated official or commercial tracks for entrypoint and operator ergonomics.",
+      "Use research tracks to justify the smallest evaluation loop that still catches regressions.",
+      "Use principle tracks to keep the package small, boundary-aware, and outcome-driven."
+    ],
+    "conflicts": [],
+    "recommendation": {
+      "summary": "Start by borrowing this pattern: Borrow a first-time operator flow that explains itself before it asks for more structure. Avoid this for the first pass: Do not mimic product polish that adds UI bulk without improving clarity.",
+      "borrow_now": [
+        "Borrow a first-time operator flow that explains itself before it asks for more structure.",
+        "Borrow a small hypothesis-test-learn loop so the first revision is evidence-backed."
+      ],
+      "avoid_for_now": [
+        "Do not mimic product polish that adds UI bulk without improving clarity.",
+        "Do not create experimental overhead that exceeds the skill's real risk tier."
+      ],
+      "why": "Intent still has gaps, so the system should surface the recommendation and ask for correction before deepening the package.",
+      "user_decision_required": true
+    },
+    "visibility": {
+      "mode": "explicit",
+      "user_decision_required": true,
+      "reasons": [
+        "intent_uncertain"
+      ],
+      "user_note": "Surface the recommendation because intent is still settling or there is a real design conflict that needs a user call.",
+      "reviewer_note": "Keep the full benchmark and synthesis evidence visible for authors and reviewers."
+    },
+    "decision_prompt": "Use the recommendation by default. Only surface the underlying benchmark tradeoffs when intent is uncertain or a real design conflict needs a deliberate call.",
+    "source_mix": {
+      "github_benchmarks": 0,
+      "curated_tracks": 3,
+      "user_references": 0
+    }
+  }
+}

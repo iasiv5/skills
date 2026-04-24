@@ -9,8 +9,8 @@ Il transforme des workflows bruts, des transcripts, des prompts, des notes et de
 - une surface de déclenchement claire
 - un `SKILL.md` léger
 - des references, scripts et evals optionnels
-- un dialogue d'intention plus humain avant l'authoring approfondi, pour comprendre le vrai travail, la sortie attendue, les frontières et le niveau d'exigence
-- un benchmark scan GitHub automatique avant l'authoring profond, qui récupère d'abord trois dépôts publics très reconnus puis extrait les patterns à reprendre ou à éviter
+- un dialogue d'intention plus humain avant l'authoring approfondi, avec un intent confidence gate qui continue à clarifier si le vrai travail, la sortie, les exclusions ou les standards restent flous
+- un benchmark scan GitHub silencieux par défaut, complété par une reference synthesis, qui étudie des dépôts publics de haute qualité et des patterns world-class, puis ne remonte à l'utilisateur que les vrais conflits ou les zones d'incertitude
 - une demande explicite de références fournies par l'utilisateur quand elles existent, afin d'apprendre des modèles, pas de copier le texte ni du contenu privé
 - un rapport HTML minimaliste en fond blanc généré automatiquement pour chaque nouveau skill
 - trois directions d'itération à plus forte valeur après la première création
@@ -41,60 +41,61 @@ Lecture en 10 secondes :
 - **Exécution** : la CLI unifiée construit, valide, optimise et promeut le skill.
 - **Sorties** : on obtient un skill package réutilisable avec ses preuves d'évaluation, de gouvernance et de portabilité.
 
-## Comparatif rapide
+## Benchmark qualité pondéré
 
-Le tableau ci-dessous est un comparatif orienté scénario. Il aide à choisir le bon système selon le contexte, plutôt qu'à prétendre qu'une approche domine toutes les autres dans tous les cas.
+Ce benchmark est une revue d'ingénierie du projet. Chaque dimension est notée de `0-10`, puis pondérée sur `100`. Les GitHub stars ne sont pas incluses, car elles mesurent la chaleur de l'écosystème, pas directement la qualité d'ingénierie d'une méta-skill.
 
-| Dimension | skill-creator | yao-meta-skill | Ce que cela signifie |
-| --- | ---: | ---: | --- |
-| Facilité de prise en main | 9 | 6 | `skill-creator` est plus conversationnel et intuitif ; `yao-meta-skill` demande plus d'apprentissage. |
-| Flexibilité | 9 | 7 | `skill-creator` est plus libre ; `yao-meta-skill` suit un processus plus explicite. |
-| Profondeur méthodologique | 5 | 9.5 | `yao-meta-skill` possède une doctrine plus complète : archetypes, gates, governance et resource boundaries. |
-| Rigueur d'évaluation | 7 | 9.5 | `yao-meta-skill` insiste sur les holdouts multiples, la route confusion, l'adversarial et les promotion gates. |
-| Expérience de revue humaine | 9 | 5 | `skill-creator` offre une expérience de revue plus directe ; `yao-meta-skill` reste surtout piloté par des rapports. |
-| Gouvernance et cycle de vie | 2 | 9.5 | `yao-meta-skill` traite les skills importantes comme des actifs gérés avec maturité, cadence de revue et preuves de promotion. |
-| Portabilité inter-environnements | 4 | 9 | `yao-meta-skill` repose sur des métadonnées neutres, des adaptateurs, des règles de dégradation et des contrôles de portabilité. |
-| Complétude de la toolchain | 6 | 9.5 | `yao-meta-skill` apporte une toolchain plus large avec CLI unifiée, CI et génération de rapports. |
-| Vitesse d'itération | 8 | 7 | `skill-creator` paraît plus rapide pour les petites boucles ; `yao-meta-skill` accepte plus de friction pour gagner en preuves. |
-| Qualité de la documentation | 7 | 9 | `yao-meta-skill` fournit docs multilingues, exemples, failure library et méthode formalisée. |
-| Pertinence pour un usage individuel | 9 | 6 | `skill-creator` est plus naturel pour un usage personnel rapide. |
-| Pertinence pour une équipe / organisation | 5 | 9.5 | `yao-meta-skill` est mieux adapté à la réutilisation en équipe, à la CI, à la gouvernance et à la maintenance longue. |
-| Global | 6.7 | 8.0 | Le compromis est clair : flux conversationnel léger d'un côté, ingénierie et gouvernance plus fortes de l'autre. |
+Formule du score pondéré : `sum(score / 10 * poids)`.
+
+| Méta-skill | Méthode 15 | Discipline contexte 10 | Toolchain 15 | Eval/tests 20 | Gouvernance 15 | Portabilité 10 | Onboarding/revue 5 | Fiabilité locale 10 | Score pondéré |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Yao Meta Skill | 9.5 | 8.0 | 9.5 | 9.5 | 9.5 | 9.0 | 6.5 | 9.5 | 91.5 |
+| Anthropic Skill Creator | 9.0 | 6.5 | 8.5 | 7.5 | 4.0 | 5.0 | 7.5 | 5.0 | 67.5 |
+| OpenAI Skill Creator | 8.5 | 9.5 | 5.0 | 2.0 | 3.0 | 4.0 | 8.5 | 4.0 | 50.5 |
+
+| Rang | Méta-skill | Score | Positionnement central |
+| ---: | --- | ---: | --- |
+| 1 | Yao Meta Skill | 91.5 | Système complet d'ingénierie, d'évaluation, de gouvernance et de portabilité pour skills réutilisables. |
+| 2 | Anthropic Skill Creator | 67.5 | Méthode et boucle d'itération fortes, mais fiabilité locale et gouvernance plus faibles. |
+| 3 | OpenAI Skill Creator | 50.5 | Très utile comme guide concis d'écriture de skills, moins comme système d'ingénierie complet. |
 
 ## Scénarios recommandés
 
-- Choisissez **skill-creator** si votre besoin principal est l'idéation rapide en solo, l'interaction souple et un processus léger.
-- Choisissez **yao-meta-skill** si vous voulez un actif réutilisable avec frontières explicites, gates d'évaluation, gouvernance, portabilité et maintenance à long terme.
+- Choisissez **Yao Meta Skill** si vous voulez un actif d'équipe réutilisable avec frontières explicites, gates d'évaluation, gouvernance, portabilité et maintenance à long terme.
+- Choisissez **Anthropic Skill Creator** si vous voulez une boucle de création d'abord conversationnelle et une itération guidée par l'humain.
+- Choisissez **OpenAI Skill Creator** si vous cherchez surtout une référence concise pour écrire des skills légères avec une forte discipline de contexte.
 - Un schéma hybride utile consiste à produire un premier jet avec un creator conversationnel, puis à utiliser `yao-meta-skill` pour durcir le package et le rendre prêt pour une équipe.
 
 ## Démarrage rapide
 
 1. Décrivez le workflow, l'ensemble de prompts ou la tâche répétée que vous voulez transformer en skill.
 2. Commencez par un court dialogue d'intention plus humain pour clarifier le vrai travail, les sorties attendues, les exclusions, les contraintes et les standards qui comptent pour vous.
-3. Laissez d'abord `quickstart` lancer un benchmark scan GitHub pour récupérer trois bons dépôts publics et en extraire les patterns réutilisables ; ajoutez ensuite vos propres références si besoin. Les fichiers locaux ne servent ensuite qu'à l'ajustement, à la confidentialité et à la compatibilité.
+3. Laissez d'abord `quickstart` clarifier l'intention, puis lancer silencieusement benchmark scan et reference synthesis ; des questions explicites ne remontent que si l'intention reste ambiguë ou si deux directions de conception se contredisent réellement.
 4. Utilisez le `quickstart` sensible aux archetypes ou le flux complet d'authoring pour générer ou améliorer le paquet en mode scaffold, production, library ou governed.
-5. Chaque nouveau skill reçoit aussi `reports/intent-dialogue.md`, `reports/skill-overview.html`, `reports/review-viewer.html`, `reports/reference-scan.md` et `reports/iteration-directions.md`. Ensuite, le feedback log et le baseline compare permettent de boucler rapidement sans lancer tout le flux de promotion.
+5. Chaque nouveau skill reçoit aussi `reports/intent-dialogue.md`, `reports/intent-confidence.md`, `reports/reference-synthesis.md`, `reports/skill-overview.html`, `reports/review-viewer.html` et `reports/iteration-directions.md`. Ensuite, le feedback log et le baseline compare permettent de boucler rapidement sans lancer tout le flux de promotion.
 
 ## Résultats actuels
 
 - `make test` passe actuellement
 - sur le jeu de régression courant, trigger eval a `0` faux positifs et `0` faux négatifs
 - les suites train / dev / holdout passent toutes
+- les expressions chinoises réelles sont maintenant couvertes dans trigger eval, par exemple `做一个 skill`, `沉淀成可复用能力`, `优化已有 skill`, `补 trigger 评测`
 - les contrats de packaging `openai`, `claude` et `generic` sont validés
 
 ## Points forts actuels
 
-Dans la dernière revue pondérée partagée pour le projet, Yao se distingue surtout sur les dimensions qui définissent une méta-skill réellement exploitable en production :
+Dans la dernière revue pondérée, Yao atteint `91.5/100`. Les points forts se concentrent sur ce qui rend une skill durablement exploitable par une équipe :
 
-- **Complétude méthodologique `9.8`** : le dépôt possède désormais une doctrine explicite pour le skill engineering, la sélection des gates, les non-skills, la gouvernance et les frontières de ressource.
-- **Chaîne d'outillage `9.8`** : initialisation, validation, optimisation, reporting, contrôle de promotion, packaging et CI sont reliés dans un flux unique.
-- **Gouvernance / maintenance / sécurité `9.8`** : les skills importantes peuvent porter un état de cycle de vie, une cadence de revue, un score de maturité, des frontières de confiance et des preuves de promotion.
-- **Boucle d'évaluation `9.7`** : la qualité de déclenchement est vérifiée via train/dev/holdout, blind holdout, adversarial holdout, judge-backed blind eval, drift history et promotion gates.
-- **Portabilité / packaging `9.6`** : la source reste neutre tandis que les adaptateurs, règles de dégradation et contrats de packaging préservent la sémantique réutilisable selon l'environnement cible.
-- **Déclenchement et frontières `9.5`** : route confusion, régressions anti-pattern et promotion policy transforment le déclenchement en problème de routage auditable.
-- **Efficacité de contexte `9.4`** : le point d'entrée reste compact, les budgets de contexte sont hiérarchisés et la densité de qualité est suivie.
+- **Profondeur méthodologique `9.5`** : doctrine de skill engineering, archetypes, gate selection, non-skill decisions, gouvernance et frontières de ressource sont formalisés.
+- **Complétude de la toolchain `9.5`** : initialisation, validation, benchmark scan, description optimization, reporting, contrôle de promotion, packaging, CI et portability checks sont reliés dans un même flux.
+- **Rigueur Eval / tests `9.5`** : train/dev/holdout, blind holdout, adversarial holdout, judge-backed blind eval, route confusion, drift history et promotion gates sont couverts.
+- **Gouvernance / cycle de vie `9.5`** : les skills importantes peuvent porter owner, lifecycle, review cadence, maturity score, trust boundary, promotion decision et regression history.
+- **Fiabilité d'exécution locale `9.5`** : le dépôt est vérifiable localement avec `make test`, `make ci-test` et la CLI unifiée.
+- **Portabilité / distribution `9.0`** : métadonnées neutres, adaptateurs, règles de dégradation, contrats de packaging et score de portabilité conservent la sémantique réutilisable entre environnements.
+- **Discipline de contexte `8.0`** : le point d'entrée reste sous budget, mais cette contrainte est suivie activement car le système porte davantage de rapports, exemples, benchmarks et preuves.
+- **Onboarding / revue `6.5`** : quickstart, HTML overview, side-by-side review viewer et feedback log ont amélioré la première expérience, mais c'est encore la principale zone d'amélioration UX.
 
-La direction est volontaire : garder une entrée légère, rendre l'évaluation stricte, et traiter la gouvernance comme une partie de la qualité d'une skill.
+La direction est volontaire : garder une entrée légère, rendre l'évaluation difficile à simuler, rendre la gouvernance visible, et réduire encore la friction de création et de revue.
 
 ## Pourquoi Yao
 
