@@ -8,6 +8,7 @@
     "skill-creator":            { "repo": "anthropics/skills",                    "subdir": "skills/skill-creator" },
     "remotion-best-practices":  { "repo": "remotion-dev/skills",                  "subdir": "skills/remotion" },
     "claude-to-im":             { "repo": "op7418/Claude-to-IM-skill" },
+    "guizang-ppt-skill":        { "repo": "op7418/guizang-ppt-skill" },
     "web-access":               { "repo": "eze-is/web-access" },
     "yao-meta-skill":           { "repo": "yaojingang/yao-meta-skill" },
     "pua":                      { "repo": "tanweai/pua",                          "subdir": "skills/pua" },
