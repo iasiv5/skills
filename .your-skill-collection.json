@@ -14,6 +14,7 @@
     "pua":                      { "repo": "tanweai/pua",                          "subdir": "skills/pua" },
     "grill-me":                 { "repo": "mattpocock/skills",                    "subdir": "grill-me" },
     "khazix-writer":            { "repo": "KKKKhazix/khazix-skills",              "subdir": "khazix-writer" },
+    "neat-freak":               { "repo": "KKKKhazix/khazix-skills",              "subdir": "neat-freak" },
     "slides":                   { "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "subdir": ".claude/skills/slides" },
     "ui-ux-pro-max":            { "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "files": [
       { "src": ".claude/skills/ui-ux-pro-max/SKILL.md", "dest": "SKILL.md" },
