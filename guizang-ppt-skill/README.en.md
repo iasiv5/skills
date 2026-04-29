@@ -1,6 +1,6 @@
 # Magazine Web PPT · Editorial-Style Web Slide Deck Skill
 
-A [Claude Code / Claude Agent Skills](https://agentskills.io/) skill that generates **single-file HTML horizontal-swipe decks** with an "**editorial magazine × electronic ink**" aesthetic — picture *Monocle* with code stitched in.
+An agent skill for Claude Code, Codex, and similar coding-agent environments. It generates **single-file HTML horizontal-swipe decks** with an "**editorial magazine × electronic ink**" aesthetic — picture *Monocle* with code stitched in.
 
 > Distilled by [Guizang](https://x.com/op7418) from offline talks like "One-Person Company: Organizations Folded by AI" and "A New Way of Working." Every pitfall hit during those decks is logged in `checklist.md`.
 
@@ -13,6 +13,7 @@ A [Claude Code / Claude Agent Skills](https://agentskills.io/) skill that genera
 - 📐 **Horizontal swipe navigation**: ← → arrows / scroll wheel / touch swipe / bottom dots / ESC for index
 - 🎨 **5 curated theme presets**: Ink Classic / Indigo Porcelain / Forest Ink / Kraft Paper / Dune
 - 🧩 **10 page layouts**: cover, act divider, big numbers, lead image + text, image grid, pipeline, hero question, big quote, before/after, image + text mix
+- 🖼 **Optional Codex image flow**: generate documentary photos, infographics, flow diagrams, system maps, and UI scenes with GPT-M 2.0, then insert them at template-safe ratios
 - 📄 **Single HTML file** — no build, no server, open directly in the browser
 
 ## Fits / Doesn't fit
@@ -57,16 +58,30 @@ Once installed, Claude Code auto-detects the skill. Trigger phrases:
 
 ## Workflow
 
-The skill is a structured 6-step flow; Claude walks you through each:
+The skill is a structured workflow; the agent walks you through each step:
 
 1. **Clarify intent** — 6-question checklist: audience, duration, source material, images, theme, hard constraints
 2. **Copy template** — `assets/template.html` → project folder, update `<title>`, swap theme vars
 3. **Fill content** — pick from 10 layout skeletons, paste, edit copy (with class-name pre-flight + theme rhythm plan)
-4. **Self-check** — match against `references/checklist.md`; P0 issues must all pass
-5. **Preview** — open the HTML in a browser
-6. **Iterate** — use inline styles to tune font size, height, spacing
+4. **Optional image generation** — in Codex, ask whether to use GPT-M 2.0 images, then insert them at page-appropriate ratios
+5. **Self-check** — match against `references/checklist.md`; P0 issues must all pass
+6. **Preview** — open the HTML in a browser
+7. **Iterate** — use inline styles to tune font size, height, spacing
 
 Full spec in [`SKILL.md`](./SKILL.md).
+
+## Codex Image Flow
+
+In Codex, after the first deck draft is ready, the agent can ask whether the user wants generated visuals. Once confirmed, choose an image type or style. Common types include:
+
+- Documentary photos: Fuji / Leica-like real-world scenes that add human texture
+- Infographics / flow diagrams / comparison charts / system maps: for concepts that cannot be explained well with photos
+- Screenshot redesigns / UI scenes: reshape raw screenshots into consistent slide-friendly ratios and visual density
+
+Generated images must follow two core rules:
+
+- Treat the image as an embedded asset, not a standalone slide: no footer, page bottom, title, page number, corner mark, signature, or decorative border
+- Match the slot ratio before generation: 16:9 / 16:10 for main visuals, 16:10 for UI scenes, fixed equal heights for image grids
 
 ## Directory
 
@@ -81,6 +96,7 @@ guizang-ppt-skill/
     ├── components.md     ← component catalog (type, color, grid, icons, callout, stat, pipeline)
     ├── layouts.md        ← 10 layout skeletons (paste-ready)
     ├── themes.md         ← 5 theme presets (pick, don't customize)
+    ├── image-prompts.md  ← GPT-M 2.0 image types, ratios, and base prompts
     └── checklist.md      ← quality checklist (P0 / P1 / P2 / P3 tiers)
 ```
 
@@ -102,9 +118,10 @@ Switching themes only requires replacing the 6 variables at the top of `template
 
 1. **Restraint over flash** — WebGL backgrounds only bleed through on hero pages
 2. **Structure over decoration** — information hierarchy via type size + typeface + grid whitespace, not shadows or floating cards
-3. **Images are first-class citizens** — crop only from the bottom; top and sides stay intact
-4. **Rhythm lives on hero pages** — hero / non-hero alternation keeps the eye from fatiguing
-5. **Terms stay consistent** — Skills is Skills; no mix-and-match translations
+3. **Images are first-class citizens** — align them with the body content area, keep ratios stable, crop only from the bottom, and preserve top/sides
+4. **Generated visuals are assets** — keep only the core photo / chart / UI; do not render slide titles, footers, or corner marks inside the image
+5. **Rhythm lives on hero pages** — hero / non-hero alternation keeps the eye from fatiguing
+6. **Terms stay consistent** — Skills is Skills; no mix-and-match translations
 
 ## Visual references
 
