@@ -15,11 +15,11 @@ Create, refactor, evaluate, and package agent skills from workflows, prompts, tr
 | Candidate | Tokens | Dev FP | Dev FN | Dev Near | Holdout FP | Holdout FN |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | `Current` | 65 | 0 | 0 | 1.0 | 0 | 0 |
-| `Minimal` | 41 | 2 | 1 | 0.857 | 0 | 0 |
-| `Balanced` | 54 | 2 | 1 | 0.857 | 0 | 0 |
-| `Artifact Aware` | 72 | 2 | 1 | 0.857 | 0 | 0 |
-| `Boundary` | 78 | 2 | 1 | 0.857 | 0 | 0 |
-| `Guardrail` | 50 | 5 | 1 | 0.429 | 2 | 0 |
+| `Minimal` | 41 | 1 | 1 | 1.0 | 0 | 0 |
+| `Guardrail` | 56 | 1 | 1 | 1.0 | 0 | 0 |
+| `Balanced` | 60 | 1 | 1 | 1.0 | 0 | 0 |
+| `Artifact Aware` | 77 | 1 | 1 | 1.0 | 0 | 0 |
+| `Boundary` | 83 | 1 | 1 | 1.0 | 0 | 0 |
 
 ## Acceptance Gates
 
@@ -35,7 +35,7 @@ Create, refactor, evaluate, and package agent skills from workflows, prompts, tr
 | Gate | Winner Gap | Winner Risk | Winner Boundary Rate | Current Gap | Baseline Gap |
 | --- | ---: | --- | ---: | ---: | ---: |
 | Holdout | 0.468 | healthy | 0.0 | 0.468 | 0.416 |
-| Blind Holdout | 0.366 | watch | 0.333 | 0.366 | 0.369 |
+| Blind Holdout | 0.364 | watch | 0.333 | 0.364 | 0.368 |
 | Adversarial Holdout | 0.834 | healthy | 0.0 | 0.834 | 0.845 |
 
 ## Judge Blind Summary

@@ -45,7 +45,9 @@ Tie each meaningful change to a check.
 
 - trigger changes need route or near-neighbor evidence
 - execution changes need a sample input, script check, or manual run note
+- output-facing changes need an output risk profile and at least one self-repair check
 - new references need a reason they reduce ambiguity or context cost
+- borrowed patterns need recurrence, generativity, distinctiveness, or boundary evidence appropriate to the skill tier
 - new governance needs an owner, lifecycle expectation, or review cadence
 - new packaging or portability claims need a concrete target or compatibility check
 
@@ -60,6 +62,8 @@ Before approving a generated or modified skill, check:
 - the package is no larger than the job requires
 - changes are limited to the requested scope
 - each new artifact has a verification reason
+- borrowed patterns have reviewer-visible acceptance evidence
+- likely output mistakes are named before examples are approved
 - the next iteration direction is focused, not a bundle of speculative upgrades
 
 ## Failure Patterns

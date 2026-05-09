@@ -33,7 +33,7 @@ Review frontend code for accessibility, UI security, missing states, and UX regr
 
 | Gate | Winner Gap | Winner Risk | Winner Boundary Rate | Current Gap | Baseline Gap |
 | --- | ---: | --- | ---: | ---: | ---: |
-| Holdout | 0.279 | tight | 0.167 | 0.279 | 0.272 |
+| Holdout | 0.285 | tight | 0.167 | 0.285 | 0.278 |
 | Blind Holdout | 0.088 | tight | 0.333 | 0.088 | 0.082 |
 | Adversarial Holdout | 0.509 | healthy | 0.0 | 0.509 | 0.519 |
 

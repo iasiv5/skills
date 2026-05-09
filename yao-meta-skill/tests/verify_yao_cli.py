@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -11,12 +12,17 @@ BENCHMARK_FIXTURE_DIR = ROOT / "tests" / "fixtures" / "github_benchmark_scan"
 
 
 def run(*args: str, input_text: str | None = None) -> dict:
+    env = {
+        **os.environ,
+        "YAO_UPDATE_VERSION_URL": (ROOT / "tests" / "tmp_cli" / "remote-version.txt").as_uri(),
+    }
     proc = subprocess.run(
         [sys.executable, str(CLI), *args],
         cwd=ROOT,
         capture_output=True,
         text=True,
         input=input_text,
+        env=env,
     )
     payload = json.loads(proc.stdout)
     return {
@@ -32,6 +38,8 @@ def main() -> None:
     if tmp_root.exists():
         subprocess.run(["rm", "-rf", str(tmp_root)], check=True)
     tmp_root.mkdir(parents=True, exist_ok=True)
+    remote_version = tmp_root / "remote-version.txt"
+    remote_version.write_text("9.9.9\n", encoding="utf-8")
 
     init_result = run("init", "cli-demo-skill", "--description", "CLI demo skill.", "--output-dir", str(tmp_root))
     assert init_result["ok"], init_result
@@ -44,7 +52,11 @@ def main() -> None:
     assert (created / "reports" / "review-viewer.html").exists(), created
     assert (created / "reports" / "reference-scan.md").exists(), created
     assert (created / "reports" / "reference-synthesis.md").exists(), created
+    assert (created / "reports" / "output-risk-profile.md").exists(), created
+    assert (created / "reports" / "artifact-design-profile.md").exists(), created
+    assert (created / "reports" / "prompt-quality-profile.md").exists(), created
     assert (created / "reports" / "iteration-directions.md").exists(), created
+    assert "Honest Boundaries" in (created / "SKILL.md").read_text(encoding="utf-8"), created
 
     quickstart_result = run(
         "quickstart",
@@ -72,13 +84,20 @@ def main() -> None:
     assert (quickstart_root / "reports" / "github-benchmark-scan.md").exists(), quickstart_root
     assert (quickstart_root / "reports" / "intent-confidence.md").exists(), quickstart_root
     assert (quickstart_root / "reports" / "reference-synthesis.md").exists(), quickstart_root
+    assert (quickstart_root / "reports" / "artifact-design-profile.md").exists(), quickstart_root
+    assert (quickstart_root / "reports" / "prompt-quality-profile.md").exists(), quickstart_root
     assert quickstart_result["payload"]["archetype"] == "production", quickstart_result
     assert quickstart_result["payload"]["guidance"]["experience_note"], quickstart_result
+    assert quickstart_result["payload"]["guidance"]["problem_diagnosis"]["candidates"], quickstart_result
+    assert "Update available for yao-meta-skill" in quickstart_result["stderr"], quickstart_result["stderr"]
     assert quickstart_result["payload"]["intent_confidence"]["score"] >= 70, quickstart_result
     assert quickstart_result["payload"]["recommendation"]["summary"], quickstart_result
     assert quickstart_result["payload"]["reference_mode"]["mode"] == "silent", quickstart_result
     assert quickstart_result["payload"]["reviewer_evidence"]["artifacts"]["reference_synthesis"].endswith(
         "reports/reference-synthesis.md"
+    ), quickstart_result
+    assert quickstart_result["payload"]["reviewer_evidence"]["artifacts"]["prompt_quality_profile"].endswith(
+        "reports/prompt-quality-profile.md"
     ), quickstart_result
     assert "uncertainty_or_conflict" not in quickstart_result["payload"], quickstart_result
 
@@ -155,6 +174,21 @@ def main() -> None:
     assert reference_synthesis_result["ok"], reference_synthesis_result
     assert reference_synthesis_result["payload"]["artifacts"]["markdown"].endswith("reports/reference-synthesis.md"), reference_synthesis_result
 
+    output_risk_result = run("output-risk-profile", str(created))
+    assert output_risk_result["ok"], output_risk_result
+    assert output_risk_result["payload"]["artifacts"]["markdown"].endswith("reports/output-risk-profile.md"), output_risk_result
+    assert output_risk_result["payload"]["summary"]["risk_families"], output_risk_result
+
+    artifact_design_result = run("artifact-design-profile", str(created))
+    assert artifact_design_result["ok"], artifact_design_result
+    assert artifact_design_result["payload"]["artifacts"]["markdown"].endswith("reports/artifact-design-profile.md"), artifact_design_result
+    assert artifact_design_result["payload"]["summary"]["quality_gates"], artifact_design_result
+
+    prompt_quality_result = run("prompt-quality-profile", str(created))
+    assert prompt_quality_result["ok"], prompt_quality_result
+    assert prompt_quality_result["payload"]["artifacts"]["markdown"].endswith("reports/prompt-quality-profile.md"), prompt_quality_result
+    assert prompt_quality_result["payload"]["summary"]["quality_matrix"], prompt_quality_result
+
     directions_result = run("iteration-directions", str(created))
     assert directions_result["ok"], directions_result
     assert directions_result["payload"]["artifacts"]["markdown"].endswith("reports/iteration-directions.md"), directions_result
@@ -202,11 +236,24 @@ def main() -> None:
     assert report_result["ok"], report_result
     assert "iteration_ledger" in report_result["payload"]["artifacts"], report_result
     assert "portability_score" in report_result["payload"]["artifacts"], report_result
+    assert "artifact_design_profile" in report_result["payload"]["artifacts"], report_result
+    assert "prompt_quality_profile" in report_result["payload"]["artifacts"], report_result
 
     package_dir = tmp_root / "dist"
     package_result = run("package", ".", "--platform", "generic", "--output-dir", str(package_dir))
     assert package_result["ok"], package_result
     assert (package_dir / "targets" / "generic" / "adapter.json").exists(), package_dir
+
+    update_result = run(
+        "check-update",
+        "--force",
+        "--no-cache",
+        "--version-url",
+        remote_version.as_uri(),
+    )
+    assert update_result["ok"], update_result
+    assert update_result["payload"]["update_available"], update_result
+    assert update_result["payload"]["remote_version"] == "9.9.9", update_result
 
     test_result = run("test", "--target", "promotion-check")
     assert test_result["ok"], test_result

@@ -43,7 +43,7 @@
 
 | Route | Precision | Recall | Avg Margin |
 | --- | ---: | ---: | ---: |
-| `yao-meta-skill` | 1.0 | 1.0 | 0.607 |
-| `team-frontend-review` | 1.0 | 1.0 | 0.8 |
-| `governed-incident-command` | 1.0 | 1.0 | 0.654 |
+| `yao-meta-skill` | 1.0 | 1.0 | 0.611 |
+| `team-frontend-review` | 1.0 | 1.0 | 0.805 |
+| `governed-incident-command` | 1.0 | 1.0 | 0.659 |
 | `no_route` | 1.0 | 1.0 | - |

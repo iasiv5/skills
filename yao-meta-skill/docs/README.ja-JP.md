@@ -13,6 +13,7 @@
 - 深い authoring の前に、GitHub benchmark scan と reference synthesis を静かに実行し、高品質な公開リポジトリと world-class pattern tracks を参照する。実際に衝突や不確実性があるときだけユーザーに明示する
 - ユーザー自身の参考例があれば、それも取り込み、文章ではなくパターン・構造・品質基準だけを学ぶ
 - 新しい skill ごとに、白背景の簡潔な HTML overview を自動生成
+- prompt quality profile により、need model、RTF mapping、complexity、prompt-facing quality checks を reviewer-visible な証拠として残し、`SKILL.md` を肥大化させない
 - 初回作成後に自動で提示される 3 つの高価値な次の iteration direction
 - 初回の人間レビューを助ける、コンパクトな HTML review viewer
 - 毎回フル promotion flow を通さずに使える軽量 feedback log
@@ -72,7 +73,7 @@ flowchart LR
 2. まず短いが人間味のある intent dialogue で、実際の job、outputs、boundary、constraints、重視する品質基準を明確にします。
 3. まず `quickstart` で意図を澄ませ、その後 benchmark scan と reference synthesis を静かに実行します。意図がまだ曖昧なとき、または設計ルートに本当の衝突があるときだけ、追加確認を明示します。
 4. archetype-aware な `quickstart` か完全な authoring flow を使い、scaffold、production、library、governed のいずれかでパッケージを生成または改善します。
-5. 新しく作成した skill には `reports/intent-dialogue.md`、`reports/intent-confidence.md`、`reports/reference-synthesis.md`、`reports/skill-overview.html`、`reports/review-viewer.html`、`reports/iteration-directions.md` が付きます。さらに feedback log と baseline compare を使えば、毎回フル promotion flow を回さずに短い改善ループを回せます。
+5. 新しく作成した skill には `reports/intent-dialogue.md`、`reports/intent-confidence.md`、`reports/reference-synthesis.md`、`reports/artifact-design-profile.md`、`reports/prompt-quality-profile.md`、`reports/skill-overview.html`、`reports/review-viewer.html`、`reports/iteration-directions.md` が付きます。さらに feedback log と baseline compare を使えば、毎回フル promotion flow を回さずに短い改善ループを回せます。
 
 ## 現在の結果
 

@@ -13,6 +13,7 @@
 - silent-by-default GitHub benchmark scan и reference synthesis до глубокого authoring: система изучает сильные публичные репозитории и world-class pattern tracks, а пользователю явно показывает только реальные конфликты или неопределенность
 - явным запросом пользовательских референсов, если они есть, чтобы перенимать паттерны, структуру и стандарты качества, а не копировать формулировки или приватный материал
 - автоматически создаваемым минималистичным HTML-обзором на белом фоне для каждого нового skill
+- prompt quality profile, который превращает need model, RTF mapping, complexity и prompt-facing quality checks в видимые для reviewer доказательства, не раздувая `SKILL.md`
 - тремя наиболее ценными направлениями следующей итерации после первого создания
 - компактным HTML review viewer для быстрой первой ручной оценки
 - легким feedback log, чтобы не запускать полный promotion flow на каждом цикле
@@ -72,7 +73,7 @@ flowchart LR
 2. Сначала проведите короткий, но более человечный intent dialogue, чтобы уточнить реальную job-to-be-done, outputs, exclusions, constraints и те стандарты качества, которые для вас важны.
 3. Сначала позвольте `quickstart` прояснить намерение, затем тихо выполнить benchmark scan и reference synthesis. Явные уточнения поднимаются только тогда, когда intent все еще неясен или между маршрутами проектирования есть реальный конфликт.
 4. Используйте archetype-aware `quickstart` или полный authoring flow, чтобы сгенерировать или улучшить пакет в режиме scaffold, production, library или governed.
-5. Каждый новый skill также получает `reports/intent-dialogue.md`, `reports/intent-confidence.md`, `reports/reference-synthesis.md`, `reports/skill-overview.html`, `reports/review-viewer.html` и `reports/iteration-directions.md`. После этого feedback log и baseline compare позволяют запускать короткий цикл улучшений без полного promotion flow.
+5. Каждый новый skill также получает `reports/intent-dialogue.md`, `reports/intent-confidence.md`, `reports/reference-synthesis.md`, `reports/artifact-design-profile.md`, `reports/prompt-quality-profile.md`, `reports/skill-overview.html`, `reports/review-viewer.html` и `reports/iteration-directions.md`. После этого feedback log и baseline compare позволяют запускать короткий цикл улучшений без полного promotion flow.
 
 ## Текущие результаты
 

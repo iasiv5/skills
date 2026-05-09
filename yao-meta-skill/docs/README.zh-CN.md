@@ -13,6 +13,7 @@
 - 深度起草前会静默执行 GitHub benchmark scan 和 reference synthesis，优先学习高质量公开项目与世界级模式；只有遇到真实冲突或不确定性时才显式抬给用户
 - 会主动询问用户是否有希望借鉴的参考对象，只学习其中的模式抽象、结构和标准，不复制原文或私密内容
 - 新建 skill 时自动生成一份极简白底 HTML 可视化说明
+- 提供 prompt quality profile，把需求模型、RTF 映射、复杂度和提示词质量检查沉淀成 reviewer 可见证据，而不是塞进 `SKILL.md`
 - 首次建包后会自动给出 3 个最有价值的下一步迭代方向
 - 提供一个紧凑的 HTML review viewer，方便第一次人工理解和评审
 - 提供一个轻量 feedback log，不必每次都走完整 promotion 流程
@@ -72,7 +73,7 @@ flowchart LR
 2. 先做一轮简短但更有人味的意图对话，把真实任务、输出物、边界、约束和你在意的质量标准说清楚。
 3. 先让 `quickstart` 澄清意图，再静默跑 benchmark scan 和 reference synthesis；只有当意图还不清楚，或者设计路线真的冲突时，才会显式继续追问或让你拍板。
 4. 使用 archetype-aware 的 `quickstart` 或完整作者流，在 scaffold、production、library 或 governed 模式下生成或改进 skill 包。
-5. 新建 skill 后，会默认附带 `reports/intent-dialogue.md`、`reports/intent-confidence.md`、`reports/reference-synthesis.md`、`reports/skill-overview.html`、`reports/review-viewer.html` 和 `reports/iteration-directions.md`；后续还可以通过 feedback log 和 baseline compare 快速收集意见、查看增量收益，而不必每次都走完整 promotion 流程。
+5. 新建 skill 后，会默认附带 `reports/intent-dialogue.md`、`reports/intent-confidence.md`、`reports/reference-synthesis.md`、`reports/artifact-design-profile.md`、`reports/prompt-quality-profile.md`、`reports/skill-overview.html`、`reports/review-viewer.html` 和 `reports/iteration-directions.md`；后续还可以通过 feedback log 和 baseline compare 快速收集意见、查看增量收益，而不必每次都走完整 promotion 流程。
 
 ## 当前结果
 

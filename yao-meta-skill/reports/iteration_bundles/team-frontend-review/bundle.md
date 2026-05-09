@@ -27,7 +27,7 @@
 
 | Role | Label | Ranking State | Promotion State | Tokens | Dev Errors | Holdout Errors |
 | --- | --- | --- | --- | ---: | ---: | ---: |
-| baseline | `Baseline` | reference | reference | 52 | 4 | 0 |
+| baseline | `Baseline` | reference | reference | 52 | 3 | 0 |
 | current | `Current` | selected_by_dev | kept_current | 50 | 3 | 0 |
 | candidate | `Guardrail` | not_selected | blocked | 62 | 3 | 0 |
 | candidate | `Balanced` | not_selected | blocked | 64 | 3 | 0 |

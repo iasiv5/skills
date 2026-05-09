@@ -16,7 +16,7 @@ Build governed incident command packets. Use when asked to standardize incident 
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | `Current` | 37 | 0 | 1 | 1.0 | 0 | 1 |
 | `Guardrail` | 51 | 0 | 1 | 1.0 | 1 | 1 |
-| `Balanced` | 54 | 0 | 1 | 1.0 | 0 | 2 |
+| `Balanced` | 54 | 0 | 1 | 1.0 | 0 | 1 |
 | `Boundary` | 78 | 0 | 1 | 1.0 | 0 | 1 |
 | `Artifact Aware` | 78 | 0 | 1 | 1.0 | 0 | 1 |
 
@@ -33,8 +33,8 @@ Build governed incident command packets. Use when asked to standardize incident 
 
 | Gate | Winner Gap | Winner Risk | Winner Boundary Rate | Current Gap | Baseline Gap |
 | --- | ---: | --- | ---: | ---: | ---: |
-| Holdout | 0.022 | overlap | 0.0 | 0.022 | 0.105 |
-| Blind Holdout | 0.412 | healthy | 0.167 | 0.412 | 0.065 |
+| Holdout | 0.023 | overlap | 0.0 | 0.023 | 0.101 |
+| Blind Holdout | 0.418 | healthy | 0.167 | 0.418 | 0.063 |
 | Adversarial Holdout | 0.598 | healthy | 0.0 | 0.598 | 0.172 |
 
 ## Judge Blind Summary

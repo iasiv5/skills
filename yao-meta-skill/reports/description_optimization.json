@@ -38,9 +38,9 @@
     "dev": {
       "threshold": 0.33,
       "threshold_explanation": "Prompts at or above the threshold are treated as trigger matches. Scores are driven primarily by semantic intent coverage: packaging intent, workflow-to-skill transformation intent, reuse/distribution intent, and eval intent. Explicit exclusions such as summary-only, translation-only, one-off, document-only, or do-not-build directives apply direct penalties and can override otherwise similar wording.",
-      "false_positives": 1,
+      "false_positives": 0,
       "false_negatives": 1,
-      "precision": 0.875,
+      "precision": 1.0,
       "recall": 0.875,
       "bucket_stats": {
         "should_trigger": {
@@ -55,8 +55,8 @@
         },
         "near_neighbor": {
           "total": 7,
-          "passed": 6,
-          "pass_rate": 0.857
+          "passed": 7,
+          "pass_rate": 1.0
         }
       },
       "family_stats": {
@@ -167,10 +167,10 @@
         },
         "long_context_near_neighbor": {
           "total": 1,
-          "passed": 0,
-          "false_positives": 1,
+          "passed": 1,
+          "false_positives": 0,
           "false_negatives": 0,
-          "pass_rate": 0.0
+          "pass_rate": 1.0
         }
       },
       "misfires": [
@@ -185,20 +185,6 @@
             "iterate_existing_skill"
           ],
           "matched_negative_concepts": []
-        },
-        {
-          "bucket": "near_neighbor",
-          "family": "long_context_near_neighbor",
-          "prompt": "Turn the workflow below into a wiki-ready reference document and template only. We may build a skill later, but not now.",
-          "score": 0.333,
-          "reason": "false_positive",
-          "matched_desired_concepts": [
-            "build_skill",
-            "transform_workflow"
-          ],
-          "matched_negative_concepts": [
-            "document_only"
-          ]
         }
       ],
       "results": {
@@ -379,7 +365,7 @@
               "exclusive_negative_concepts": [],
               "semantic_coverage": 0.377,
               "support_score": 0.06,
-              "lexical_support": 0.071,
+              "lexical_support": 0.067,
               "negative_penalty": 0,
               "coverage_boost": 0.04,
               "concept_evidence": {
@@ -479,7 +465,7 @@
               "exclusive_negative_concepts": [],
               "semantic_coverage": 0.377,
               "support_score": 0.04,
-              "lexical_support": 0.077,
+              "lexical_support": 0.071,
               "negative_penalty": 0,
               "coverage_boost": 0.04,
               "concept_evidence": {
@@ -589,7 +575,7 @@
               "exclusive_negative_concepts": [],
               "semantic_coverage": 0.849,
               "support_score": 0.1,
-              "lexical_support": 0.037,
+              "lexical_support": 0.038,
               "negative_penalty": 0,
               "coverage_boost": 0.06,
               "concept_evidence": {
@@ -793,7 +779,7 @@
               ],
               "semantic_coverage": 0.0,
               "support_score": 0,
-              "lexical_support": 0.091,
+              "lexical_support": 0.083,
               "negative_penalty": 0.35,
               "coverage_boost": 0.0,
               "concept_evidence": {
@@ -882,7 +868,7 @@
               ],
               "semantic_coverage": 0.189,
               "support_score": 0,
-              "lexical_support": 0.045,
+              "lexical_support": 0.043,
               "negative_penalty": 0.68,
               "coverage_boost": 0.0,
               "concept_evidence": {
@@ -934,7 +920,7 @@
               ],
               "semantic_coverage": 0.698,
               "support_score": 0,
-              "lexical_support": 0.059,
+              "lexical_support": 0.056,
               "negative_penalty": 0.3,
               "coverage_boost": 0.06,
               "concept_evidence": {
@@ -1197,7 +1183,7 @@
               ],
               "semantic_coverage": 0.509,
               "support_score": 0,
-              "lexical_support": 0.077,
+              "lexical_support": 0.071,
               "negative_penalty": 0.6,
               "coverage_boost": 0.04,
               "concept_evidence": {
@@ -1224,10 +1210,10 @@
           {
             "prompt": "Turn the workflow below into a wiki-ready reference document and template only. We may build a skill later, but not now.",
             "family": "long_context_near_neighbor",
-            "score": 0.333,
-            "predicted_trigger": true,
+            "score": 0.0,
+            "predicted_trigger": false,
             "expected_trigger": false,
-            "passed": false,
+            "passed": true,
             "score_detail": {
               "mode": "semantic-intent",
               "desired_positive_concepts": [
@@ -1243,13 +1229,18 @@
               ],
               "extra_positive_concepts": [],
               "matched_negative_concepts": [
-                "document_only"
+                "document_only",
+                "future_outline",
+                "no_build_directive"
               ],
-              "exclusive_negative_concepts": [],
+              "exclusive_negative_concepts": [
+                "future_outline",
+                "no_build_directive"
+              ],
               "semantic_coverage": 0.509,
               "support_score": 0,
-              "lexical_support": 0.05,
-              "negative_penalty": 0.18,
+              "lexical_support": 0.048,
+              "negative_penalty": 0.82,
               "coverage_boost": 0.04,
               "concept_evidence": {
                 "positive": {
@@ -1266,11 +1257,18 @@
                     "wiki",
                     "reference document",
                     "template only"
+                  ],
+                  "future_outline": [
+                    "not now",
+                    "later but not now"
+                  ],
+                  "no_build_directive": [
+                    "not now",
+                    "later but not now"
                   ]
                 }
               }
-            },
-            "boundary_case": true
+            }
           },
           {
             "prompt": "Shape this idea for later and produce a future-ready outline, but do not build the skill package yet.",
@@ -1303,7 +1301,7 @@
               ],
               "semantic_coverage": 0.509,
               "support_score": 0,
-              "lexical_support": 0.056,
+              "lexical_support": 0.053,
               "negative_penalty": 0.64,
               "coverage_boost": 0.04,
               "concept_evidence": {
@@ -1498,7 +1496,7 @@
           {
             "prompt": "Take this existing skill draft, tighten the trigger boundary, add near-neighbor evals, and package it for distribution.",
             "family": "iterate_existing_skill",
-            "score": 0.7,
+            "score": 0.699,
             "predicted_trigger": true,
             "expected_trigger": true,
             "passed": true,
@@ -1524,7 +1522,7 @@
               "exclusive_negative_concepts": [],
               "semantic_coverage": 0.679,
               "support_score": 0.04,
-              "lexical_support": 0.059,
+              "lexical_support": 0.056,
               "negative_penalty": 0,
               "coverage_boost": 0.06,
               "concept_evidence": {
@@ -2115,7 +2113,7 @@
               ],
               "semantic_coverage": 0.698,
               "support_score": 0,
-              "lexical_support": 0.062,
+              "lexical_support": 0.125,
               "negative_penalty": 0.6,
               "coverage_boost": 0.06,
               "concept_evidence": {
@@ -2366,7 +2364,7 @@
         {
           "prompt": "Add trigger evals to this skill before sharing it with the team.",
           "family": "iterate_existing_skill",
-          "score": 0.388,
+          "score": 0.394,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -2390,7 +2388,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.327,
             "support_score": 0,
-            "lexical_support": 0.333,
+            "lexical_support": 0.417,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -2473,7 +2471,7 @@
         {
           "prompt": "Turn these workflow fragments, transcripts, and prompts into one production-ready skill with scripts and references.",
           "family": "complex_multi_asset",
-          "score": 0.418,
+          "score": 0.422,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -2498,7 +2496,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.364,
             "support_score": 0.06,
-            "lexical_support": 0.357,
+            "lexical_support": 0.4,
             "negative_penalty": 0,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -2573,7 +2571,7 @@
         {
           "prompt": "Turn the SOP, transcript, and cleanup notes into a maintained skill for the team library.",
           "family": "paraphrase_trigger",
-          "score": 0.471,
+          "score": 0.474,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -2597,7 +2595,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.4,
             "support_score": 0,
-            "lexical_support": 0.538,
+            "lexical_support": 0.571,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -2679,7 +2677,7 @@
         {
           "prompt": "After the long handoff notes below, build a skill package for team reuse. The materials include a transcript, rough notes, and an onboarding flow, and the result should include references, scripts, and validation.",
           "family": "long_context_trigger",
-          "score": 0.888,
+          "score": 0.889,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -2707,7 +2705,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.855,
             "support_score": 0.06,
-            "lexical_support": 0.333,
+            "lexical_support": 0.346,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -2915,7 +2913,7 @@
             ],
             "semantic_coverage": 0.0,
             "support_score": 0,
-            "lexical_support": 0.273,
+            "lexical_support": 0.25,
             "negative_penalty": 0.35,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -3006,7 +3004,7 @@
             ],
             "semantic_coverage": 0.182,
             "support_score": 0,
-            "lexical_support": 0.182,
+            "lexical_support": 0.174,
             "negative_penalty": 0.68,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -3031,7 +3029,7 @@
         {
           "prompt": "I pasted a very long process note. For now I only need a recap and a short summary, not a skill package.",
           "family": "long_context_summary_only",
-          "score": 0.257,
+          "score": 0.256,
           "predicted_trigger": false,
           "expected_trigger": false,
           "passed": true,
@@ -3059,7 +3057,7 @@
             ],
             "semantic_coverage": 0.673,
             "support_score": 0,
-            "lexical_support": 0.353,
+            "lexical_support": 0.333,
             "negative_penalty": 0.3,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -3170,7 +3168,7 @@
             ],
             "semantic_coverage": 0.182,
             "support_score": 0,
-            "lexical_support": 0.286,
+            "lexical_support": 0.357,
             "negative_penalty": 0.42,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -3218,7 +3216,7 @@
             ],
             "semantic_coverage": 0.491,
             "support_score": 0,
-            "lexical_support": 0.4,
+            "lexical_support": 0.5,
             "negative_penalty": 0.6,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -3273,7 +3271,7 @@
             ],
             "semantic_coverage": 0.327,
             "support_score": 0,
-            "lexical_support": 0.286,
+            "lexical_support": 0.267,
             "negative_penalty": 0.64,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -3327,7 +3325,7 @@
             ],
             "semantic_coverage": 0.491,
             "support_score": 0,
-            "lexical_support": 0.462,
+            "lexical_support": 0.5,
             "negative_penalty": 0.6,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -3354,7 +3352,7 @@
         {
           "prompt": "Turn the workflow below into a wiki-ready reference document and template only. We may build a skill later, but not now.",
           "family": "long_context_near_neighbor",
-          "score": 0.328,
+          "score": 0.0,
           "predicted_trigger": false,
           "expected_trigger": false,
           "passed": true,
@@ -3374,13 +3372,18 @@
             ],
             "extra_positive_concepts": [],
             "matched_negative_concepts": [
-              "document_only"
+              "document_only",
+              "future_outline",
+              "no_build_directive"
             ],
-            "exclusive_negative_concepts": [],
+            "exclusive_negative_concepts": [
+              "future_outline",
+              "no_build_directive"
+            ],
             "semantic_coverage": 0.491,
             "support_score": 0,
-            "lexical_support": 0.2,
-            "negative_penalty": 0.18,
+            "lexical_support": 0.238,
+            "negative_penalty": 0.82,
             "coverage_boost": 0.04,
             "concept_evidence": {
               "positive": {
@@ -3397,11 +3400,18 @@
                   "wiki",
                   "reference document",
                   "template only"
+                ],
+                "future_outline": [
+                  "not now",
+                  "later but not now"
+                ],
+                "no_build_directive": [
+                  "not now",
+                  "later but not now"
                 ]
               }
             }
-          },
-          "boundary_case": true
+          }
         },
         {
           "prompt": "Shape this idea for later and produce a future-ready outline, but do not build the skill package yet.",
@@ -3435,7 +3445,7 @@
             ],
             "semantic_coverage": 0.491,
             "support_score": 0,
-            "lexical_support": 0.278,
+            "lexical_support": 0.263,
             "negative_penalty": 0.64,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -3631,7 +3641,7 @@
         {
           "prompt": "Take this existing skill draft, tighten the trigger boundary, add near-neighbor evals, and package it for distribution.",
           "family": "iterate_existing_skill",
-          "score": 0.729,
+          "score": 0.727,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -3657,7 +3667,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.691,
             "support_score": 0,
-            "lexical_support": 0.412,
+            "lexical_support": 0.389,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -3688,7 +3698,7 @@
         {
           "prompt": "Turn this recurring onboarding process into a reusable skill library entry with validation notes.",
           "family": "workflow_to_skill",
-          "score": 0.563,
+          "score": 0.568,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -3712,7 +3722,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.509,
             "support_score": 0,
-            "lexical_support": 0.429,
+            "lexical_support": 0.5,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -3877,7 +3887,7 @@
             ],
             "semantic_coverage": 0.364,
             "support_score": 0,
-            "lexical_support": 0.308,
+            "lexical_support": 0.286,
             "negative_penalty": 0.72,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -4201,7 +4211,7 @@
             ],
             "semantic_coverage": 0.491,
             "support_score": 0,
-            "lexical_support": 0.538,
+            "lexical_support": 0.615,
             "negative_penalty": 0.6,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -4258,7 +4268,7 @@
             ],
             "semantic_coverage": 0.673,
             "support_score": 0,
-            "lexical_support": 0.375,
+            "lexical_support": 0.438,
             "negative_penalty": 0.6,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -4476,7 +4486,7 @@
         {
           "prompt": "Add trigger evals to this skill before sharing it with the team.",
           "family": "iterate_existing_skill",
-          "score": 0.388,
+          "score": 0.394,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -4500,7 +4510,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.327,
             "support_score": 0,
-            "lexical_support": 0.333,
+            "lexical_support": 0.417,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -4583,7 +4593,7 @@
         {
           "prompt": "Turn these workflow fragments, transcripts, and prompts into one production-ready skill with scripts and references.",
           "family": "complex_multi_asset",
-          "score": 0.418,
+          "score": 0.422,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -4608,7 +4618,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.364,
             "support_score": 0.06,
-            "lexical_support": 0.357,
+            "lexical_support": 0.4,
             "negative_penalty": 0,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -4683,7 +4693,7 @@
         {
           "prompt": "Turn the SOP, transcript, and cleanup notes into a maintained skill for the team library.",
           "family": "paraphrase_trigger",
-          "score": 0.471,
+          "score": 0.474,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -4707,7 +4717,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.4,
             "support_score": 0,
-            "lexical_support": 0.538,
+            "lexical_support": 0.571,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -4789,7 +4799,7 @@
         {
           "prompt": "After the long handoff notes below, build a skill package for team reuse. The materials include a transcript, rough notes, and an onboarding flow, and the result should include references, scripts, and validation.",
           "family": "long_context_trigger",
-          "score": 0.888,
+          "score": 0.889,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -4817,7 +4827,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.855,
             "support_score": 0.06,
-            "lexical_support": 0.333,
+            "lexical_support": 0.346,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -5025,7 +5035,7 @@
             ],
             "semantic_coverage": 0.0,
             "support_score": 0,
-            "lexical_support": 0.273,
+            "lexical_support": 0.25,
             "negative_penalty": 0.35,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -5116,7 +5126,7 @@
             ],
             "semantic_coverage": 0.182,
             "support_score": 0,
-            "lexical_support": 0.182,
+            "lexical_support": 0.174,
             "negative_penalty": 0.68,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -5141,7 +5151,7 @@
         {
           "prompt": "I pasted a very long process note. For now I only need a recap and a short summary, not a skill package.",
           "family": "long_context_summary_only",
-          "score": 0.257,
+          "score": 0.256,
           "predicted_trigger": false,
           "expected_trigger": false,
           "passed": true,
@@ -5169,7 +5179,7 @@
             ],
             "semantic_coverage": 0.673,
             "support_score": 0,
-            "lexical_support": 0.353,
+            "lexical_support": 0.333,
             "negative_penalty": 0.3,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -5280,7 +5290,7 @@
             ],
             "semantic_coverage": 0.182,
             "support_score": 0,
-            "lexical_support": 0.286,
+            "lexical_support": 0.357,
             "negative_penalty": 0.42,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -5328,7 +5338,7 @@
             ],
             "semantic_coverage": 0.491,
             "support_score": 0,
-            "lexical_support": 0.4,
+            "lexical_support": 0.5,
             "negative_penalty": 0.6,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -5383,7 +5393,7 @@
             ],
             "semantic_coverage": 0.327,
             "support_score": 0,
-            "lexical_support": 0.286,
+            "lexical_support": 0.267,
             "negative_penalty": 0.64,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -5437,7 +5447,7 @@
             ],
             "semantic_coverage": 0.491,
             "support_score": 0,
-            "lexical_support": 0.462,
+            "lexical_support": 0.5,
             "negative_penalty": 0.6,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -5464,7 +5474,7 @@
         {
           "prompt": "Turn the workflow below into a wiki-ready reference document and template only. We may build a skill later, but not now.",
           "family": "long_context_near_neighbor",
-          "score": 0.328,
+          "score": 0.0,
           "predicted_trigger": false,
           "expected_trigger": false,
           "passed": true,
@@ -5484,13 +5494,18 @@
             ],
             "extra_positive_concepts": [],
             "matched_negative_concepts": [
-              "document_only"
+              "document_only",
+              "future_outline",
+              "no_build_directive"
             ],
-            "exclusive_negative_concepts": [],
+            "exclusive_negative_concepts": [
+              "future_outline",
+              "no_build_directive"
+            ],
             "semantic_coverage": 0.491,
             "support_score": 0,
-            "lexical_support": 0.2,
-            "negative_penalty": 0.18,
+            "lexical_support": 0.238,
+            "negative_penalty": 0.82,
             "coverage_boost": 0.04,
             "concept_evidence": {
               "positive": {
@@ -5507,11 +5522,18 @@
                   "wiki",
                   "reference document",
                   "template only"
+                ],
+                "future_outline": [
+                  "not now",
+                  "later but not now"
+                ],
+                "no_build_directive": [
+                  "not now",
+                  "later but not now"
                 ]
               }
             }
-          },
-          "boundary_case": true
+          }
         },
         {
           "prompt": "Shape this idea for later and produce a future-ready outline, but do not build the skill package yet.",
@@ -5545,7 +5567,7 @@
             ],
             "semantic_coverage": 0.491,
             "support_score": 0,
-            "lexical_support": 0.278,
+            "lexical_support": 0.263,
             "negative_penalty": 0.64,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -5741,7 +5763,7 @@
         {
           "prompt": "Take this existing skill draft, tighten the trigger boundary, add near-neighbor evals, and package it for distribution.",
           "family": "iterate_existing_skill",
-          "score": 0.729,
+          "score": 0.727,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -5767,7 +5789,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.691,
             "support_score": 0,
-            "lexical_support": 0.412,
+            "lexical_support": 0.389,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -5798,7 +5820,7 @@
         {
           "prompt": "Turn this recurring onboarding process into a reusable skill library entry with validation notes.",
           "family": "workflow_to_skill",
-          "score": 0.563,
+          "score": 0.568,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -5822,7 +5844,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.509,
             "support_score": 0,
-            "lexical_support": 0.429,
+            "lexical_support": 0.5,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -5987,7 +6009,7 @@
             ],
             "semantic_coverage": 0.364,
             "support_score": 0,
-            "lexical_support": 0.308,
+            "lexical_support": 0.286,
             "negative_penalty": 0.72,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -6311,7 +6333,7 @@
             ],
             "semantic_coverage": 0.491,
             "support_score": 0,
-            "lexical_support": 0.538,
+            "lexical_support": 0.615,
             "negative_penalty": 0.6,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -6368,7 +6390,7 @@
             ],
             "semantic_coverage": 0.673,
             "support_score": 0,
-            "lexical_support": 0.375,
+            "lexical_support": 0.438,
             "negative_penalty": 0.6,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -6517,7 +6539,7 @@
         {
           "prompt": "Take these SOP scraps, prompt notes, and transcript excerpts and formalize them into a reusable capability package.",
           "family": "blind_multi_asset",
-          "score": 0.407,
+          "score": 0.405,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -6540,7 +6562,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.364,
             "support_score": 0,
-            "lexical_support": 0.4,
+            "lexical_support": 0.375,
             "negative_penalty": 0,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -6564,7 +6586,7 @@
         {
           "prompt": "Turn this workflow note into a wiki reference only, do not create any skill files, and keep it out of agent execution.",
           "family": "blind_document_only",
-          "score": 0.024,
+          "score": 0.028,
           "predicted_trigger": false,
           "expected_trigger": false,
           "passed": true,
@@ -6590,7 +6612,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.182,
             "support_score": 0.06,
-            "lexical_support": 0.273,
+            "lexical_support": 0.318,
             "negative_penalty": 0.18,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -6869,7 +6891,7 @@
         {
           "prompt": "Take these SOP scraps, prompt notes, and transcript excerpts and formalize them into a reusable capability package.",
           "family": "blind_multi_asset",
-          "score": 0.407,
+          "score": 0.405,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -6892,7 +6914,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.364,
             "support_score": 0,
-            "lexical_support": 0.4,
+            "lexical_support": 0.375,
             "negative_penalty": 0,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -6916,7 +6938,7 @@
         {
           "prompt": "Turn this workflow note into a wiki reference only, do not create any skill files, and keep it out of agent execution.",
           "family": "blind_document_only",
-          "score": 0.024,
+          "score": 0.028,
           "predicted_trigger": false,
           "expected_trigger": false,
           "passed": true,
@@ -6942,7 +6964,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.182,
             "support_score": 0.06,
-            "lexical_support": 0.273,
+            "lexical_support": 0.318,
             "negative_penalty": 0.18,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -7220,7 +7242,7 @@
         {
           "prompt": "Take these SOP scraps, prompt notes, and transcript excerpts and formalize them into a reusable capability package.",
           "family": "blind_multi_asset",
-          "score": 0.393,
+          "score": 0.392,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -7242,7 +7264,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.377,
             "support_score": 0,
-            "lexical_support": 0.067,
+            "lexical_support": 0.062,
             "negative_penalty": 0,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -7266,7 +7288,7 @@
         {
           "prompt": "Turn this workflow note into a wiki reference only, do not create any skill files, and keep it out of agent execution.",
           "family": "blind_document_only",
-          "score": 0.016,
+          "score": 0.019,
           "predicted_trigger": false,
           "expected_trigger": false,
           "passed": true,
@@ -7291,7 +7313,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.189,
             "support_score": 0.06,
-            "lexical_support": 0.091,
+            "lexical_support": 0.136,
             "negative_penalty": 0.18,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -7626,7 +7648,7 @@
             "trigger_action_hits": [],
             "input_hits": [],
             "artifact_hits": [],
-            "capability_overlap": 2,
+            "capability_overlap": 3,
             "exclusive_negative_concepts": [],
             "nonexclusive_negative_concepts": [
               "document_only"
@@ -7973,7 +7995,7 @@
             "trigger_action_hits": [],
             "input_hits": [],
             "artifact_hits": [],
-            "capability_overlap": 2,
+            "capability_overlap": 3,
             "exclusive_negative_concepts": [],
             "nonexclusive_negative_concepts": [
               "document_only"
@@ -8320,7 +8342,7 @@
             "trigger_action_hits": [],
             "input_hits": [],
             "artifact_hits": [],
-            "capability_overlap": 2,
+            "capability_overlap": 3,
             "exclusive_negative_concepts": [],
             "nonexclusive_negative_concepts": [
               "document_only"
@@ -8759,7 +8781,7 @@
             ],
             "semantic_coverage": 0.182,
             "support_score": 0,
-            "lexical_support": 0.2,
+            "lexical_support": 0.188,
             "negative_penalty": 1.25,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -9164,7 +9186,7 @@
             ],
             "semantic_coverage": 0.182,
             "support_score": 0,
-            "lexical_support": 0.2,
+            "lexical_support": 0.188,
             "negative_penalty": 1.25,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -9565,7 +9587,7 @@
             ],
             "semantic_coverage": 0.189,
             "support_score": 0,
-            "lexical_support": 0.067,
+            "lexical_support": 0.062,
             "negative_penalty": 1.25,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -9739,19 +9761,19 @@
       "strategy": "minimal_template",
       "estimated_tokens": 41,
       "dev": {
-        "false_positives": 2,
+        "false_positives": 1,
         "false_negatives": 1,
-        "precision": 0.778,
+        "precision": 0.875,
         "recall": 0.875,
-        "near_neighbor_pass_rate": 0.857,
+        "near_neighbor_pass_rate": 1.0,
         "should_not_trigger_pass_rate": 0.857
       },
       "selection_key": [
-        2,
         1,
+        1,
+        -1.0,
         -0.857,
-        -0.857,
-        -0.778,
+        -0.875,
         -0.875,
         41
       ],
@@ -9765,27 +9787,59 @@
       }
     },
     {
-      "id": "balanced",
-      "label": "Balanced",
-      "description": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, or notes. Use when asked to create a skill, turn a repeated process into a reusable skill, or improve an existing skill.",
-      "strategy": "balanced_template",
-      "estimated_tokens": 54,
+      "id": "guardrail",
+      "label": "Guardrail",
+      "description": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, notes, 流程, 提示词, 对话记录, 文档, or 笔记. Do not use for summary-only requests, translation-only requests, or plain documentation tasks.",
+      "strategy": "guardrail_template",
+      "estimated_tokens": 56,
       "dev": {
-        "false_positives": 2,
+        "false_positives": 1,
         "false_negatives": 1,
-        "precision": 0.778,
+        "precision": 0.875,
         "recall": 0.875,
-        "near_neighbor_pass_rate": 0.857,
+        "near_neighbor_pass_rate": 1.0,
         "should_not_trigger_pass_rate": 0.857
       },
       "selection_key": [
-        2,
         1,
+        1,
+        -1.0,
         -0.857,
-        -0.857,
-        -0.778,
         -0.875,
-        54
+        -0.875,
+        56
+      ],
+      "holdout": {
+        "false_positives": 0,
+        "false_negatives": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "near_neighbor_pass_rate": 1.0,
+        "should_not_trigger_pass_rate": 1.0
+      }
+    },
+    {
+      "id": "balanced",
+      "label": "Balanced",
+      "description": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, notes, 流程, 提示词, 对话记录, 文档, or 笔记. Use when asked to create a skill, turn a repeated process into a reusable skill, or improve an existing skill.",
+      "strategy": "balanced_template",
+      "estimated_tokens": 60,
+      "dev": {
+        "false_positives": 1,
+        "false_negatives": 1,
+        "precision": 0.875,
+        "recall": 0.875,
+        "near_neighbor_pass_rate": 1.0,
+        "should_not_trigger_pass_rate": 0.857
+      },
+      "selection_key": [
+        1,
+        1,
+        -1.0,
+        -0.857,
+        -0.875,
+        -0.875,
+        60
       ],
       "holdout": {
         "false_positives": 0,
@@ -9799,25 +9853,25 @@
     {
       "id": "artifact_aware",
       "label": "Artifact Aware",
-      "description": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, or notes. Trigger when requests mention workflows, prompts, transcripts, or docs and the job is to create a skill, turn a repeated process into a reusable skill, or improve an existing skill.",
+      "description": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, notes, 流程, 提示词, 对话记录, 文档, or 笔记. Trigger when requests mention workflows, prompts, transcripts, or docs and the job is to create a skill, turn a repeated process into a reusable skill, or improve an existing skill.",
       "strategy": "artifact_template",
-      "estimated_tokens": 72,
+      "estimated_tokens": 77,
       "dev": {
-        "false_positives": 2,
+        "false_positives": 1,
         "false_negatives": 1,
-        "precision": 0.778,
+        "precision": 0.875,
         "recall": 0.875,
-        "near_neighbor_pass_rate": 0.857,
+        "near_neighbor_pass_rate": 1.0,
         "should_not_trigger_pass_rate": 0.857
       },
       "selection_key": [
-        2,
         1,
+        1,
+        -1.0,
         -0.857,
-        -0.857,
-        -0.778,
         -0.875,
-        72
+        -0.875,
+        77
       ],
       "holdout": {
         "false_positives": 0,
@@ -9831,25 +9885,25 @@
     {
       "id": "boundary",
       "label": "Boundary",
-      "description": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, or notes. Use when asked to create a skill, turn a repeated process into a reusable skill, or improve an existing skill. Do not use for summary-only requests, translation-only requests, or plain documentation tasks.",
+      "description": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, notes, 流程, 提示词, 对话记录, 文档, or 笔记. Use when asked to create a skill, turn a repeated process into a reusable skill, or improve an existing skill. Do not use for summary-only requests, translation-only requests, or plain documentation tasks.",
       "strategy": "boundary_template",
-      "estimated_tokens": 78,
+      "estimated_tokens": 83,
       "dev": {
-        "false_positives": 2,
+        "false_positives": 1,
         "false_negatives": 1,
-        "precision": 0.778,
+        "precision": 0.875,
         "recall": 0.875,
-        "near_neighbor_pass_rate": 0.857,
+        "near_neighbor_pass_rate": 1.0,
         "should_not_trigger_pass_rate": 0.857
       },
       "selection_key": [
-        2,
         1,
+        1,
+        -1.0,
         -0.857,
-        -0.857,
-        -0.778,
         -0.875,
-        78
+        -0.875,
+        83
       ],
       "holdout": {
         "false_positives": 0,
@@ -9857,38 +9911,6 @@
         "precision": 1.0,
         "recall": 1.0,
         "near_neighbor_pass_rate": 1.0,
-        "should_not_trigger_pass_rate": 1.0
-      }
-    },
-    {
-      "id": "guardrail",
-      "label": "Guardrail",
-      "description": "Create, refactor, evaluate, and package agent skills from workflows, prompts, transcripts, docs, or notes. Do not use for summary-only requests, translation-only requests, or plain documentation tasks.",
-      "strategy": "guardrail_template",
-      "estimated_tokens": 50,
-      "dev": {
-        "false_positives": 5,
-        "false_negatives": 1,
-        "precision": 0.583,
-        "recall": 0.875,
-        "near_neighbor_pass_rate": 0.429,
-        "should_not_trigger_pass_rate": 0.857
-      },
-      "selection_key": [
-        5,
-        1,
-        -0.429,
-        -0.857,
-        -0.583,
-        -0.875,
-        50
-      ],
-      "holdout": {
-        "false_positives": 2,
-        "false_negatives": 0,
-        "precision": 0.714,
-        "recall": 1.0,
-        "near_neighbor_pass_rate": 0.5,
         "should_not_trigger_pass_rate": 1.0
       }
     }
@@ -9942,13 +9964,13 @@
       "improved_recall": 1.0
     },
     "winner_vs_baseline_dev": {
-      "baseline_false_positives": 1,
+      "baseline_false_positives": 0,
       "baseline_false_negatives": 1,
       "improved_false_positives": 0,
       "improved_false_negatives": 0,
-      "false_positive_delta": -1,
+      "false_positive_delta": 0,
       "false_negative_delta": -1,
-      "baseline_precision": 0.875,
+      "baseline_precision": 1.0,
       "improved_precision": 1.0,
       "baseline_recall": 0.875,
       "improved_recall": 1.0
@@ -10055,7 +10077,7 @@
       },
       "winner_calibration": {
         "threshold": 0.33,
-        "mean_positive_score": 0.672,
+        "mean_positive_score": 0.673,
         "mean_non_trigger_score": 0.0,
         "mean_near_neighbor_score": 0.0,
         "min_positive_score": 0.468,
@@ -10070,7 +10092,7 @@
       },
       "current_calibration": {
         "threshold": 0.33,
-        "mean_positive_score": 0.672,
+        "mean_positive_score": 0.673,
         "mean_non_trigger_score": 0.0,
         "mean_near_neighbor_score": 0.0,
         "min_positive_score": 0.468,
@@ -10160,11 +10182,11 @@
         "mean_non_trigger_score": 0.013,
         "mean_near_neighbor_score": 0.013,
         "min_positive_score": 0.392,
-        "max_non_trigger_score": 0.026,
-        "score_gap": 0.366,
+        "max_non_trigger_score": 0.028,
+        "score_gap": 0.364,
         "threshold_margin": 0.062,
         "positive_threshold_buffer": 0.062,
-        "negative_threshold_buffer": 0.304,
+        "negative_threshold_buffer": 0.302,
         "boundary_case_count": 2,
         "boundary_case_rate": 0.333,
         "risk_band": "watch"
@@ -10175,11 +10197,11 @@
         "mean_non_trigger_score": 0.013,
         "mean_near_neighbor_score": 0.013,
         "min_positive_score": 0.392,
-        "max_non_trigger_score": 0.026,
-        "score_gap": 0.366,
+        "max_non_trigger_score": 0.028,
+        "score_gap": 0.364,
         "threshold_margin": 0.062,
         "positive_threshold_buffer": 0.062,
-        "negative_threshold_buffer": 0.304,
+        "negative_threshold_buffer": 0.302,
         "boundary_case_count": 2,
         "boundary_case_rate": 0.333,
         "risk_band": "watch"
@@ -10187,13 +10209,13 @@
       "baseline_calibration": {
         "threshold": 0.33,
         "mean_positive_score": 0.393,
-        "mean_non_trigger_score": 0.01,
+        "mean_non_trigger_score": 0.011,
         "mean_near_neighbor_score": 0.012,
-        "min_positive_score": 0.393,
+        "min_positive_score": 0.392,
         "max_non_trigger_score": 0.024,
-        "score_gap": 0.369,
-        "threshold_margin": 0.063,
-        "positive_threshold_buffer": 0.063,
+        "score_gap": 0.368,
+        "threshold_margin": 0.062,
+        "positive_threshold_buffer": 0.062,
         "negative_threshold_buffer": 0.306,
         "boundary_case_count": 2,
         "boundary_case_rate": 0.333,
@@ -10425,7 +10447,7 @@
     "winner_adversarial_score_gap": 0.834,
     "candidate_count": 6,
     "baseline_tokens": 8,
-    "baseline_dev_total_errors": 2,
+    "baseline_dev_total_errors": 1,
     "baseline_holdout_total_errors": 0,
     "baseline_blind_holdout_total_errors": 0,
     "baseline_judge_blind_holdout_total_errors": 0,

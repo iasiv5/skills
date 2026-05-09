@@ -67,9 +67,8 @@
       "description": "Build governed incident command packets from alerts, incident notes, transcripts, or stakeholder requirements. Use when asked to standardize incident review, run severity assessment, or assemble incident communication.",
       "tokens": 54,
       "dev_errors": 1,
-      "holdout_errors": 2,
+      "holdout_errors": 1,
       "reason_tags": [
-        "visible_holdout_regression",
         "longer_without_gain"
       ]
     },

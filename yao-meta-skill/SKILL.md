@@ -23,18 +23,19 @@ Build reusable skill packages, not long prompts.
 - `Production`: team reuse with focused gates.
 - `Library`: shared infrastructure or meta skill.
 
-Mode rules: [Method](references/skill-engineering-method.md), [Operating Modes](references/operating-modes.md), [Resource Boundaries](references/resource-boundaries.md), [Authoring Discipline](references/authoring-discipline.md).
+Mode rules: [Method](references/skill-engineering-method.md), [Operating Modes](references/operating-modes.md), [Resource Boundaries](references/resource-boundaries.md).
 
 ## Compact Workflow
 
 1. Decide whether the request should become a skill and choose the lightest fit.
-2. Run a short intent dialogue to capture the job, output, exclusions, constraints, and standards.
+2. Capture job, output, exclusions, constraints, and standards.
 3. Run a reference scan: external benchmarks first, user references second, local fit third. Keep synthesis silent unless intent stays unclear or a real design conflict needs a user call.
 4. Write the `description` early and test route quality before expanding the package.
-5. Add only the folders and gates that earn their keep.
-6. After the first package exists, surface the top three next iteration directions.
+5. Add output-risk, artifact-design, and prompt-quality profiles only when they matter.
+6. Add only folders and gates that earn their keep.
+7. Surface the top three next iteration directions.
 
-Core playbooks: [Method](references/skill-engineering-method.md), [Intent Dialogue](references/intent-dialogue.md), [Reference Scan](references/reference-scan.md), [Authoring Discipline](references/authoring-discipline.md).
+Core playbooks: [Method](references/skill-engineering-method.md), [Intent Dialogue](references/intent-dialogue.md), [Reference Scan](references/reference-scan.md), [Artifact Design](references/artifact-design-doctrine.md), [Prompt Engineering](references/prompt-engineering-doctrine.md).
 
 ## First-Turn Style
 
@@ -62,4 +63,4 @@ Unless the user asks otherwise, produce:
 
 ## Reference Map
 
-Primary references: [Method](references/skill-engineering-method.md), [Authoring Discipline](references/authoring-discipline.md), [Reference Scan](references/reference-scan.md), [Intent Dialogue](references/intent-dialogue.md), [Governance](references/governance.md), [Resource Boundaries](references/resource-boundaries.md).
+Primary references: [Method](references/skill-engineering-method.md), [Reference Scan](references/reference-scan.md), [Artifact Design](references/artifact-design-doctrine.md), [Prompt Engineering](references/prompt-engineering-doctrine.md), [Governance](references/governance.md).

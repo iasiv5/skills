@@ -213,6 +213,69 @@ def discovery_summary(job: str, primary_output: str, archetype: str, guidance: d
     )
 
 
+def explicit_skill_request(job: str, description: str) -> bool:
+    text = f"{job} {description}".lower()
+    return any(token in text for token in ("skill", "workflow", "checklist", "package", "automate", "standardize"))
+
+
+def diagnose_skill_candidates(job: str, primary_output: str, archetype: str, confidence: dict) -> dict:
+    fuzzy = not explicit_skill_request(job, primary_output) or confidence.get("score", 0) < 75
+    candidates = [
+        {
+            "shape": archetype,
+            "recommendation": "recommended",
+            "why_it_fits": "This is the lightest shape that matches the current recurring job signal.",
+            "limitation": "It should not deepen until the concrete output and exclusion boundary are clear.",
+            "first_pass": "Create one routeable skill with honest boundaries, one review report, and one next-step direction.",
+        }
+    ]
+    if archetype != "scaffold":
+        candidates.append(
+            {
+                "shape": "scaffold",
+                "recommendation": "fallback",
+                "why_it_fits": "Use this if the idea is still exploratory or personal.",
+                "limitation": "It may under-serve team reuse, portability, or governance needs.",
+                "first_pass": "Ship only SKILL.md, interface metadata, intent confidence, and review viewer.",
+            }
+        )
+    if archetype not in {"production", "governed"}:
+        candidates.append(
+            {
+                "shape": "production",
+                "recommendation": "upgrade path",
+                "why_it_fits": "Use this when the workflow will be repeated by a team or needs consistent outputs.",
+                "limitation": "It adds validation and review cost that a personal scaffold may not need.",
+                "first_pass": "Add one practical eval or execution check after the trigger boundary is stable.",
+            }
+        )
+    if archetype != "governed" and any(token in f"{job} {primary_output}".lower() for token in ("risk", "audit", "release", "policy", "security", "compliance")):
+        candidates.append(
+            {
+                "shape": "governed",
+                "recommendation": "risk path",
+                "why_it_fits": "Use this if the skill affects operational, compliance, security, or release decisions.",
+                "limitation": "It is too heavy unless ownership and review cadence are real.",
+                "first_pass": "Add owner, review cadence, lifecycle metadata, and reviewer-visible evidence.",
+            }
+        )
+    return {
+        "mode": "fuzzy-problem-diagnosis" if fuzzy else "direct-skill-shaping",
+        "fuzzy": fuzzy,
+        "candidates": candidates[:3],
+    }
+
+
+def diagnosis_note(diagnosis: dict) -> str:
+    lines = ["\nProblem-to-skill diagnosis:"]
+    for candidate in diagnosis["candidates"]:
+        lines.append(
+            f"- {candidate['shape']} ({candidate['recommendation']}): {candidate['why_it_fits']} "
+            f"First pass: {candidate['first_pass']}"
+        )
+    return "\n".join(lines) + "\n"
+
+
 def reference_visibility(reference_synthesis: dict) -> dict:
     synthesis = reference_synthesis.get("synthesis", {}) if isinstance(reference_synthesis, dict) else {}
     visibility = synthesis.get("visibility", {}) if isinstance(synthesis, dict) else {}
@@ -244,6 +307,21 @@ def recommendation_from_synthesis(reference_synthesis: dict, visibility: dict) -
         "why": why,
         "user_decision_required": visibility["user_decision_required"],
     }
+
+
+def maybe_emit_update_notice(args: argparse.Namespace) -> None:
+    if getattr(args, "no_update_check", False):
+        return
+    result = run_script("check_update.py", [])
+    payload = result["payload"] if result["payload"] is not None else {}
+    if not result["ok"] and not payload:
+        return
+    if payload.get("update_available"):
+        sys.stderr.write(
+            "\nUpdate available for yao-meta-skill: "
+            f"{payload.get('local_version')} -> {payload.get('remote_version')}.\n"
+            f"Run: {payload.get('install_hint')}\n"
+        )
 
 
 def command_init(args: argparse.Namespace) -> int:
@@ -290,6 +368,7 @@ def command_init(args: argparse.Namespace) -> int:
 
 
 def command_quickstart(args: argparse.Namespace) -> int:
+    maybe_emit_update_notice(args)
     sys.stderr.write("Let's start gently. You do not need a polished brief here.\n")
     sys.stderr.write("Give me the real work in your own words, and I will help turn it into a clean first-pass skill.\n")
     sys.stderr.write("While we shape the first pass, I will quietly check a few strong public patterns in the background and only surface them if there is real uncertainty or a design conflict.\n")
@@ -334,6 +413,9 @@ def command_quickstart(args: argparse.Namespace) -> int:
         sys.stderr.write(discovery_summary(job, primary_output, inferred_archetype, guidance))
     confidence = assess_intent_confidence(intent_context)
     sys.stderr.write(intent_confidence_note(confidence))
+    diagnosis = diagnose_skill_candidates(job, primary_output, inferred_archetype, confidence)
+    if diagnosis["fuzzy"]:
+        sys.stderr.write(diagnosis_note(diagnosis))
     if not confidence["gate_passed"]:
         sys.stderr.write("Before I package this idea, I want to close the highest-leverage gaps instead of guessing.\n")
         for follow_up in confidence.get("follow_up_questions", [])[:2]:
@@ -342,11 +424,15 @@ def command_quickstart(args: argparse.Namespace) -> int:
         confidence = assess_intent_confidence(intent_context)
         sys.stderr.write("\nI tightened the intent frame once more before moving on.\n")
         sys.stderr.write(intent_confidence_note(confidence))
+        diagnosis = diagnose_skill_candidates(job, primary_output, inferred_archetype, confidence)
+        if diagnosis["fuzzy"]:
+            sys.stderr.write(diagnosis_note(diagnosis))
     archetype = args.archetype or prompt_with_default("I would start with this archetype (scaffold/production/library/governed)", inferred_archetype)
     archetype = archetype if archetype in ARCHETYPE_MODE else inferred_archetype
     default_mode = ARCHETYPE_MODE[archetype]
     mode = args.mode or prompt_with_default("For the first pass, I would keep the mode here (scaffold/production/library/governed)", default_mode)
     mode = mode if mode in ARCHETYPE_MODE.values() else default_mode
+    diagnosis = diagnose_skill_candidates(job, primary_output, archetype, confidence)
     guidance = archetype_guidance(archetype)
     sys.stderr.write(
         f"\nGood. I will treat this as `{archetype}` in `{mode}` mode, so the first pass stays focused on {guidance['focus']}.\n"
@@ -450,11 +536,14 @@ def command_quickstart(args: argparse.Namespace) -> int:
             "artifacts": {
                 "benchmark_scan": payload.get("artifacts", {}).get("github_benchmark_scan_md"),
                 "reference_synthesis": payload.get("artifacts", {}).get("reference_synthesis_md"),
+                "artifact_design_profile": payload.get("artifacts", {}).get("artifact_design_profile_md"),
+                "prompt_quality_profile": payload.get("artifacts", {}).get("prompt_quality_profile_md"),
                 "review_viewer": payload.get("artifacts", {}).get("review_viewer_html"),
             },
         },
         "guidance": {
             "archetype_reason": archetype_reason,
+            "problem_diagnosis": diagnosis,
             "why_this_mode": (
                 "Scaffold mode keeps the first package light and lets you postpone governance-heavy work until reuse becomes real."
                 if mode == "scaffold"
@@ -561,6 +650,8 @@ def command_report(args: argparse.Namespace) -> int:
             run_script("render_context_reports.py", []),
             run_script("render_portability_report.py", []),
             run_script("render_reference_synthesis.py", [str(ROOT)]),
+            run_script("render_artifact_design_profile.py", [str(ROOT)]),
+            run_script("render_prompt_quality_profile.py", [str(ROOT)]),
         ]
     )
     report = {
@@ -577,6 +668,8 @@ def command_report(args: argparse.Namespace) -> int:
             "context_budget": "reports/context_budget.json",
             "portability_score": "reports/portability_score.json",
             "reference_synthesis": "reports/reference-synthesis.json",
+            "artifact_design_profile": "reports/artifact-design-profile.json",
+            "prompt_quality_profile": "reports/prompt-quality-profile.json",
         },
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -675,6 +768,39 @@ def command_reference_synthesis(args: argparse.Namespace) -> int:
     if args.output_json:
         cmd.extend(["--output-json", args.output_json])
     result = run_script("render_reference_synthesis.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
+def command_output_risk_profile(args: argparse.Namespace) -> int:
+    cmd = [str(Path(args.skill_dir).resolve())]
+    if args.output_md:
+        cmd.extend(["--output-md", args.output_md])
+    if args.output_json:
+        cmd.extend(["--output-json", args.output_json])
+    result = run_script("render_output_risk_profile.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
+def command_artifact_design_profile(args: argparse.Namespace) -> int:
+    cmd = [str(Path(args.skill_dir).resolve())]
+    if args.output_md:
+        cmd.extend(["--output-md", args.output_md])
+    if args.output_json:
+        cmd.extend(["--output-json", args.output_json])
+    result = run_script("render_artifact_design_profile.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
+def command_prompt_quality_profile(args: argparse.Namespace) -> int:
+    cmd = [str(Path(args.skill_dir).resolve())]
+    if args.output_md:
+        cmd.extend(["--output-md", args.output_md])
+    if args.output_json:
+        cmd.extend(["--output-json", args.output_json])
+    result = run_script("render_prompt_quality_profile.py", cmd)
     print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
 
@@ -857,6 +983,23 @@ def command_test(args: argparse.Namespace) -> int:
     return 0 if report["ok"] else 2
 
 
+def command_check_update(args: argparse.Namespace) -> int:
+    cmd = []
+    if args.force:
+        cmd.append("--force")
+    if args.no_cache:
+        cmd.append("--no-cache")
+    if args.version_url:
+        cmd.extend(["--version-url", args.version_url])
+    if args.manifest_url:
+        cmd.extend(["--manifest-url", args.manifest_url])
+    if args.timeout is not None:
+        cmd.extend(["--timeout", str(args.timeout)])
+    result = run_script("check_update.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Unified authoring CLI for yao-meta-skill.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -903,6 +1046,7 @@ def build_parser() -> argparse.ArgumentParser:
     quickstart_cmd.add_argument("--github-query")
     quickstart_cmd.add_argument("--github-top-n", type=int, default=3)
     quickstart_cmd.add_argument("--github-fixture-dir")
+    quickstart_cmd.add_argument("--no-update-check", action="store_true")
     quickstart_cmd.set_defaults(func=command_quickstart)
 
     validate_cmd = subparsers.add_parser("validate", help="Run validate, lint, governance, and resource checks.")
@@ -1020,6 +1164,33 @@ def build_parser() -> argparse.ArgumentParser:
     reference_synthesis_cmd.add_argument("--output-json")
     reference_synthesis_cmd.set_defaults(func=command_reference_synthesis)
 
+    output_risk_cmd = subparsers.add_parser(
+        "output-risk-profile",
+        help="Render predicted output failure modes and self-repair checks for a skill package.",
+    )
+    output_risk_cmd.add_argument("skill_dir", nargs="?", default=".")
+    output_risk_cmd.add_argument("--output-md")
+    output_risk_cmd.add_argument("--output-json")
+    output_risk_cmd.set_defaults(func=command_output_risk_profile)
+
+    artifact_design_cmd = subparsers.add_parser(
+        "artifact-design-profile",
+        help="Render artifact design direction and visual quality gates for a skill package.",
+    )
+    artifact_design_cmd.add_argument("skill_dir", nargs="?", default=".")
+    artifact_design_cmd.add_argument("--output-md")
+    artifact_design_cmd.add_argument("--output-json")
+    artifact_design_cmd.set_defaults(func=command_artifact_design_profile)
+
+    prompt_quality_cmd = subparsers.add_parser(
+        "prompt-quality-profile",
+        help="Render prompt-facing need model, RTF mapping, complexity, and quality checks for a skill package.",
+    )
+    prompt_quality_cmd.add_argument("skill_dir", nargs="?", default=".")
+    prompt_quality_cmd.add_argument("--output-md")
+    prompt_quality_cmd.add_argument("--output-json")
+    prompt_quality_cmd.set_defaults(func=command_prompt_quality_profile)
+
     iteration_directions_cmd = subparsers.add_parser(
         "iteration-directions",
         help="Render the top three next iteration directions for a skill package.",
@@ -1057,6 +1228,14 @@ def build_parser() -> argparse.ArgumentParser:
     test_cmd = subparsers.add_parser("test", help="Run a Makefile test target.")
     test_cmd.add_argument("--target", default="test")
     test_cmd.set_defaults(func=command_test)
+
+    update_cmd = subparsers.add_parser("check-update", help="Check whether a newer yao-meta-skill version is available.")
+    update_cmd.add_argument("--force", action="store_true")
+    update_cmd.add_argument("--no-cache", action="store_true")
+    update_cmd.add_argument("--version-url")
+    update_cmd.add_argument("--manifest-url")
+    update_cmd.add_argument("--timeout", type=float, default=3.0)
+    update_cmd.set_defaults(func=command_check_update)
 
     return parser
 

@@ -43,6 +43,16 @@ Skill: `yao-meta-skill`
 - Do not create experimental overhead that exceeds the skill's real risk tier.
 - Do not expand execution assets until route boundaries stay clean.
 
+## Pattern Gate
+
+- Summary: 1 accepted, 2 deferred using threshold 4/4.
+- Acceptance threshold: `4/4`
+- Accepted patterns:
+  - **Official workflow product ergonomics**: 4/4 (recurrence, generativity, distinctiveness, boundary)
+- Deferred patterns:
+  - **Hypothesis-test-learn loop**: missing distinctiveness
+  - **Boundary-first design**: missing distinctiveness
+
 ## Default Recommendation
 
 - Summary: Start by borrowing this pattern: Borrow a first-time operator flow that explains itself before it asks for more structure. Avoid this for the first pass: Do not mimic product polish that adds UI bulk without improving clarity.

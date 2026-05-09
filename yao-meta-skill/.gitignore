@@ -14,4 +14,6 @@ tests/tmp_feedback/
 tests/tmp_github_benchmark_scan/
 tests/tmp_intent_confidence/
 tests/tmp_reference_synthesis/
+tests/tmp_output_risk_profile/
 reports/release_snapshots/
+.yao/

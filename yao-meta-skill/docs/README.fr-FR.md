@@ -13,6 +13,7 @@ Il transforme des workflows bruts, des transcripts, des prompts, des notes et de
 - un benchmark scan GitHub silencieux par défaut, complété par une reference synthesis, qui étudie des dépôts publics de haute qualité et des patterns world-class, puis ne remonte à l'utilisateur que les vrais conflits ou les zones d'incertitude
 - une demande explicite de références fournies par l'utilisateur quand elles existent, afin d'apprendre des modèles, pas de copier le texte ni du contenu privé
 - un rapport HTML minimaliste en fond blanc généré automatiquement pour chaque nouveau skill
+- un prompt quality profile qui transforme le need model, le mapping RTF, la complexité et les quality checks en preuves visibles pour le reviewer, sans alourdir `SKILL.md`
 - trois directions d'itération à plus forte valeur après la première création
 - un review viewer HTML compact pour accélérer la première revue humaine
 - un feedback log léger pour éviter de lancer tout le flux de promotion à chaque tour
@@ -72,7 +73,7 @@ Formule du score pondéré : `sum(score / 10 * poids)`.
 2. Commencez par un court dialogue d'intention plus humain pour clarifier le vrai travail, les sorties attendues, les exclusions, les contraintes et les standards qui comptent pour vous.
 3. Laissez d'abord `quickstart` clarifier l'intention, puis lancer silencieusement benchmark scan et reference synthesis ; des questions explicites ne remontent que si l'intention reste ambiguë ou si deux directions de conception se contredisent réellement.
 4. Utilisez le `quickstart` sensible aux archetypes ou le flux complet d'authoring pour générer ou améliorer le paquet en mode scaffold, production, library ou governed.
-5. Chaque nouveau skill reçoit aussi `reports/intent-dialogue.md`, `reports/intent-confidence.md`, `reports/reference-synthesis.md`, `reports/skill-overview.html`, `reports/review-viewer.html` et `reports/iteration-directions.md`. Ensuite, le feedback log et le baseline compare permettent de boucler rapidement sans lancer tout le flux de promotion.
+5. Chaque nouveau skill reçoit aussi `reports/intent-dialogue.md`, `reports/intent-confidence.md`, `reports/reference-synthesis.md`, `reports/artifact-design-profile.md`, `reports/prompt-quality-profile.md`, `reports/skill-overview.html`, `reports/review-viewer.html` et `reports/iteration-directions.md`. Ensuite, le feedback log et le baseline compare permettent de boucler rapidement sans lancer tout le flux de promotion.
 
 ## Résultats actuels
 

@@ -26,13 +26,13 @@
 
 | Role | Label | Ranking State | Promotion State | Tokens | Dev Errors | Holdout Errors |
 | --- | --- | --- | --- | ---: | ---: | ---: |
-| baseline | `Baseline` | reference | reference | 8 | 2 | 0 |
+| baseline | `Baseline` | reference | reference | 8 | 1 | 0 |
 | current | `Current` | selected_by_dev | kept_current | 65 | 0 | 0 |
-| candidate | `Minimal` | not_selected | blocked | 41 | 3 | 0 |
-| candidate | `Balanced` | not_selected | blocked | 54 | 3 | 0 |
-| candidate | `Artifact Aware` | not_selected | blocked | 72 | 3 | 0 |
-| candidate | `Boundary` | not_selected | blocked | 78 | 3 | 0 |
-| candidate | `Guardrail` | not_selected | blocked | 50 | 6 | 2 |
+| candidate | `Minimal` | not_selected | blocked | 41 | 2 | 0 |
+| candidate | `Guardrail` | not_selected | blocked | 56 | 2 | 0 |
+| candidate | `Balanced` | not_selected | blocked | 60 | 2 | 0 |
+| candidate | `Artifact Aware` | not_selected | blocked | 77 | 2 | 0 |
+| candidate | `Boundary` | not_selected | blocked | 83 | 2 | 0 |
 
 ## Human Review Stub
 

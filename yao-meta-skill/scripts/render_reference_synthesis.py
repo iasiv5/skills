@@ -156,6 +156,99 @@ def select_source_tracks(text: str) -> list[dict[str, Any]]:
     return selected
 
 
+def pattern_gate_threshold(manifest: dict[str, Any]) -> int:
+    tier = str(manifest.get("maturity_tier") or manifest.get("skill_archetype") or "scaffold").lower()
+    if tier in {"governed", "library"}:
+        return 4
+    if tier == "production":
+        return 3
+    return 2
+
+
+def score_pattern(candidate: dict[str, Any], source_count: int) -> dict[str, Any]:
+    text = " ".join(
+        str(candidate.get(key, ""))
+        for key in ("name", "borrow", "avoid", "why_relevant", "source_type", "evidence_mode")
+    ).lower()
+    gates = {
+        "recurrence": source_count > 1
+        or any(token in text for token in ("repeat", "loop", "workflow", "repositories", "benchmark", "cross")),
+        "generativity": any(
+            token in text
+            for token in ("guide", "loop", "workflow", "pattern", "principle", "operator", "boundary", "output")
+        ),
+        "distinctiveness": not any(
+            phrase in text
+            for phrase in ("be clear", "be useful", "good quality", "general fit")
+        ),
+        "boundary": bool(candidate.get("avoid")) or any(token in text for token in ("avoid", "not", "boundary", "cost")),
+    }
+    passed = [name for name, ok in gates.items() if ok]
+    missing = [name for name, ok in gates.items() if not ok]
+    return {
+        "name": candidate.get("name", "Unknown pattern"),
+        "source_type": candidate.get("source_type", "unknown"),
+        "borrow": candidate.get("borrow", ""),
+        "avoid": candidate.get("avoid", ""),
+        "gates": gates,
+        "passed": passed,
+        "missing": missing,
+        "score": len(passed),
+    }
+
+
+def build_pattern_gate(
+    source_tracks: list[dict[str, Any]],
+    benchmark: dict[str, Any],
+    user_refs: list[dict[str, Any]],
+    manifest: dict[str, Any],
+) -> dict[str, Any]:
+    threshold = pattern_gate_threshold(manifest)
+    source_count = len(source_tracks) + len(benchmark.get("repositories", [])) + len(user_refs)
+    candidates = []
+    for track in source_tracks:
+        candidates.append(score_pattern(track, source_count))
+    for repo in benchmark.get("repositories", [])[:3]:
+        candidates.append(
+            score_pattern(
+                {
+                    "name": repo.get("full_name", "GitHub benchmark"),
+                    "source_type": "github",
+                    "borrow": "; ".join(repo.get("borrow", [])[:2]),
+                    "avoid": "; ".join(repo.get("avoid", [])[:1]),
+                    "why_relevant": "Top GitHub benchmark object with concrete package cues.",
+                    "evidence_mode": "github-benchmark",
+                },
+                source_count,
+            )
+        )
+    for reference in user_refs[:3]:
+        candidates.append(
+            score_pattern(
+                {
+                    "name": reference.get("name", "User reference"),
+                    "source_type": "user-reference",
+                    "borrow": reference.get("borrow", ""),
+                    "avoid": reference.get("avoid", ""),
+                    "why_relevant": "User-supplied taste or quality reference.",
+                    "evidence_mode": "user-reference",
+                },
+                source_count,
+            )
+        )
+    accepted = [candidate for candidate in candidates if candidate["score"] >= threshold]
+    deferred = [candidate for candidate in candidates if candidate["score"] < threshold]
+    return {
+        "threshold": threshold,
+        "source_count": source_count,
+        "accepted": accepted,
+        "deferred": deferred,
+        "summary": (
+            f"{len(accepted)} accepted, {len(deferred)} deferred using threshold {threshold}/4."
+        ),
+    }
+
+
 def unique_items(items: list[str], limit: int) -> list[str]:
     seen = set()
     output = []
@@ -345,6 +438,7 @@ def build_summary(skill_dir: Path) -> dict[str, Any]:
     track_borrow = [track["borrow"] for track in source_tracks]
     track_avoid = [track["avoid"] for track in source_tracks]
     user_refs = reference_scan.get("user_references", [])
+    pattern_gate = build_pattern_gate(source_tracks, benchmark, user_refs, manifest)
 
     borrow_now = unique_items(
         [
@@ -397,6 +491,7 @@ def build_summary(skill_dir: Path) -> dict[str, Any]:
             "borrow_now": borrow_now,
             "avoid_now": avoid_now,
             "quality_risers": quality_risers,
+            "pattern_gate": pattern_gate,
             "conflicts": conflicts,
             "recommendation": recommendation,
             "visibility": visibility,
@@ -460,6 +555,24 @@ def render_markdown(summary: dict[str, Any]) -> str:
     lines.extend(["", "## Avoid Now", ""])
     for item in summary["synthesis"]["avoid_now"]:
         lines.append(f"- {item}")
+
+    lines.extend(["", "## Pattern Gate", ""])
+    pattern_gate = summary["synthesis"]["pattern_gate"]
+    lines.append(f"- Summary: {pattern_gate['summary']}")
+    lines.append(f"- Acceptance threshold: `{pattern_gate['threshold']}/4`")
+    if pattern_gate["accepted"]:
+        lines.append("- Accepted patterns:")
+        for item in pattern_gate["accepted"][:5]:
+            lines.append(
+                f"  - **{item['name']}**: {item['score']}/4 "
+                f"({', '.join(item['passed'])})"
+            )
+    if pattern_gate["deferred"]:
+        lines.append("- Deferred patterns:")
+        for item in pattern_gate["deferred"][:5]:
+            lines.append(
+                f"  - **{item['name']}**: missing {', '.join(item['missing']) or 'none'}"
+            )
 
     lines.extend(["", "## Default Recommendation", ""])
     lines.append(f"- Summary: {summary['synthesis']['recommendation']['summary']}")

@@ -64,6 +64,8 @@ def main() -> None:
     assert len(synthesis["source_tracks"]) == 3, synthesis
     assert synthesis["synthesis"]["borrow_now"], synthesis
     assert synthesis["synthesis"]["recommendation"]["summary"], synthesis
+    assert synthesis["synthesis"]["pattern_gate"]["accepted"], synthesis
+    assert synthesis["synthesis"]["pattern_gate"]["threshold"] == 4, synthesis
     assert synthesis["synthesis"]["visibility"]["mode"] == "explicit", synthesis
     assert "design_conflict" in synthesis["synthesis"]["visibility"]["reasons"], synthesis
     assert synthesis["synthesis"]["conflicts"], synthesis
@@ -71,6 +73,7 @@ def main() -> None:
     assert "Curated World-Class Pattern Tracks" in markdown, markdown[:600]
     assert "Borrow Now" in markdown, markdown[:900]
     assert "Default Recommendation" in markdown, markdown[:1200]
+    assert "Pattern Gate" in markdown, markdown[:1500]
     assert "Conflict Check" in markdown, markdown[:1500]
     print(json.dumps({"ok": True}, ensure_ascii=False, indent=2))
 

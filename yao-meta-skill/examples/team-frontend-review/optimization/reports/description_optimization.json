@@ -39,14 +39,14 @@
       "threshold": 0.48,
       "threshold_explanation": "Prompts at or above the threshold are treated as trigger matches. Scores are driven primarily by semantic intent coverage: packaging intent, workflow-to-skill transformation intent, reuse/distribution intent, and eval intent. Explicit exclusions such as summary-only, translation-only, one-off, document-only, or do-not-build directives apply direct penalties and can override otherwise similar wording.",
       "false_positives": 0,
-      "false_negatives": 4,
-      "precision": null,
-      "recall": 0.0,
+      "false_negatives": 3,
+      "precision": 1.0,
+      "recall": 0.25,
       "bucket_stats": {
         "should_trigger": {
           "total": 4,
-          "passed": 0,
-          "pass_rate": 0.0
+          "passed": 1,
+          "pass_rate": 0.25
         },
         "should_not_trigger": {
           "total": 4,
@@ -76,10 +76,10 @@
         },
         "security_and_a11y": {
           "total": 1,
-          "passed": 0,
+          "passed": 1,
           "false_positives": 0,
-          "false_negatives": 1,
-          "pass_rate": 0.0
+          "false_negatives": 0,
+          "pass_rate": 1.0
         },
         "build_only": {
           "total": 1,
@@ -136,7 +136,7 @@
           "bucket": "should_trigger",
           "family": "premerge_review",
           "prompt": "Review this React checkout form for accessibility and risky frontend issues before merge.",
-          "score": 0.31,
+          "score": 0.316,
           "reason": "false_negative",
           "matched_desired_concepts": [
             "accessibility",
@@ -148,7 +148,7 @@
           "bucket": "should_trigger",
           "family": "state_review",
           "prompt": "Do a frontend review on these UI components and check loading, error, and empty states.",
-          "score": 0.42,
+          "score": 0.424,
           "reason": "false_negative",
           "matched_desired_concepts": [
             "frontend_scope",
@@ -158,22 +158,9 @@
         },
         {
           "bucket": "should_trigger",
-          "family": "security_and_a11y",
-          "prompt": "Audit this signup form for a11y, unsafe rendering, and UX regressions.",
-          "score": 0.478,
-          "reason": "false_negative",
-          "matched_desired_concepts": [
-            "accessibility",
-            "frontend_scope",
-            "ui_security"
-          ],
-          "matched_negative_concepts": []
-        },
-        {
-          "bucket": "should_trigger",
           "family": "premerge_review",
           "prompt": "Review this React diff with a pre-merge mindset and call out UI quality risks.",
-          "score": 0.181,
+          "score": 0.188,
           "reason": "false_negative",
           "matched_desired_concepts": [
             "frontend_scope",
@@ -187,7 +174,7 @@
           {
             "prompt": "Review this React checkout form for accessibility and risky frontend issues before merge.",
             "family": "premerge_review",
-            "score": 0.31,
+            "score": 0.316,
             "predicted_trigger": false,
             "expected_trigger": true,
             "passed": false,
@@ -210,7 +197,7 @@
               "exclusive_negative_concepts": [],
               "semantic_coverage": 0.24,
               "support_score": 0,
-              "lexical_support": 0.615,
+              "lexical_support": 0.692,
               "negative_penalty": 0,
               "coverage_boost": 0.04,
               "concept_evidence": {
@@ -231,7 +218,7 @@
           {
             "prompt": "Do a frontend review on these UI components and check loading, error, and empty states.",
             "family": "state_review",
-            "score": 0.42,
+            "score": 0.424,
             "predicted_trigger": false,
             "expected_trigger": true,
             "passed": false,
@@ -254,7 +241,7 @@
               "exclusive_negative_concepts": [],
               "semantic_coverage": 0.38,
               "support_score": 0,
-              "lexical_support": 0.385,
+              "lexical_support": 0.429,
               "negative_penalty": 0,
               "coverage_boost": 0.04,
               "concept_evidence": {
@@ -275,10 +262,10 @@
           {
             "prompt": "Audit this signup form for a11y, unsafe rendering, and UX regressions.",
             "family": "security_and_a11y",
-            "score": 0.478,
-            "predicted_trigger": false,
+            "score": 0.483,
+            "predicted_trigger": true,
             "expected_trigger": true,
-            "passed": false,
+            "passed": true,
             "score_detail": {
               "mode": "semantic-intent",
               "desired_positive_concepts": [
@@ -299,7 +286,7 @@
               "exclusive_negative_concepts": [],
               "semantic_coverage": 0.42,
               "support_score": 0,
-              "lexical_support": 0.4,
+              "lexical_support": 0.455,
               "negative_penalty": 0,
               "coverage_boost": 0.06,
               "concept_evidence": {
@@ -322,7 +309,7 @@
           {
             "prompt": "Review this React diff with a pre-merge mindset and call out UI quality risks.",
             "family": "premerge_review",
-            "score": 0.181,
+            "score": 0.188,
             "predicted_trigger": false,
             "expected_trigger": true,
             "passed": false,
@@ -345,7 +332,7 @@
               "exclusive_negative_concepts": [],
               "semantic_coverage": 0.12,
               "support_score": 0,
-              "lexical_support": 0.385,
+              "lexical_support": 0.467,
               "negative_penalty": 0,
               "coverage_boost": 0.04,
               "concept_evidence": {
@@ -564,7 +551,7 @@
               ],
               "semantic_coverage": 0.0,
               "support_score": 0,
-              "lexical_support": 0.273,
+              "lexical_support": 0.333,
               "negative_penalty": 0.24,
               "coverage_boost": 0.0,
               "concept_evidence": {
@@ -736,7 +723,7 @@
           {
             "prompt": "Give this React modal a pre-merge frontend review for a11y, risky rendering, and missing states.",
             "family": "premerge_review",
-            "score": 0.868,
+            "score": 0.869,
             "predicted_trigger": true,
             "expected_trigger": true,
             "passed": true,
@@ -762,7 +749,7 @@
               "exclusive_negative_concepts": [],
               "semantic_coverage": 0.82,
               "support_score": 0,
-              "lexical_support": 0.667,
+              "lexical_support": 0.688,
               "negative_penalty": 0,
               "coverage_boost": 0.06,
               "concept_evidence": {
@@ -792,7 +779,7 @@
           {
             "prompt": "Review this UI diff for accessibility gaps, unsafe form handling, and UX regressions.",
             "family": "security_and_a11y",
-            "score": 0.483,
+            "score": 0.489,
             "predicted_trigger": true,
             "expected_trigger": true,
             "passed": true,
@@ -816,7 +803,7 @@
               "exclusive_negative_concepts": [],
               "semantic_coverage": 0.42,
               "support_score": 0,
-              "lexical_support": 0.455,
+              "lexical_support": 0.538,
               "negative_penalty": 0,
               "coverage_boost": 0.06,
               "concept_evidence": {
@@ -920,7 +907,7 @@
           {
             "prompt": "Discuss possible UI improvements for this checkout flow, but do not inspect the code yet.",
             "family": "brainstorm_only",
-            "score": 0.048,
+            "score": 0.053,
             "predicted_trigger": false,
             "expected_trigger": false,
             "passed": true,
@@ -942,7 +929,7 @@
               "exclusive_negative_concepts": [],
               "semantic_coverage": 0.04,
               "support_score": 0,
-              "lexical_support": 0.143,
+              "lexical_support": 0.2,
               "negative_penalty": 0,
               "coverage_boost": 0.0,
               "concept_evidence": {
@@ -1131,7 +1118,7 @@
         "bucket": "should_trigger",
         "family": "premerge_review",
         "prompt": "Review this React checkout form for accessibility and risky frontend issues before merge.",
-        "score": 0.298,
+        "score": 0.304,
         "reason": "false_negative",
         "matched_desired_concepts": [
           "accessibility",
@@ -1143,7 +1130,7 @@
         "bucket": "should_trigger",
         "family": "state_review",
         "prompt": "Do a frontend review on these UI components and check loading, error, and empty states.",
-        "score": 0.433,
+        "score": 0.435,
         "reason": "false_negative",
         "matched_desired_concepts": [
           "frontend_scope",
@@ -1155,7 +1142,7 @@
         "bucket": "should_trigger",
         "family": "premerge_review",
         "prompt": "Review this React diff with a pre-merge mindset and call out UI quality risks.",
-        "score": 0.181,
+        "score": 0.188,
         "reason": "false_negative",
         "matched_desired_concepts": [
           "frontend_scope",
@@ -1169,7 +1156,7 @@
         {
           "prompt": "Review this React checkout form for accessibility and risky frontend issues before merge.",
           "family": "premerge_review",
-          "score": 0.298,
+          "score": 0.304,
           "predicted_trigger": false,
           "expected_trigger": true,
           "passed": false,
@@ -1192,7 +1179,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.24,
             "support_score": 0,
-            "lexical_support": 0.462,
+            "lexical_support": 0.538,
             "negative_penalty": 0,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -1213,7 +1200,7 @@
         {
           "prompt": "Do a frontend review on these UI components and check loading, error, and empty states.",
           "family": "state_review",
-          "score": 0.433,
+          "score": 0.435,
           "predicted_trigger": false,
           "expected_trigger": true,
           "passed": false,
@@ -1236,7 +1223,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.38,
             "support_score": 0,
-            "lexical_support": 0.538,
+            "lexical_support": 0.571,
             "negative_penalty": 0,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -1257,7 +1244,7 @@
         {
           "prompt": "Audit this signup form for a11y, unsafe rendering, and UX regressions.",
           "family": "security_and_a11y",
-          "score": 0.494,
+          "score": 0.497,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -1281,7 +1268,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.42,
             "support_score": 0,
-            "lexical_support": 0.6,
+            "lexical_support": 0.636,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -1304,7 +1291,7 @@
         {
           "prompt": "Review this React diff with a pre-merge mindset and call out UI quality risks.",
           "family": "premerge_review",
-          "score": 0.181,
+          "score": 0.188,
           "predicted_trigger": false,
           "expected_trigger": true,
           "passed": false,
@@ -1327,7 +1314,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.12,
             "support_score": 0,
-            "lexical_support": 0.385,
+            "lexical_support": 0.467,
             "negative_penalty": 0,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -1546,7 +1533,7 @@
             ],
             "semantic_coverage": 0.0,
             "support_score": 0,
-            "lexical_support": 0.273,
+            "lexical_support": 0.333,
             "negative_penalty": 0.24,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -1718,7 +1705,7 @@
         {
           "prompt": "Give this React modal a pre-merge frontend review for a11y, risky rendering, and missing states.",
           "family": "premerge_review",
-          "score": 0.873,
+          "score": 0.874,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -1744,7 +1731,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.82,
             "support_score": 0,
-            "lexical_support": 0.733,
+            "lexical_support": 0.75,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -1774,7 +1761,7 @@
         {
           "prompt": "Review this UI diff for accessibility gaps, unsafe form handling, and UX regressions.",
           "family": "security_and_a11y",
-          "score": 0.49,
+          "score": 0.496,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -1798,7 +1785,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.42,
             "support_score": 0,
-            "lexical_support": 0.545,
+            "lexical_support": 0.615,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -1902,7 +1889,7 @@
         {
           "prompt": "Discuss possible UI improvements for this checkout flow, but do not inspect the code yet.",
           "family": "brainstorm_only",
-          "score": 0.048,
+          "score": 0.053,
           "predicted_trigger": false,
           "expected_trigger": false,
           "passed": true,
@@ -1924,7 +1911,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.04,
             "support_score": 0,
-            "lexical_support": 0.143,
+            "lexical_support": 0.2,
             "negative_penalty": 0,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -2080,7 +2067,7 @@
         "bucket": "should_trigger",
         "family": "premerge_review",
         "prompt": "Review this React checkout form for accessibility and risky frontend issues before merge.",
-        "score": 0.298,
+        "score": 0.304,
         "reason": "false_negative",
         "matched_desired_concepts": [
           "accessibility",
@@ -2092,7 +2079,7 @@
         "bucket": "should_trigger",
         "family": "state_review",
         "prompt": "Do a frontend review on these UI components and check loading, error, and empty states.",
-        "score": 0.433,
+        "score": 0.435,
         "reason": "false_negative",
         "matched_desired_concepts": [
           "frontend_scope",
@@ -2104,7 +2091,7 @@
         "bucket": "should_trigger",
         "family": "premerge_review",
         "prompt": "Review this React diff with a pre-merge mindset and call out UI quality risks.",
-        "score": 0.181,
+        "score": 0.188,
         "reason": "false_negative",
         "matched_desired_concepts": [
           "frontend_scope",
@@ -2118,7 +2105,7 @@
         {
           "prompt": "Review this React checkout form for accessibility and risky frontend issues before merge.",
           "family": "premerge_review",
-          "score": 0.298,
+          "score": 0.304,
           "predicted_trigger": false,
           "expected_trigger": true,
           "passed": false,
@@ -2141,7 +2128,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.24,
             "support_score": 0,
-            "lexical_support": 0.462,
+            "lexical_support": 0.538,
             "negative_penalty": 0,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -2162,7 +2149,7 @@
         {
           "prompt": "Do a frontend review on these UI components and check loading, error, and empty states.",
           "family": "state_review",
-          "score": 0.433,
+          "score": 0.435,
           "predicted_trigger": false,
           "expected_trigger": true,
           "passed": false,
@@ -2185,7 +2172,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.38,
             "support_score": 0,
-            "lexical_support": 0.538,
+            "lexical_support": 0.571,
             "negative_penalty": 0,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -2206,7 +2193,7 @@
         {
           "prompt": "Audit this signup form for a11y, unsafe rendering, and UX regressions.",
           "family": "security_and_a11y",
-          "score": 0.494,
+          "score": 0.497,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -2230,7 +2217,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.42,
             "support_score": 0,
-            "lexical_support": 0.6,
+            "lexical_support": 0.636,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -2253,7 +2240,7 @@
         {
           "prompt": "Review this React diff with a pre-merge mindset and call out UI quality risks.",
           "family": "premerge_review",
-          "score": 0.181,
+          "score": 0.188,
           "predicted_trigger": false,
           "expected_trigger": true,
           "passed": false,
@@ -2276,7 +2263,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.12,
             "support_score": 0,
-            "lexical_support": 0.385,
+            "lexical_support": 0.467,
             "negative_penalty": 0,
             "coverage_boost": 0.04,
             "concept_evidence": {
@@ -2495,7 +2482,7 @@
             ],
             "semantic_coverage": 0.0,
             "support_score": 0,
-            "lexical_support": 0.273,
+            "lexical_support": 0.333,
             "negative_penalty": 0.24,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -2667,7 +2654,7 @@
         {
           "prompt": "Give this React modal a pre-merge frontend review for a11y, risky rendering, and missing states.",
           "family": "premerge_review",
-          "score": 0.873,
+          "score": 0.874,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -2693,7 +2680,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.82,
             "support_score": 0,
-            "lexical_support": 0.733,
+            "lexical_support": 0.75,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -2723,7 +2710,7 @@
         {
           "prompt": "Review this UI diff for accessibility gaps, unsafe form handling, and UX regressions.",
           "family": "security_and_a11y",
-          "score": 0.49,
+          "score": 0.496,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -2747,7 +2734,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.42,
             "support_score": 0,
-            "lexical_support": 0.545,
+            "lexical_support": 0.615,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -2851,7 +2838,7 @@
         {
           "prompt": "Discuss possible UI improvements for this checkout flow, but do not inspect the code yet.",
           "family": "brainstorm_only",
-          "score": 0.048,
+          "score": 0.053,
           "predicted_trigger": false,
           "expected_trigger": false,
           "passed": true,
@@ -2873,7 +2860,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.04,
             "support_score": 0,
-            "lexical_support": 0.143,
+            "lexical_support": 0.2,
             "negative_penalty": 0,
             "coverage_boost": 0.0,
             "concept_evidence": {
@@ -3049,7 +3036,7 @@
         {
           "prompt": "Run a pre-merge frontend review on this diff for form safety, accessibility gaps, and missing states.",
           "family": "blind_premerge",
-          "score": 0.859,
+          "score": 0.866,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -3075,7 +3062,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.82,
             "support_score": 0,
-            "lexical_support": 0.562,
+            "lexical_support": 0.647,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -3387,7 +3374,7 @@
         {
           "prompt": "Run a pre-merge frontend review on this diff for form safety, accessibility gaps, and missing states.",
           "family": "blind_premerge",
-          "score": 0.859,
+          "score": 0.866,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -3413,7 +3400,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.82,
             "support_score": 0,
-            "lexical_support": 0.562,
+            "lexical_support": 0.647,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -3725,7 +3712,7 @@
         {
           "prompt": "Run a pre-merge frontend review on this diff for form safety, accessibility gaps, and missing states.",
           "family": "blind_premerge",
-          "score": 0.854,
+          "score": 0.857,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -3751,7 +3738,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.82,
             "support_score": 0,
-            "lexical_support": 0.5,
+            "lexical_support": 0.529,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -4083,7 +4070,7 @@
             ],
             "input_hits": [],
             "artifact_hits": [],
-            "capability_overlap": 6,
+            "capability_overlap": 7,
             "exclusive_negative_concepts": [],
             "nonexclusive_negative_concepts": [],
             "exclusion_hits": [],
@@ -4215,7 +4202,7 @@
             "trigger_action_hits": [],
             "input_hits": [],
             "artifact_hits": [],
-            "capability_overlap": 2,
+            "capability_overlap": 3,
             "exclusive_negative_concepts": [],
             "nonexclusive_negative_concepts": [],
             "exclusion_hits": [],
@@ -4421,7 +4408,7 @@
             ],
             "input_hits": [],
             "artifact_hits": [],
-            "capability_overlap": 6,
+            "capability_overlap": 7,
             "exclusive_negative_concepts": [],
             "nonexclusive_negative_concepts": [],
             "exclusion_hits": [],
@@ -4553,7 +4540,7 @@
             "trigger_action_hits": [],
             "input_hits": [],
             "artifact_hits": [],
-            "capability_overlap": 2,
+            "capability_overlap": 3,
             "exclusive_negative_concepts": [],
             "nonexclusive_negative_concepts": [],
             "exclusion_hits": [],
@@ -4759,7 +4746,7 @@
             ],
             "input_hits": [],
             "artifact_hits": [],
-            "capability_overlap": 6,
+            "capability_overlap": 7,
             "exclusive_negative_concepts": [],
             "nonexclusive_negative_concepts": [],
             "exclusion_hits": [],
@@ -4891,7 +4878,7 @@
             "trigger_action_hits": [],
             "input_hits": [],
             "artifact_hits": [],
-            "capability_overlap": 2,
+            "capability_overlap": 3,
             "exclusive_negative_concepts": [],
             "nonexclusive_negative_concepts": [],
             "exclusion_hits": [],
@@ -5056,7 +5043,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.84,
             "support_score": 0,
-            "lexical_support": 0.545,
+            "lexical_support": 0.542,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -5440,7 +5427,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.84,
             "support_score": 0,
-            "lexical_support": 0.545,
+            "lexical_support": 0.542,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -5798,7 +5785,7 @@
         {
           "prompt": "Ignore the feature-request chatter and run a pre-merge frontend review on this React diff for keyboard navigation, unsafe rendering, and missing empty states.",
           "family": "adversarial_noisy_premerge_review",
-          "score": 0.862,
+          "score": 0.863,
           "predicted_trigger": true,
           "expected_trigger": true,
           "passed": true,
@@ -5824,7 +5811,7 @@
             "exclusive_negative_concepts": [],
             "semantic_coverage": 0.84,
             "support_score": 0,
-            "lexical_support": 0.364,
+            "lexical_support": 0.375,
             "negative_penalty": 0,
             "coverage_boost": 0.06,
             "concept_evidence": {
@@ -6320,14 +6307,14 @@
     },
     "winner_vs_baseline_dev": {
       "baseline_false_positives": 0,
-      "baseline_false_negatives": 4,
+      "baseline_false_negatives": 3,
       "improved_false_positives": 0,
       "improved_false_negatives": 3,
       "false_positive_delta": 0,
-      "false_negative_delta": -1,
-      "baseline_precision": null,
+      "false_negative_delta": 0,
+      "baseline_precision": 1.0,
       "improved_precision": 1.0,
-      "baseline_recall": 0.0,
+      "baseline_recall": 0.25,
       "improved_recall": 0.25
     },
     "winner_vs_baseline_holdout": {
@@ -6432,14 +6419,14 @@
       },
       "winner_calibration": {
         "threshold": 0.48,
-        "mean_positive_score": 0.681,
-        "mean_non_trigger_score": 0.088,
-        "mean_near_neighbor_score": 0.042,
-        "min_positive_score": 0.49,
+        "mean_positive_score": 0.685,
+        "mean_non_trigger_score": 0.089,
+        "mean_near_neighbor_score": 0.045,
+        "min_positive_score": 0.496,
         "max_non_trigger_score": 0.211,
-        "score_gap": 0.279,
-        "threshold_margin": 0.01,
-        "positive_threshold_buffer": 0.01,
+        "score_gap": 0.285,
+        "threshold_margin": 0.016,
+        "positive_threshold_buffer": 0.016,
         "negative_threshold_buffer": 0.269,
         "boundary_case_count": 1,
         "boundary_case_rate": 0.167,
@@ -6447,14 +6434,14 @@
       },
       "current_calibration": {
         "threshold": 0.48,
-        "mean_positive_score": 0.681,
-        "mean_non_trigger_score": 0.088,
-        "mean_near_neighbor_score": 0.042,
-        "min_positive_score": 0.49,
+        "mean_positive_score": 0.685,
+        "mean_non_trigger_score": 0.089,
+        "mean_near_neighbor_score": 0.045,
+        "min_positive_score": 0.496,
         "max_non_trigger_score": 0.211,
-        "score_gap": 0.279,
-        "threshold_margin": 0.01,
-        "positive_threshold_buffer": 0.01,
+        "score_gap": 0.285,
+        "threshold_margin": 0.016,
+        "positive_threshold_buffer": 0.016,
         "negative_threshold_buffer": 0.269,
         "boundary_case_count": 1,
         "boundary_case_rate": 0.167,
@@ -6462,14 +6449,14 @@
       },
       "baseline_calibration": {
         "threshold": 0.48,
-        "mean_positive_score": 0.675,
-        "mean_non_trigger_score": 0.086,
-        "mean_near_neighbor_score": 0.042,
-        "min_positive_score": 0.483,
+        "mean_positive_score": 0.679,
+        "mean_non_trigger_score": 0.087,
+        "mean_near_neighbor_score": 0.045,
+        "min_positive_score": 0.489,
         "max_non_trigger_score": 0.211,
-        "score_gap": 0.272,
-        "threshold_margin": 0.003,
-        "positive_threshold_buffer": 0.003,
+        "score_gap": 0.278,
+        "threshold_margin": 0.009,
+        "positive_threshold_buffer": 0.009,
         "negative_threshold_buffer": 0.269,
         "boundary_case_count": 1,
         "boundary_case_rate": 0.167,
@@ -6533,7 +6520,7 @@
       },
       "winner_calibration": {
         "threshold": 0.48,
-        "mean_positive_score": 0.681,
+        "mean_positive_score": 0.685,
         "mean_non_trigger_score": 0.177,
         "mean_near_neighbor_score": 0.226,
         "min_positive_score": 0.504,
@@ -6548,7 +6535,7 @@
       },
       "current_calibration": {
         "threshold": 0.48,
-        "mean_positive_score": 0.681,
+        "mean_positive_score": 0.685,
         "mean_non_trigger_score": 0.177,
         "mean_near_neighbor_score": 0.226,
         "min_positive_score": 0.504,
@@ -6563,7 +6550,7 @@
       },
       "baseline_calibration": {
         "threshold": 0.48,
-        "mean_positive_score": 0.673,
+        "mean_positive_score": 0.674,
         "mean_non_trigger_score": 0.177,
         "mean_near_neighbor_score": 0.223,
         "min_positive_score": 0.492,
@@ -6738,7 +6725,7 @@
       },
       "baseline_calibration": {
         "threshold": 0.34,
-        "mean_positive_score": 0.703,
+        "mean_positive_score": 0.704,
         "mean_non_trigger_score": 0.006,
         "mean_near_neighbor_score": 0.013,
         "min_positive_score": 0.544,
@@ -6802,7 +6789,7 @@
     "winner_adversarial_score_gap": 0.509,
     "candidate_count": 5,
     "baseline_tokens": 52,
-    "baseline_dev_total_errors": 4,
+    "baseline_dev_total_errors": 3,
     "baseline_holdout_total_errors": 0,
     "baseline_blind_holdout_total_errors": 0,
     "baseline_judge_blind_holdout_total_errors": 0,

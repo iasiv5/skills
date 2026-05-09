@@ -65,6 +65,19 @@ Do not turn this into open-ended research.
 - prefer at least `2` external benchmark objects before treating the scan as complete
 - if the user provides references, record what they admire and what should explicitly not be copied
 
+## Pattern Acceptance
+
+Borrowed ideas must pass a lightweight pattern test before they shape the first package.
+
+- `recurrence`: the pattern appears in more than one serious context or source
+- `generativity`: the pattern can guide new cases, not just explain one example
+- `distinctiveness`: the pattern is more specific than generic good advice
+- `boundary`: the pattern names where not to apply it or what cost it introduces
+
+For low-risk scaffold work, generativity plus boundary clarity can be enough. For production, library, and governed work, require more evidence before the pattern changes the package shape.
+
+See [Pattern Extraction Doctrine](pattern-extraction-doctrine.md).
+
 ## Reference Categories
 
 Choose the smallest relevant set:
@@ -97,6 +110,7 @@ Borrow:
 - proven gate choices
 - portable metadata ideas
 - clear operator-facing flows
+- high-signal examples that show the finished experience, not just the internal method
 
 Do not borrow:
 

@@ -59,6 +59,77 @@
       "Use research tracks to justify the smallest evaluation loop that still catches regressions.",
       "Use principle tracks to keep the package small, boundary-aware, and outcome-driven."
     ],
+    "pattern_gate": {
+      "threshold": 4,
+      "source_count": 3,
+      "accepted": [
+        {
+          "name": "Official workflow product ergonomics",
+          "source_type": "official",
+          "borrow": "Borrow a first-time operator flow that explains itself before it asks for more structure.",
+          "avoid": "Do not mimic product polish that adds UI bulk without improving clarity.",
+          "gates": {
+            "recurrence": true,
+            "generativity": true,
+            "distinctiveness": true,
+            "boundary": true
+          },
+          "passed": [
+            "recurrence",
+            "generativity",
+            "distinctiveness",
+            "boundary"
+          ],
+          "missing": [],
+          "score": 4
+        }
+      ],
+      "deferred": [
+        {
+          "name": "Hypothesis-test-learn loop",
+          "source_type": "research",
+          "borrow": "Borrow a small hypothesis-test-learn loop so the first revision is evidence-backed.",
+          "avoid": "Do not create experimental overhead that exceeds the skill's real risk tier.",
+          "gates": {
+            "recurrence": true,
+            "generativity": true,
+            "distinctiveness": false,
+            "boundary": true
+          },
+          "passed": [
+            "recurrence",
+            "generativity",
+            "boundary"
+          ],
+          "missing": [
+            "distinctiveness"
+          ],
+          "score": 3
+        },
+        {
+          "name": "Boundary-first design",
+          "source_type": "principles",
+          "borrow": "Borrow the discipline of defining what the skill should not own before growing the package.",
+          "avoid": "Do not expand execution assets until route boundaries stay clean.",
+          "gates": {
+            "recurrence": true,
+            "generativity": true,
+            "distinctiveness": false,
+            "boundary": true
+          },
+          "passed": [
+            "recurrence",
+            "generativity",
+            "boundary"
+          ],
+          "missing": [
+            "distinctiveness"
+          ],
+          "score": 3
+        }
+      ],
+      "summary": "1 accepted, 2 deferred using threshold 4/4."
+    },
     "conflicts": [],
     "recommendation": {
       "summary": "Start by borrowing this pattern: Borrow a first-time operator flow that explains itself before it asks for more structure. Avoid this for the first pass: Do not mimic product polish that adds UI bulk without improving clarity.",

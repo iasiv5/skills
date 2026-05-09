@@ -31,7 +31,7 @@
 | baseline | `Baseline` | reference | reference | 93 | 1 | 2 |
 | current | `Current` | selected_by_dev | kept_current | 37 | 1 | 1 |
 | candidate | `Guardrail` | not_selected | blocked | 51 | 1 | 2 |
-| candidate | `Balanced` | not_selected | blocked | 54 | 1 | 2 |
+| candidate | `Balanced` | not_selected | blocked | 54 | 1 | 1 |
 | candidate | `Boundary` | not_selected | blocked | 78 | 1 | 1 |
 | candidate | `Artifact Aware` | not_selected | blocked | 78 | 1 | 1 |
 
