@@ -184,26 +184,40 @@ PLATFORM_CONTRACTS = {
 }
 
 
-def write_yaml_like(path: Path, payload: dict) -> None:
-    interface = payload.get("interface", {})
-    compatibility = payload.get("compatibility", {})
-    lines = ["interface:"]
-    for key in ("display_name", "short_description", "default_prompt"):
-        value = interface.get(key, "")
-        lines.append(f'  {key}: "{value}"')
-    lines.extend(
-        [
-            "compatibility:",
-            f'  canonical_format: "{compatibility.get("canonical_format", "")}"',
-            f'  activation_mode: "{compatibility.get("activation_mode", "")}"',
-            f'  execution_context: "{compatibility.get("execution_context", "")}"',
-            f'  shell: "{compatibility.get("shell", "")}"',
-            f'  trust_level: "{compatibility.get("trust_level", "")}"',
-            f'  remote_inline_execution: "{compatibility.get("remote_inline_execution", "")}"',
-            f'  degradation_strategy: "{compatibility.get("degradation_strategy", "")}"',
-        ]
+def is_relative_to(path: Path, parent: Path) -> bool:
+    try:
+        path.relative_to(parent)
+        return True
+    except ValueError:
+        return False
+
+
+def write_yaml_file(path: Path, payload: dict) -> None:
+    path.write_text(
+        yaml.safe_dump(payload, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
     )
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def safe_output_dir(skill_dir: Path, requested_output_dir: Path, cwd: Path) -> Path:
+    skill_dir = skill_dir.resolve()
+    cwd = cwd.resolve()
+    requested_output_dir = requested_output_dir.expanduser()
+    candidate = requested_output_dir if requested_output_dir.is_absolute() else cwd / requested_output_dir
+    if candidate.is_symlink():
+        raise ValueError(f"Refusing symlink output directory: {candidate}")
+    out_dir = candidate.resolve()
+    home = Path.home().resolve()
+    filesystem_root = Path(out_dir.anchor).resolve()
+
+    dangerous_exact = {filesystem_root, home, cwd, skill_dir, skill_dir.parent.resolve()}
+    if out_dir in dangerous_exact or out_dir in skill_dir.parents:
+        raise ValueError(f"Refusing dangerous output directory: {out_dir}")
+    if out_dir.exists() and not out_dir.is_dir():
+        raise ValueError(f"Output path exists but is not a directory: {out_dir}")
+    if not (is_relative_to(out_dir, cwd) or is_relative_to(out_dir, skill_dir)):
+        raise ValueError(f"Output directory must stay under the current workspace or skill directory: {out_dir}")
+    return out_dir
 
 
 def write_adapter(skill_dir: Path, out_dir: Path, platform: str) -> Path:
@@ -215,7 +229,7 @@ def write_adapter(skill_dir: Path, out_dir: Path, platform: str) -> Path:
     if platform == "openai":
         meta_dir = target_dir / "agents"
         meta_dir.mkdir(parents=True, exist_ok=True)
-        write_yaml_like(
+        write_yaml_file(
             meta_dir / "openai.yaml",
             {
                 "interface": {
@@ -252,10 +266,18 @@ def write_adapter(skill_dir: Path, out_dir: Path, platform: str) -> Path:
 
 def make_zip(skill_dir: Path, out_dir: Path) -> Path:
     zip_path = out_dir / f"{skill_dir.name}.zip"
+    skill_root = skill_dir.resolve()
+    out_root = out_dir.resolve()
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         for path in skill_dir.rglob("*"):
-            if path.is_file():
-                zf.write(path, arcname=str(path.relative_to(skill_dir.parent)))
+            if path.is_symlink() or not path.is_file():
+                continue
+            resolved = path.resolve()
+            if not is_relative_to(resolved, skill_root):
+                continue
+            if is_relative_to(resolved, out_root):
+                continue
+            zf.write(path, arcname=str(path.relative_to(skill_dir.parent)))
     return zip_path
 
 
@@ -308,15 +330,14 @@ def main() -> None:
     parser.add_argument("--zip", action="store_true", help="Create a zip package")
     args = parser.parse_args()
 
-    skill_dir = Path(args.skill_dir).resolve()
-    out_dir = Path(args.output_dir).resolve()
-    if out_dir.exists():
-        shutil.rmtree(out_dir)
-    out_dir.mkdir(parents=True)
-
     generated = []
     failures = []
     try:
+        skill_dir = Path(args.skill_dir).resolve()
+        out_dir = safe_output_dir(skill_dir, Path(args.output_dir), Path.cwd())
+        if out_dir.exists():
+            shutil.rmtree(out_dir)
+        out_dir.mkdir(parents=True)
         manifest = copy_manifest(skill_dir, out_dir)
         generated.append(str(manifest))
         for platform in (args.platform or ["generic"]):
@@ -329,7 +350,7 @@ def main() -> None:
     expectations = load_expectations(Path(args.expectations).resolve()) if args.expectations else {}
     validation = validate_exports(out_dir, expectations) if expectations and not failures else None
     report = {
-        "output_dir": str(out_dir),
+        "output_dir": str(out_dir) if "out_dir" in locals() else str(Path(args.output_dir).resolve()),
         "generated": generated,
         "contracts": PLATFORM_CONTRACTS,
         "validation": validation,

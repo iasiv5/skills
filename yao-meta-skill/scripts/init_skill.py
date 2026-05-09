@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import re
 from datetime import date
 from pathlib import Path
 
@@ -151,6 +152,27 @@ MODE_CONFIG = {
 }
 
 
+SKILL_NAME_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
+
+
+def validate_skill_name(name: str) -> None:
+    if not SKILL_NAME_RE.fullmatch(name):
+        raise ValueError(
+            "Invalid skill name. Use a slug matching ^[a-z0-9][a-z0-9_-]*$; path separators and absolute paths are not allowed."
+        )
+
+
+def resolve_skill_root(output_dir: str, name: str) -> Path:
+    validate_skill_name(name)
+    output_root = Path(output_dir).resolve()
+    root = (output_root / name).resolve()
+    try:
+        root.relative_to(output_root)
+    except ValueError as exc:
+        raise ValueError(f"Skill root escapes output directory: {root}") from exc
+    return root
+
+
 def build_manifest(name: str, mode: str, archetype: str) -> dict:
     mode_payload = MODE_CONFIG.get(mode, MODE_CONFIG["scaffold"])
     return {
@@ -212,7 +234,7 @@ def initialize_skill(
     intent_context: dict | None = None,
 ) -> dict:
     title = title or name.replace("-", " ").title()
-    root = Path(output_dir).resolve() / name
+    root = resolve_skill_root(output_dir, name)
     (root / "agents").mkdir(parents=True, exist_ok=True)
     (root / "references").mkdir(exist_ok=True)
     (root / "scripts").mkdir(exist_ok=True)
@@ -323,31 +345,35 @@ def main() -> None:
     parser.add_argument("--intent-standard", action="append", default=[])
     parser.add_argument("--intent-correction", default="")
     args = parser.parse_args()
-    result = initialize_skill(
-        args.name,
-        args.description,
-        args.title,
-        args.output_dir,
-        args.mode,
-        args.archetype,
-        external_references=[parse_reference(item, "external") for item in args.external_reference],
-        user_references=[parse_reference(item, "user") for item in args.user_reference],
-        local_constraints=[parse_reference(item, "local") for item in args.local_constraint],
-        github_query=args.github_query,
-        github_top_n=args.github_top_n,
-        github_fixture_dir=args.github_fixture_dir,
-        intent_context={
-            "job": args.intent_job or args.description,
-            "real_inputs": args.intent_real_input,
-            "primary_output": args.intent_primary_output or "",
-            "description": args.description,
-            "exclusions": args.intent_exclusion,
-            "constraints": args.intent_constraint,
-            "standards": args.intent_standard,
-            "correction": args.intent_correction,
-            "user_references": [parse_reference(item, "user")["name"] for item in args.user_reference],
-        },
-    )
+    try:
+        result = initialize_skill(
+            args.name,
+            args.description,
+            args.title,
+            args.output_dir,
+            args.mode,
+            args.archetype,
+            external_references=[parse_reference(item, "external") for item in args.external_reference],
+            user_references=[parse_reference(item, "user") for item in args.user_reference],
+            local_constraints=[parse_reference(item, "local") for item in args.local_constraint],
+            github_query=args.github_query,
+            github_top_n=args.github_top_n,
+            github_fixture_dir=args.github_fixture_dir,
+            intent_context={
+                "job": args.intent_job or args.description,
+                "real_inputs": args.intent_real_input,
+                "primary_output": args.intent_primary_output or "",
+                "description": args.description,
+                "exclusions": args.intent_exclusion,
+                "constraints": args.intent_constraint,
+                "standards": args.intent_standard,
+                "correction": args.intent_correction,
+                "user_references": [parse_reference(item, "user")["name"] for item in args.user_reference],
+            },
+        )
+    except ValueError as exc:
+        print(json.dumps({"ok": False, "failures": [str(exc)]}, ensure_ascii=False, indent=2))
+        raise SystemExit(2) from exc
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 

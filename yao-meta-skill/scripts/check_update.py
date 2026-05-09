@@ -7,6 +7,7 @@ import sys
 from datetime import date
 from pathlib import Path
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 
@@ -15,6 +16,8 @@ DEFAULT_VERSION_URL = "https://raw.githubusercontent.com/yaojingang/yao-meta-ski
 DEFAULT_MANIFEST_URL = "https://raw.githubusercontent.com/yaojingang/yao-meta-skill/main/manifest.json"
 CACHE_DIR = ROOT / ".yao"
 CACHE_PATH = CACHE_DIR / "update-check.json"
+ALLOWED_UPDATE_HOST = "raw.githubusercontent.com"
+ALLOWED_UPDATE_PATH_PREFIX = "/yaojingang/yao-meta-skill/"
 
 
 def load_local_version(root: Path) -> str:
@@ -52,6 +55,23 @@ def fetch_text(url: str, timeout: float) -> str:
     request = Request(url, headers={"User-Agent": "yao-meta-skill-update-check"})
     with urlopen(request, timeout=timeout) as response:
         return response.read().decode("utf-8").strip()
+
+
+def validate_update_url(url: str, allow_custom: bool) -> None:
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        raise ValueError(f"Update URL scheme is not allowed: {parsed.scheme or 'missing'}")
+    is_default_source = (
+        parsed.netloc == ALLOWED_UPDATE_HOST
+        and parsed.path.startswith(ALLOWED_UPDATE_PATH_PREFIX)
+    )
+    if not is_default_source and not allow_custom:
+        raise ValueError("Custom update URLs require --allow-custom-update-url.")
+
+
+def validate_update_urls(version_url: str, manifest_url: str, allow_custom: bool) -> None:
+    validate_update_url(version_url, allow_custom)
+    validate_update_url(manifest_url, allow_custom)
 
 
 def fetch_remote_version(version_url: str, manifest_url: str, timeout: float) -> tuple[str, str]:
@@ -115,6 +135,7 @@ def check_update(
     max_age_days: int,
     force: bool,
     no_cache: bool,
+    allow_custom_url: bool = False,
 ) -> dict:
     local_version = load_local_version(root)
     today = str(date.today())
@@ -133,6 +154,7 @@ def check_update(
                 "cached": True,
             }
     try:
+        validate_update_urls(version_url, manifest_url, allow_custom_url)
         remote_version, source = fetch_remote_version(version_url, manifest_url, timeout)
         result = build_result(local_version, remote_version, source, checked=True)
     except Exception as exc:  # noqa: BLE001 - update checks should never break authoring.
@@ -163,6 +185,12 @@ def main() -> None:
     parser.add_argument("--max-age-days", type=int, default=1)
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--no-cache", action="store_true")
+    parser.add_argument(
+        "--allow-custom-update-url",
+        action="store_true",
+        default=os.environ.get("YAO_ALLOW_CUSTOM_UPDATE_URL") == "1",
+        help="Allow custom HTTPS update URLs. file:// and non-HTTPS schemes are always blocked.",
+    )
     args = parser.parse_args()
     result = check_update(
         root=Path(args.root).resolve(),
@@ -173,6 +201,7 @@ def main() -> None:
         max_age_days=args.max_age_days,
         force=args.force,
         no_cache=args.no_cache,
+        allow_custom_url=args.allow_custom_update_url,
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     sys.exit(0 if result["ok"] else 2)

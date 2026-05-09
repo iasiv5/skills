@@ -995,6 +995,8 @@ def command_check_update(args: argparse.Namespace) -> int:
         cmd.extend(["--manifest-url", args.manifest_url])
     if args.timeout is not None:
         cmd.extend(["--timeout", str(args.timeout)])
+    if args.allow_custom_update_url:
+        cmd.append("--allow-custom-update-url")
     result = run_script("check_update.py", cmd)
     print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
@@ -1235,6 +1237,7 @@ def build_parser() -> argparse.ArgumentParser:
     update_cmd.add_argument("--version-url")
     update_cmd.add_argument("--manifest-url")
     update_cmd.add_argument("--timeout", type=float, default=3.0)
+    update_cmd.add_argument("--allow-custom-update-url", action="store_true")
     update_cmd.set_defaults(func=command_check_update)
 
     return parser

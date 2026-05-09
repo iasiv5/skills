@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: eval eval-suite route-scorecard route-confusion-check description-optimization judge-blind-eval description-optimization-check promotion-check yao-cli-check skill-overview-check review-viewer-check feedback-check baseline-compare-check reference-scan-check github-benchmark-scan-check intent-confidence-check reference-synthesis-check output-risk-profile-check artifact-design-profile-check prompt-quality-profile-check iteration-directions-check description-drift-history iteration-ledger results-panel regression-history context-reports portability-report portability-check failure-regression-check package-check package-failure-check snapshot-check validate lint governance-check resource-boundary-check quality-check test ci-test clean
+.PHONY: eval eval-suite route-scorecard route-confusion-check description-optimization judge-blind-eval description-optimization-check promotion-check yao-cli-check skill-overview-check review-viewer-check feedback-check baseline-compare-check reference-scan-check github-benchmark-scan-check intent-confidence-check reference-synthesis-check output-risk-profile-check artifact-design-profile-check prompt-quality-profile-check iteration-directions-check description-drift-history iteration-ledger results-panel regression-history context-reports portability-report portability-check failure-regression-check package-check package-failure-check security-boundary-check snapshot-check validate lint governance-check resource-boundary-check quality-check test ci-test clean
 
 eval:
 	$(PYTHON) scripts/trigger_eval.py --description-file evals/improved_description.txt --cases evals/trigger_cases.json --baseline-description-file evals/baseline_description.txt
@@ -95,6 +95,9 @@ package-check:
 package-failure-check:
 	$(PYTHON) tests/verify_packager_failures.py
 
+security-boundary-check:
+	$(PYTHON) tests/verify_security_boundaries.py
+
 snapshot-check:
 	$(PYTHON) tests/verify_adapter_snapshots.py
 
@@ -113,10 +116,10 @@ resource-boundary-check:
 quality-check:
 	$(PYTHON) tests/verify_quality_checks.py
 
-test: eval eval-suite route-scorecard route-confusion-check description-optimization description-optimization-check promotion-check yao-cli-check skill-overview-check review-viewer-check feedback-check baseline-compare-check reference-scan-check github-benchmark-scan-check intent-confidence-check reference-synthesis-check output-risk-profile-check artifact-design-profile-check prompt-quality-profile-check iteration-directions-check description-drift-history iteration-ledger regression-history context-reports portability-report portability-check failure-regression-check package-check package-failure-check snapshot-check validate lint governance-check resource-boundary-check quality-check
+test: eval eval-suite route-scorecard route-confusion-check description-optimization description-optimization-check promotion-check yao-cli-check skill-overview-check review-viewer-check feedback-check baseline-compare-check reference-scan-check github-benchmark-scan-check intent-confidence-check reference-synthesis-check output-risk-profile-check artifact-design-profile-check prompt-quality-profile-check iteration-directions-check description-drift-history iteration-ledger regression-history context-reports portability-report portability-check failure-regression-check package-check package-failure-check security-boundary-check snapshot-check validate lint governance-check resource-boundary-check quality-check
 
 ci-test:
 	$(PYTHON) scripts/ci_test.py
 
 clean:
-	rm -rf dist tests/tmp tests/tmp_snapshot tests/tmp_cli tests/tmp_skill_overview tests/tmp_reference_scan tests/tmp_iteration_directions tests/tmp_review_viewer tests/tmp_feedback tests/tmp_github_benchmark_scan tests/tmp_intent_confidence tests/tmp_reference_synthesis tests/tmp_output_risk_profile tests/tmp_artifact_design_profile tests/tmp_prompt_quality_profile tests/tmp_baseline_compare.json tests/tmp_baseline_compare.md
+	rm -rf dist tests/tmp tests/tmp_snapshot tests/tmp_cli tests/tmp_skill_overview tests/tmp_reference_scan tests/tmp_iteration_directions tests/tmp_review_viewer tests/tmp_feedback tests/tmp_github_benchmark_scan tests/tmp_intent_confidence tests/tmp_reference_synthesis tests/tmp_output_risk_profile tests/tmp_artifact_design_profile tests/tmp_prompt_quality_profile tests/tmp_security tests/tmp_baseline_compare.json tests/tmp_baseline_compare.md

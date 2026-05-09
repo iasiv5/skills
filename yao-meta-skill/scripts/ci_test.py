@@ -50,6 +50,7 @@ DEFAULT_TARGETS = [
     "failure-regression-check",
     "package-check",
     "package-failure-check",
+    "security-boundary-check",
     "snapshot-check",
     "validate",
     "lint",

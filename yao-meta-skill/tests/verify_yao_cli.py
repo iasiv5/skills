@@ -12,17 +12,13 @@ BENCHMARK_FIXTURE_DIR = ROOT / "tests" / "fixtures" / "github_benchmark_scan"
 
 
 def run(*args: str, input_text: str | None = None) -> dict:
-    env = {
-        **os.environ,
-        "YAO_UPDATE_VERSION_URL": (ROOT / "tests" / "tmp_cli" / "remote-version.txt").as_uri(),
-    }
     proc = subprocess.run(
         [sys.executable, str(CLI), *args],
         cwd=ROOT,
         capture_output=True,
         text=True,
         input=input_text,
-        env=env,
+        env=os.environ,
     )
     payload = json.loads(proc.stdout)
     return {
@@ -64,6 +60,7 @@ def main() -> None:
         str(tmp_root),
         "--github-fixture-dir",
         str(BENCHMARK_FIXTURE_DIR),
+        "--no-update-check",
         input_text=(
             "quickstart-skill\n"
             "Turn messy release notes into a reusable release brief skill.\n"
@@ -89,7 +86,6 @@ def main() -> None:
     assert quickstart_result["payload"]["archetype"] == "production", quickstart_result
     assert quickstart_result["payload"]["guidance"]["experience_note"], quickstart_result
     assert quickstart_result["payload"]["guidance"]["problem_diagnosis"]["candidates"], quickstart_result
-    assert "Update available for yao-meta-skill" in quickstart_result["stderr"], quickstart_result["stderr"]
     assert quickstart_result["payload"]["intent_confidence"]["score"] >= 70, quickstart_result
     assert quickstart_result["payload"]["recommendation"]["summary"], quickstart_result
     assert quickstart_result["payload"]["reference_mode"]["mode"] == "silent", quickstart_result
@@ -107,6 +103,7 @@ def main() -> None:
         str(tmp_root),
         "--github-fixture-dir",
         str(BENCHMARK_FIXTURE_DIR),
+        "--no-update-check",
         input_text=(
             "quickstart-conflict-skill\n"
             "Turn repeated release notes into a governed release command skill.\n"
@@ -250,10 +247,12 @@ def main() -> None:
         "--no-cache",
         "--version-url",
         remote_version.as_uri(),
+        "--manifest-url",
+        remote_version.as_uri(),
     )
-    assert update_result["ok"], update_result
-    assert update_result["payload"]["update_available"], update_result
-    assert update_result["payload"]["remote_version"] == "9.9.9", update_result
+    assert not update_result["ok"], update_result
+    assert update_result["returncode"] == 2, update_result
+    assert "Update URL scheme is not allowed: file" in update_result["payload"]["error"], update_result
 
     test_result = run("test", "--target", "promotion-check")
     assert test_result["ok"], test_result
