@@ -10,7 +10,7 @@ description: >
   reconciliation. Also trigger when the user reports stale docs, conflicting memories,
   or wants a clean handoff to teammates or other agents. Bare "整理" / "tidy" with
   prior dev context counts — do not under-trigger. Cross-platform: works on Claude Code,
-  OpenAI Codex, OpenCode, and OpenClaw.
+  OpenAI Codex, GitHub Copilot, OpenCode, and OpenClaw.
 ---
 
 # 洁癖 — Knowledge Base Neat-Freak
