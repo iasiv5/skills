@@ -40,6 +40,22 @@ node <SKILL_ROOT>/scripts/validate-swiss-deck.mjs path/to/index.html
 - 不要把小标题放左列、大标题放右侧大列,这会导致标题视觉居中。
 - 如果需要标题 + 说明两列,必须复制原始 `S11` 或 `S17` 的骨架,不要自写 `4fr 8fr`。
 
+### 0-S-3. Swiss 地图页必须用 S08 Map Component
+
+**现象**:地点/历史内容只画了简易 SVG 地图,没有真实点位、关系卡片、缩放/拖动控制,或滚轮触发了 PPT 翻页。
+
+**做法**:
+- 使用 `data-layout="S08"`。
+- 先读 `references/swiss-map-component.md`。
+- 右侧地图组件必须包含 marker 点、连接线、地点卡片、`+` / `-` / `DRAG` 控制。
+- 默认禁用 scroll zoom 和 drag pan;用户点击 `DRAG` 后才允许拖动。
+- 必须保留静态 fallback,地图 CDN 或瓦片失败时仍可读。
+
+**检查**:
+- `grep -n "data-map-ctrl" index.html`
+- `grep -n "maplibregl.Map" index.html`
+- 浏览器实测 `+` 可放大,`DRAG` 可切换为 `DRAG ON`
+
 ### 0-A. 瑞士风画布对齐法则(每一页必查 · 最常踩)
 
 **现象**:页眉 chrome-min 和底部 footer 都靠在 5vw 的边线上,但中间区域往内缩了一截,左右对不齐。
