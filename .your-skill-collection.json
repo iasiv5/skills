@@ -13,7 +13,7 @@
     "web-access":               { "repo": "eze-is/web-access" },
     "yao-meta-skill":           { "repo": "yaojingang/yao-meta-skill" },
     "pua":                      { "repo": "tanweai/pua",                          "subdir": "skills/pua" },
-    "grill-me":                 { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/grill-me" },
+    "grill-with-docs":          { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/grill-with-docs" },
     "khazix-writer":            { "repo": "KKKKhazix/khazix-skills",              "subdir": "khazix-writer" },
     "neat-freak":               { "repo": "KKKKhazix/khazix-skills",              "subdir": "neat-freak" },
     "slides":                   { "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "subdir": ".claude/skills/slides" },
