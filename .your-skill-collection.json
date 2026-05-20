@@ -12,6 +12,7 @@
     "guizang-ppt-skill":        { "repo": "op7418/guizang-ppt-skill" },
     "web-access":               { "repo": "eze-is/web-access" },
     "yao-meta-skill":           { "repo": "yaojingang/yao-meta-skill" },
+    "note-slides":              { "repo": "gainubi/note-slides" },
     "pua":                      { "repo": "tanweai/pua",                          "subdir": "skills/pua" },
     "grill-with-docs":          { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/grill-with-docs" },
     "khazix-writer":            { "repo": "KKKKhazix/khazix-skills",              "subdir": "khazix-writer" },
