@@ -18,5 +18,5 @@
     "khazix-writer":            { "repo": "KKKKhazix/khazix-skills",              "subdir": "khazix-writer" },
     "neat-freak":               { "repo": "KKKKhazix/khazix-skills",              "subdir": "neat-freak" },
   },
-  "skip": ["wechat-article-writer", "a-share-analyst", "code-review", "wechat-draft"]
+  "skip": ["wechat-article-writer", "code-review", "wechat-draft"]
 }
