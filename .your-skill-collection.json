@@ -17,11 +17,6 @@
     "grill-with-docs":          { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/grill-with-docs" },
     "khazix-writer":            { "repo": "KKKKhazix/khazix-skills",              "subdir": "khazix-writer" },
     "neat-freak":               { "repo": "KKKKhazix/khazix-skills",              "subdir": "neat-freak" },
-    "ui-ux-pro-max":            { "repo": "nextlevelbuilder/ui-ux-pro-max-skill", "files": [
-      { "src": ".claude/skills/ui-ux-pro-max/SKILL.md", "dest": "SKILL.md" },
-      { "src": "src/ui-ux-pro-max/data",                "dest": "data" },
-      { "src": "src/ui-ux-pro-max/scripts",             "dest": "scripts" }
-    ]}
   },
   "skip": ["wechat-article-writer", "a-share-analyst", "code-review", "wechat-draft"]
 }
