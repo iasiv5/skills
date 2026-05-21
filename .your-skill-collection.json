@@ -17,8 +17,10 @@
     "grill-with-docs":          { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/grill-with-docs" },
     "khazix-writer":            { "repo": "KKKKhazix/khazix-skills",              "subdir": "khazix-writer" },
     "neat-freak":               { "repo": "KKKKhazix/khazix-skills",              "subdir": "neat-freak" },
-    "Geek-skills-keqian-method":            { "repo": "staruhub/ClaudeSkills",               "subdir": "skills/Geek-skills-keqian-method" },
-    "Geek-skills-wechat-article-writer":    { "repo": "staruhub/ClaudeSkills",               "subdir": "skills/Geek-skills-wechat-article-writer" }
+    "Geek-skills-keqian-method":            { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-keqian-method" },
+    "Geek-skills-wechat-article-writer":    { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-wechat-article-writer" },
+    "Geek-skills-c-drive-cleaner":          { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-c-drive-cleaner" },
+    "Geek-skills-deep-research":            { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-deep-research" }
   },
   "skip": ["code-review", "wechat-draft"]
 }
