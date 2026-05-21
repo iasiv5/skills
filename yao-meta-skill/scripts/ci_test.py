@@ -40,6 +40,7 @@ DEFAULT_TARGETS = [
     "output-risk-profile-check",
     "artifact-design-profile-check",
     "prompt-quality-profile-check",
+    "system-model-check",
     "iteration-directions-check",
     "description-drift-history",
     "iteration-ledger",

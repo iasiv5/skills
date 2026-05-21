@@ -16,6 +16,7 @@ from render_reference_scan import parse_reference, render_reference_scan
 from render_reference_synthesis import render_reference_synthesis
 from render_review_viewer import render_review_viewer
 from render_skill_overview import render_skill_overview
+from render_system_model import render_system_model
 
 
 SKILL_TEMPLATE = """---
@@ -36,6 +37,7 @@ description: {description}
 - Before final output, apply the likely failure modes in `reports/output-risk-profile.md` when that report is present.
 - Before rendering reports, tutorials, review pages, dashboards, or visual artifacts, apply the artifact direction and visual quality gates in `reports/artifact-design-profile.md` when that report is present.
 - When prompt behavior, role design, dialogue quality, or output contracts matter, apply `reports/prompt-quality-profile.md` when that report is present.
+- Before adding more structure, apply the boundary, feedback-loop, drift, and leverage-point checks in `reports/system-model.md` when that report is present.
 - Repair generic headings, cluttered notes, fragile visual assumptions, weak tables, and missing verification cues before handing work back.
 - Map role, task, and format into skill behavior rather than copying a large prompt template into `SKILL.md`.
 - Let the artifact's content choose the visual system; do not copy a fixed palette or report style from another skill without a clear reason.
@@ -71,6 +73,7 @@ README_TEMPLATE = """# {title}
 10. Check `reports/artifact-design-profile.md` to see the intended artifact direction, layout patterns, visual quality gates, and anti-patterns.
 11. Check `reports/prompt-quality-profile.md` to see the need model, RTF-to-skill mapping, complexity, and prompt-facing quality matrix.
 12. Review `reports/iteration-directions.md` for the three most valuable next moves.
+13. Review `reports/system-model.md` to understand the boundary, feedback loops, drift watch, failure map, and highest-leverage next changes.
 
 ## Honest Boundaries
 
@@ -91,6 +94,7 @@ README_TEMPLATE = """# {title}
 - `reports/output-risk-profile.md`: predicted output failure modes and self-repair constraints for this skill
 - `reports/artifact-design-profile.md`: artifact-specific design direction, layout patterns, visual quality gates, and anti-patterns
 - `reports/prompt-quality-profile.md`: prompt-facing need model, RTF mapping, complexity, and quality matrix
+- `reports/system-model.md`: systems-thinking model for boundary, feedback loops, drift, failure patterns, and leverage points
 - `reports/skill-overview.html`: visual overview report
 - `reports/review-viewer.html`: compact review page for architecture, usage, feedback, and next steps
 - `reports/iteration-directions.md`: the top three next iteration directions
@@ -280,6 +284,7 @@ def initialize_skill(
     output_risk_profile = render_output_risk_profile(root)
     artifact_design_profile = render_artifact_design_profile(root)
     prompt_quality_profile = render_prompt_quality_profile(root)
+    system_model = render_system_model(root)
     overview = render_skill_overview(root)
     iteration_directions = render_iteration_directions(root)
     review_viewer = render_review_viewer(root)
@@ -303,6 +308,8 @@ def initialize_skill(
         "artifact_design_profile_json": artifact_design_profile["artifacts"]["json"],
         "prompt_quality_profile_md": prompt_quality_profile["artifacts"]["markdown"],
         "prompt_quality_profile_json": prompt_quality_profile["artifacts"]["json"],
+        "system_model_md": system_model["artifacts"]["markdown"],
+        "system_model_json": system_model["artifacts"]["json"],
         "iteration_directions_md": iteration_directions["artifacts"]["markdown"],
         "iteration_directions_json": iteration_directions["artifacts"]["json"],
         "review_viewer_html": review_viewer["artifacts"]["html"],
@@ -319,6 +326,7 @@ def initialize_skill(
         "github_benchmark_scan": benchmark_scan,
         "intent_confidence": intent_confidence["summary"],
         "reference_synthesis": reference_synthesis["summary"],
+        "system_model": system_model["summary"],
         "artifacts": artifacts,
     }
 

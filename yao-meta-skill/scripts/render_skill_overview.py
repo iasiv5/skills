@@ -82,6 +82,10 @@ def load_prompt_quality(skill_dir: Path) -> dict:
     return load_json(skill_dir / "reports" / "prompt-quality-profile.json")
 
 
+def load_system_model(skill_dir: Path) -> dict:
+    return load_json(skill_dir / "reports" / "system-model.json")
+
+
 def extract_title(body: str, fallback: str) -> str:
     for line in body.splitlines():
         if line.startswith("# "):
@@ -242,6 +246,20 @@ def prompt_quality_highlights(profile: dict) -> list[str]:
     return highlights[:4]
 
 
+def system_model_highlights(model: dict) -> list[str]:
+    highlights = []
+    stability = model.get("stability", {})
+    if stability:
+        highlights.append(f"Stability: {stability.get('band', 'unknown')} ({stability.get('score', 'n/a')}/100).")
+    boundary = model.get("boundary_map", {})
+    if boundary.get("owned_job"):
+        highlights.append(f"Owned job: {boundary['owned_job']}")
+    for point in model.get("leverage_points", [])[:2]:
+        if point.get("point"):
+            highlights.append(f"Leverage: {point['point']} — {point.get('move', '')}")
+    return highlights[:4]
+
+
 def build_summary(skill_dir: Path) -> dict:
     skill_text = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
     frontmatter, body = parse_frontmatter(skill_text)
@@ -262,6 +280,7 @@ def build_summary(skill_dir: Path) -> dict:
     reference_synthesis = load_reference_synthesis(skill_dir)
     artifact_design = load_artifact_design(skill_dir)
     prompt_quality = load_prompt_quality(skill_dir)
+    system_model = load_system_model(skill_dir)
 
     return {
         "name": name,
@@ -285,6 +304,10 @@ def build_summary(skill_dir: Path) -> dict:
             "relevance": prompt_quality.get("relevance", "prompt-aware"),
             "overall_quality_score": prompt_quality.get("overall_quality_score", "n/a"),
             "highlights": prompt_quality_highlights(prompt_quality),
+        },
+        "system_model": {
+            "stability": system_model.get("stability", {}),
+            "highlights": system_model_highlights(system_model),
         },
         "metadata": {
             "canonical_format": interface_data.get("compatibility", {}).get("canonical_format", "agent-skills"),
@@ -334,6 +357,9 @@ def render_html(summary: dict) -> str:
     artifact_design_html = "".join(f"<li>{html.escape(item)}</li>" for item in artifact_design.get("highlights", []))
     prompt_quality = summary.get("prompt_quality", {})
     prompt_quality_html = "".join(f"<li>{html.escape(item)}</li>" for item in prompt_quality.get("highlights", []))
+    system_model = summary.get("system_model", {})
+    stability = system_model.get("stability", {})
+    system_model_html = "".join(f"<li>{html.escape(item)}</li>" for item in system_model.get("highlights", []))
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -588,6 +614,19 @@ def render_html(summary: dict) -> str:
         <div>
           <p><strong>{html.escape(str(prompt_quality.get("relevance", "prompt-aware")))}</strong> · score {html.escape(str(prompt_quality.get("overall_quality_score", "n/a")))} / 100</p>
           <ul class="strengths">{prompt_quality_html or "<li>No prompt quality profile has been generated yet.</li>"}</ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>System model</h2>
+          <p>Use this to review the skill as a system: boundary, feedback loops, drift watch, failure patterns, and leverage points.</p>
+        </div>
+        <div>
+          <p><strong>{html.escape(str(stability.get("band", "not-generated")))}</strong> · score {html.escape(str(stability.get("score", "n/a")))} / 100</p>
+          <ul class="strengths">{system_model_html or "<li>No system model has been generated yet.</li>"}</ul>
         </div>
       </div>
     </section>

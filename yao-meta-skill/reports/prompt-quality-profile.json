@@ -1,6 +1,6 @@
 {
   "skill_name": "yao-meta-skill",
-  "relevance": "prompt-aware",
+  "relevance": "prompt-heavy",
   "primary_task_family": {
     "key": "dialogue_interaction",
     "label": "Dialogue interaction",
@@ -23,17 +23,6 @@
       "format_guidance": "Return concise prompts, decision points, and reviewer-visible assumptions."
     },
     {
-      "key": "analytical_reasoning",
-      "label": "Analytical reasoning",
-      "score": 1,
-      "matched_keywords": [
-        "synthesis"
-      ],
-      "role_guidance": "Use an analyst role that separates evidence, inference, uncertainty, and recommendation.",
-      "task_guidance": "State assumptions, compare alternatives, and make the decision path inspectable.",
-      "format_guidance": "Return findings, evidence, tradeoffs, recommendation, and residual risks."
-    },
-    {
       "key": "execution_operation",
       "label": "Execution operation",
       "score": 1,
@@ -54,6 +43,17 @@
       "role_guidance": "Use a teacher role that adapts to learner level and avoids overloading the first pass.",
       "task_guidance": "Explain through progressive steps, examples, and visible success checks.",
       "format_guidance": "Return learner-facing sections, worked examples, checkpoints, and common mistakes."
+    },
+    {
+      "key": "prompt_engineering",
+      "label": "Prompt engineering",
+      "score": 1,
+      "matched_keywords": [
+        "prompt"
+      ],
+      "role_guidance": "Use a prompt engineer role only when role design materially improves execution.",
+      "task_guidance": "Map Role, Task, and Format into skill behavior rather than copying a large prompt template.",
+      "format_guidance": "Return a compact prompt contract plus tests, quality matrix, and usage notes."
     }
   ],
   "complexity": {
@@ -88,10 +88,8 @@
     {
       "key": "clarity",
       "label": "Clarity",
-      "score": 85,
-      "matched_signals": [
-        "clear"
-      ],
+      "score": 80,
+      "matched_signals": [],
       "repair": "Replace broad verbs with observable actions and define what done means."
     },
     {
@@ -122,7 +120,7 @@
       "repair": "Anchor wording in the user's audience, domain nouns, and target outcome."
     }
   ],
-  "overall_quality_score": 83.0,
+  "overall_quality_score": 82.0,
   "self_repair_checks": [
     "Check explicit need, implicit need, scenario, user level, and success standard before deepening.",
     "Map Role, Task, and Format into skill behavior, not decorative prompt labels.",

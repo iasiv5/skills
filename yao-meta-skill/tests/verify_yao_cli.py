@@ -51,6 +51,7 @@ def main() -> None:
     assert (created / "reports" / "output-risk-profile.md").exists(), created
     assert (created / "reports" / "artifact-design-profile.md").exists(), created
     assert (created / "reports" / "prompt-quality-profile.md").exists(), created
+    assert (created / "reports" / "system-model.md").exists(), created
     assert (created / "reports" / "iteration-directions.md").exists(), created
     assert "Honest Boundaries" in (created / "SKILL.md").read_text(encoding="utf-8"), created
 
@@ -83,6 +84,7 @@ def main() -> None:
     assert (quickstart_root / "reports" / "reference-synthesis.md").exists(), quickstart_root
     assert (quickstart_root / "reports" / "artifact-design-profile.md").exists(), quickstart_root
     assert (quickstart_root / "reports" / "prompt-quality-profile.md").exists(), quickstart_root
+    assert (quickstart_root / "reports" / "system-model.md").exists(), quickstart_root
     assert quickstart_result["payload"]["archetype"] == "production", quickstart_result
     assert quickstart_result["payload"]["guidance"]["experience_note"], quickstart_result
     assert quickstart_result["payload"]["guidance"]["problem_diagnosis"]["candidates"], quickstart_result
@@ -94,6 +96,9 @@ def main() -> None:
     ), quickstart_result
     assert quickstart_result["payload"]["reviewer_evidence"]["artifacts"]["prompt_quality_profile"].endswith(
         "reports/prompt-quality-profile.md"
+    ), quickstart_result
+    assert quickstart_result["payload"]["reviewer_evidence"]["artifacts"]["system_model"].endswith(
+        "reports/system-model.md"
     ), quickstart_result
     assert "uncertainty_or_conflict" not in quickstart_result["payload"], quickstart_result
 
@@ -185,6 +190,11 @@ def main() -> None:
     assert prompt_quality_result["ok"], prompt_quality_result
     assert prompt_quality_result["payload"]["artifacts"]["markdown"].endswith("reports/prompt-quality-profile.md"), prompt_quality_result
     assert prompt_quality_result["payload"]["summary"]["quality_matrix"], prompt_quality_result
+
+    system_model_result = run("system-model", str(created))
+    assert system_model_result["ok"], system_model_result
+    assert system_model_result["payload"]["artifacts"]["markdown"].endswith("reports/system-model.md"), system_model_result
+    assert system_model_result["payload"]["summary"]["stability"]["score"] >= 0, system_model_result
 
     directions_result = run("iteration-directions", str(created))
     assert directions_result["ok"], directions_result

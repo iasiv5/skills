@@ -538,6 +538,7 @@ def command_quickstart(args: argparse.Namespace) -> int:
                 "reference_synthesis": payload.get("artifacts", {}).get("reference_synthesis_md"),
                 "artifact_design_profile": payload.get("artifacts", {}).get("artifact_design_profile_md"),
                 "prompt_quality_profile": payload.get("artifacts", {}).get("prompt_quality_profile_md"),
+                "system_model": payload.get("artifacts", {}).get("system_model_md"),
                 "review_viewer": payload.get("artifacts", {}).get("review_viewer_html"),
             },
         },
@@ -652,6 +653,7 @@ def command_report(args: argparse.Namespace) -> int:
             run_script("render_reference_synthesis.py", [str(ROOT)]),
             run_script("render_artifact_design_profile.py", [str(ROOT)]),
             run_script("render_prompt_quality_profile.py", [str(ROOT)]),
+            run_script("render_system_model.py", [str(ROOT)]),
         ]
     )
     report = {
@@ -670,6 +672,7 @@ def command_report(args: argparse.Namespace) -> int:
             "reference_synthesis": "reports/reference-synthesis.json",
             "artifact_design_profile": "reports/artifact-design-profile.json",
             "prompt_quality_profile": "reports/prompt-quality-profile.json",
+            "system_model": "reports/system-model.json",
         },
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -801,6 +804,17 @@ def command_prompt_quality_profile(args: argparse.Namespace) -> int:
     if args.output_json:
         cmd.extend(["--output-json", args.output_json])
     result = run_script("render_prompt_quality_profile.py", cmd)
+    print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
+    return 0 if result["ok"] else 2
+
+
+def command_system_model(args: argparse.Namespace) -> int:
+    cmd = [str(Path(args.skill_dir).resolve())]
+    if args.output_md:
+        cmd.extend(["--output-md", args.output_md])
+    if args.output_json:
+        cmd.extend(["--output-json", args.output_json])
+    result = run_script("render_system_model.py", cmd)
     print(json.dumps(result["payload"] if result["payload"] is not None else result, ensure_ascii=False, indent=2))
     return 0 if result["ok"] else 2
 
@@ -1192,6 +1206,15 @@ def build_parser() -> argparse.ArgumentParser:
     prompt_quality_cmd.add_argument("--output-md")
     prompt_quality_cmd.add_argument("--output-json")
     prompt_quality_cmd.set_defaults(func=command_prompt_quality_profile)
+
+    system_model_cmd = subparsers.add_parser(
+        "system-model",
+        help="Render a systems-thinking model for boundaries, feedback loops, drift, and leverage points.",
+    )
+    system_model_cmd.add_argument("skill_dir", nargs="?", default=".")
+    system_model_cmd.add_argument("--output-md")
+    system_model_cmd.add_argument("--output-json")
+    system_model_cmd.set_defaults(func=command_system_model)
 
     iteration_directions_cmd = subparsers.add_parser(
         "iteration-directions",

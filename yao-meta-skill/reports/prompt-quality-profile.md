@@ -1,8 +1,8 @@
 # Prompt Quality Profile
 
 Skill: `yao-meta-skill`
-Relevance: `prompt-aware`
-Overall quality score: `83.0/100`
+Relevance: `prompt-heavy`
+Overall quality score: `82.0/100`
 
 ## Primary Task Family
 
@@ -35,8 +35,8 @@ Overall quality score: `83.0/100`
 - Matched signals: output, constraint, standard
 - Repair: Name missing inputs, outputs, constraints, or success standards before deepening the package.
 
-### Clarity — 85/100
-- Matched signals: clear
+### Clarity — 80/100
+- Matched signals: none
 - Repair: Replace broad verbs with observable actions and define what done means.
 
 ### Consistency — 90/100
@@ -60,13 +60,6 @@ Overall quality score: `83.0/100`
 - Task: Clarify intent, resolve uncertainty, and converge toward a recommendation instead of a long option list.
 - Format: Return concise prompts, decision points, and reviewer-visible assumptions.
 
-### Analytical reasoning
-- Score: `1`
-- Keywords: synthesis
-- Role: Use an analyst role that separates evidence, inference, uncertainty, and recommendation.
-- Task: State assumptions, compare alternatives, and make the decision path inspectable.
-- Format: Return findings, evidence, tradeoffs, recommendation, and residual risks.
-
 ### Execution operation
 - Score: `1`
 - Keywords: workflow
@@ -80,6 +73,13 @@ Overall quality score: `83.0/100`
 - Role: Use a teacher role that adapts to learner level and avoids overloading the first pass.
 - Task: Explain through progressive steps, examples, and visible success checks.
 - Format: Return learner-facing sections, worked examples, checkpoints, and common mistakes.
+
+### Prompt engineering
+- Score: `1`
+- Keywords: prompt
+- Role: Use a prompt engineer role only when role design materially improves execution.
+- Task: Map Role, Task, and Format into skill behavior rather than copying a large prompt template.
+- Format: Return a compact prompt contract plus tests, quality matrix, and usage notes.
 
 ## Self-Repair Checks
 
