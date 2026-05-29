@@ -1,0 +1,5 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-05-29T10:01Z	4705d89	code-review	24	24	baseline	all	dim1-9 baseline eval (no test)	sub-agent
+2026-05-29T10:15Z	19589d3	code-review	24	75	round1	dim3+dim4+dim9+dim5+dim7	add failure branches, checkpoints, blacklist, embedded routing, remove runtime-specific language	sub-agent
+2026-05-29T10:25Z	0e4ed51	code-review	75	75	round2	dim7	remove duplicate failure branch summary table (evaluator stricter; same practical score)	sub-agent
+2026-05-29T10:35Z	6f3a58b	code-review	24	75	round3	dim1+dim2+dim5+dim7	clean frontmatter, add worked example, quantitative severity rules, merge C/C++ rows	sub-agent
