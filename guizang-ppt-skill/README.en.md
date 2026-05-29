@@ -334,4 +334,4 @@ Bugs, layout issues, new layout requests — Issues and PRs welcome. Prioritize:
 
 ## License
 
-MIT © 2026 [op7418](https://github.com/op7418)
+AGPL-3.0 © 2026 [op7418](https://github.com/op7418)
