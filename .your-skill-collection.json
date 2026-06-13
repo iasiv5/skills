@@ -3,7 +3,6 @@
     "architecture-diagram":      { "repo": "Cocoon-AI/architecture-diagram-generator", "subdir": "architecture-diagram" },
     "docx":                      { "repo": "anthropics/skills",                    "subdir": "skills/docx" },
     "pdf":                       { "repo": "anthropics/skills",                    "subdir": "skills/pdf" },
-    "pptx":                      { "repo": "anthropics/skills",                    "subdir": "skills/pptx" },
     "xlsx":                      { "repo": "anthropics/skills",                    "subdir": "skills/xlsx" },
     "skill-creator":             { "repo": "anthropics/skills",                    "subdir": "skills/skill-creator" },
     "remotion-best-practices":   { "repo": "remotion-dev/skills",                  "subdir": "skills/remotion" },
@@ -19,7 +18,6 @@
     "Geek-skills-keqian-method":             { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-keqian-method" },
     "Geek-skills-wechat-article-writer":     { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-wechat-article-writer" },
     "Geek-skills-c-drive-cleaner":           { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-c-drive-cleaner" },
-    "Geek-skills-deep-research":             { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-deep-research" },
     "darwin-skill":                          { "repo": "alchaincyf/darwin-skill" }
   },
   "skip": ["code-review", "wechat-draft"]

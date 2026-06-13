@@ -1,6 +1,6 @@
 ---
 name: wechat-draft
-description: "公众号 Markdown 排版与 draft 推送。用于把现成文章 format 成微信兼容 HTML、提供 theme preview，并在用户明确要求 publish 时推送到公众号草稿箱。触发包括：公众号排版、微信排版、选主题、预览主题、推草稿、publish to draft。仅处理排版、preview、draft 推送和配置排障；不用于写文章、rewrite、润色、封面图、配图上传或列出草稿。"
+description: "把【现成】Markdown 文章排版成微信兼容 HTML、选主题预览、确认后推送到公众号草稿箱。输入必须是一篇已成稿的文章，本 skill 不创作内容。触发词：公众号排版、微信排版、Markdown 转微信、选主题、预览主题、推草稿、publish to draft。明确不做、请改用其他 skill：写/创作公众号文章 → Geek-skills-wechat-article-writer；把文章转成幻灯片 → note-slides；做公众号封面/小红书图 → guizang-social-card-skill；润色/rewrite/配图上传/草稿箱管理 也都不在本 skill 范围。"
 ---
 
 # wechat-draft
