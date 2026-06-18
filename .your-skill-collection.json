@@ -12,7 +12,6 @@
     "note-slides":               { "repo": "gainubi/note-slides" },
     "pua":                       { "repo": "tanweai/pua",                          "subdir": "skills/pua" },
     "grill-with-docs":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/grill-with-docs" },
-    "caveman":                   { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/caveman" },
     "teach":                     { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/teach" },
     "neat-freak":                { "repo": "KKKKhazix/khazix-skills",              "subdir": "neat-freak" },
     "Geek-skills-keqian-method":             { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-keqian-method" },
