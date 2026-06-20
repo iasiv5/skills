@@ -15,6 +15,7 @@
     "grilling":                  { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/grilling" },
     "domain-modeling":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/domain-modeling" },
     "improve-codebase-architecture": { "repo": "mattpocock/skills",                "subdir": "skills/engineering/improve-codebase-architecture" },
+    "codebase-design":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/codebase-design" },
     "teach":                     { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/teach" },
     "neat-freak":                { "repo": "KKKKhazix/khazix-skills",              "subdir": "neat-freak" },
     "Geek-skills-keqian-method":             { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-keqian-method" },
