@@ -22,14 +22,57 @@ fail() { printf '\033[31m✗ %s\033[0m\n' "$*" >&2; }
 
 FILTER="${*:-}"
 
+# 主源（默认 github.com）与镜像兜底源。镜像源可用环境变量覆盖，不写死本机设定：
+#   GITHUB_MIRROR=https://gh-proxy.com/https://github.com ./update.sh
+# 每次启动都从主源 github 开始试（切换标志存于临时目录 $TMP_BASE，随脚本退出自动清除）；只有判定 github 不可达才切镜像。
+BASE="${GITHUB_BASE_URL:-https://github.com}"
+MIRROR="${GITHUB_MIRROR:-https://gh-proxy.com/https://github.com}"
+CLONE_ERR="$TMP_BASE/.clone_err"
+
+# 低速保护克隆：60 秒内收不到数据（=连不上/没开始）即判失败，stderr 落到 $CLONE_ERR 供判定
+clone_url() {  # $1=base $2=repo(owner/name) $3=dest
+  git -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 -c http.connectTimeout=60 \
+    clone --depth=1 --quiet "$1/$2.git" "$3" 2>"$CLONE_ERR"
+}
+
+# 判定上次 clone 失败是否属于网络层（连不上/卡住）→ 此类才值得切镜像；
+# 秒退类失败（仓库不存在等）镜像也救不了，不切。
+is_net_failure() {  # $1=本次耗时(s)
+  local err; err=$(cat "$CLONE_ERR" 2>/dev/null || true)
+  (( ${1:-0} >= 50 )) && return 0
+  [[ "$err" =~ (timed[[:space:]]out|Connection[[:space:]]timed[[:space:]]out|early[[:space:]]EOF|RPC[[:space:]]failed|Could[[:space:]]not[[:space:]]resolve[[:space:]]host|Connection[[:space:]]refused|Connection[[:space:]]reset|Failed[[:space:]]to[[:space:]]connect|unable[[:space:]]to[[:space:]]access|Empty[[:space:]]reply) ]]
+}
+
 # 克隆仓库到临时目录（同一仓库只克隆一次）
+# 默认先试 github 主源；若判定为网络不可达，提示并切换镜像，本次运行后续都直接走镜像。
+# 注意：本函数在命令替换 $(get_clone) 的子 shell 中被调用，故——
+#   1) 切镜像状态用文件标志 $TMP_BASE/.use_mirror（跨子 shell 持久，变量传不回父 shell）；
+#   2) 所有提示一律输出到 stderr，避免污染被捕获的 stdout（=仓库路径）。
 get_clone() {
   local repo="$1"
   local dest="$TMP_BASE/${repo//\//__}"
-  if [[ ! -d "$dest" ]]; then
-    git clone --depth=1 --quiet "https://github.com/$repo.git" "$dest"
+  [[ -d "$dest" ]] && { printf '%s' "$dest"; return 0; }
+
+  # 本次运行已确认 github 不可达 → 直接走镜像
+  if [[ -f "$TMP_BASE/.use_mirror" ]]; then
+    if clone_url "$MIRROR" "$repo" "$dest"; then printf '%s' "$dest"; return 0; fi
+    rm -rf "$dest"; fail "镜像克隆失败: $repo"; return 1
   fi
-  printf '%s' "$dest"
+
+  # 默认先试 github 主源
+  local start=$SECONDS
+  if clone_url "$BASE" "$repo" "$dest"; then printf '%s' "$dest"; return 0; fi
+  local dur=$((SECONDS - start)); rm -rf "$dest"
+
+  # 网络层失败 → 切镜像；秒退失败 → 直接报错跳过
+  if is_net_failure "$dur"; then
+    printf '\033[33m    ⚠ github.com 无法触达（60s 内无数据），切换镜像源 %s\033[0m\n' "${MIRROR#https://}" >&2
+    : > "$TMP_BASE/.use_mirror"   # 标记本次运行后续走镜像
+    if clone_url "$MIRROR" "$repo" "$dest"; then printf '%s' "$dest"; return 0; fi
+    rm -rf "$dest"; fail "镜像克隆失败: $repo"; return 1
+  fi
+
+  fail "克隆失败: $repo（耗时 ${dur}s）"; return 1
 }
 
 # 从 .your-skill-collection.json 读取条目列表（排除 skip，支持按名称过滤）
@@ -63,7 +106,7 @@ while IFS=$'\t' read -r name repo mode payload; do
   dest="$SKILLS_DIR/$name"
 
   printf '    克隆 https://github.com/%s ... ' "$repo"
-  repo_dir=$(get_clone "$repo") || { fail "克隆失败: $repo"; continue; }
+  repo_dir=$(get_clone "$repo") || continue
 
   # 备份旧版本到 .backup/<name>/（Claude Code 不会扫描隐藏目录）
   BACKUP_DIR="$SKILLS_DIR/.backup"
