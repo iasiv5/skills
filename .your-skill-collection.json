@@ -23,5 +23,5 @@
     "Geek-skills-c-drive-cleaner":           { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-c-drive-cleaner" },
     "darwin-skill":                          { "repo": "alchaincyf/darwin-skill" }
   },
-  "skip": ["code-review", "wechat-draft"]
+  "skip": ["code-review", "wechat-draft", "Geek-skills-wechat-article-writer", "Geek-skills-c-drive-cleaner"]
 }
