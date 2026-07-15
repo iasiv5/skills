@@ -6,6 +6,8 @@ description: 专业的代码审查助手。触发词：代码审查、检查PR�
 # Code Review Skill
 
 ## Step 0: 锚定审查对象与证据
+**输入**：用户的审查请求（PR/分支/commit/文件/片段/全仓）+ 可用的基线
+**输出**：审查模式、固定基线、变更范围证据
 
 先区分审查模式，避免把历史遗留问题、需求猜测和当前变更混在一起：
 
@@ -137,7 +139,7 @@ description: 专业的代码审查助手。触发词：代码审查、检查PR�
 不要虚构命令结果、测试覆盖或硬件能力。无法执行时，写明缺失的命令、镜像、模型、工具链、测试或硬件条件，并把它保留在 `验证状态` 中。
 
 ### Step 6: 输出审查报告
-**输入**：Step 4 的发现列表
+**输入**：Step 4 的发现列表 + Step 5 的验证计划
 **输出**：结构化审查报告（Markdown）
 
 输出格式：
@@ -184,7 +186,7 @@ description: 专业的代码审查助手。触发词：代码审查、检查PR�
 
 参考 `resources/FEEDBACK-GUIDELINES.md` 撰写反馈措辞。
 
-### 端到端示例
+### 端到端示例（核心步骤节选，跳过 Step 2 证据建立与 Step 5 验证规划）
 
 **输入**（用户请求）：
 > 帮我 review 这段 C 代码：`sensor_read.c`（内容略，含 buffer overflow + 缺少 volatile）
@@ -218,7 +220,7 @@ description: 专业的代码审查助手。触发词：代码审查、检查PR�
 
 ## Resources
 
-### REVIEW-CHECKLIST.md（Step 4 使用）
+### REVIEW-CHECKLIST.md（Step 2/3/4 使用）
 8 大类检查项的完整清单：功能与逻辑、代码质量、安全性、性能、测试覆盖、文档、架构与设计、可维护性。逐项过检，确保无遗漏。
 
 ### FEEDBACK-GUIDELINES.md（Step 6 使用）
