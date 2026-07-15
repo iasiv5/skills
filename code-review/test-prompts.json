@@ -1,0 +1,32 @@
+[
+  {
+    "id": "missing-review-contract",
+    "prompt": "帮我 review 当前 BMC 分支的 sensor 服务改动，主要涉及 I2C 读取和 D-Bus 属性更新。",
+    "expected": "在没有固定基线、diff、需求或平台资料时，先请求 commit/分支/tag 基线及相关规格；明确不能验证变更范围和需求符合性；不直接编造代码发现。"
+  },
+  {
+    "id": "bmc-sensor-spec-and-standards",
+    "prompt": "请 review 从 main 到 HEAD 的 BMC 温度传感器改动。需求来源：docs/sensors.md 规定 I2C 读取失败时必须将 Available 设为 false，不能发布旧读数；成功读数的单位是摄氏度，更新周期不得小于 1000 ms。项目约定：所有负 errno 必须转换为明确错误路径，D-Bus 属性更新失败必须记录并向调用方传播。变更如下：\n```cpp\nvoid TempSensor::update() {\n    const int raw = i2c_smbus_read_word_data(fd_, kTempRegister);\n    value_ = raw / 10;\n    objectServer_->set_property(\"Value\", value_);\n    objectServer_->set_property(\"Available\", true);\n}\n\nTimer sensorTimer(io, 100ms);\n```\n",
+    "expected": "输出以 main 为固定比较点的审查范围；将 I2C 负 errno、D-Bus 更新错误、读取失败时 Available 状态、单位换算和 100 ms 周期分别与 Spec、Standards 或 BMC 平台风险关联；给出可验证修复方向，并区分未实际执行的构建/硬件验证。"
+  },
+  {
+    "id": "uefi-smm-boundary",
+    "prompt": "请 review 从 main 到 HEAD 的 UEFI SMM 通信处理改动。平台安全要求：通信缓冲区必须在使用前验证地址、总长度、消息长度和命令载荷长度；不得让外部消息覆盖 SMRAM 中的密钥。变更如下：\n```c\nEFI_STATUS EFIAPI\nHandleSmmMessage(IN VOID *CommBuffer, IN UINTN *CommBufferSize)\n{\n  SMM_MESSAGE *Message = (SMM_MESSAGE *)CommBuffer;\n  if (Message->Command == SetKey) {\n    CopyMem(mPrivateKey, Message->Payload, Message->PayloadLength);\n  }\n  return EFI_SUCCESS;\n}\n```\n",
+    "expected": "识别为 BIOS/UEFI 与 SMM 专项；对未验证 CommBuffer、CommBufferSize、PayloadLength 及 CopyMem 边界给出带证据的安全发现；将平台安全要求归入 Spec，SMM/SMRAM 边界归入平台专项；明确需要的构建、静态分析或平台验证。"
+  },
+  {
+    "id": "validation-path-selection",
+    "prompt": "请 review 从 main 到 HEAD 的 BMC 温度传感器改动，并给出可执行的验证计划。变更文件为 `src/sensors/temp_sensor.cpp`。仓库根目录有 `meson.build`，现有构建目录为 `build/`，其中有 `compile_commands.json`；已有定向测试 `tests/test_temp_sensor.py`，它能模拟 I2C 成功、负 errno 和 D-Bus 更新失败。仓库没有 QEMU 镜像、也没有 I2C/SMBus 设备仿真配置；真实硬件可用于最终总线异常恢复验证。需求规定：I2C 失败时 Available=false，不发布 Value，更新周期不少于 1000ms。代码直接将负 errno 除以 10 发布，始终写 Available=true，定时器为 100ms。",
+    "expected": "先给出基于仓库证据的最窄验证顺序：定向 pytest；未给出受影响 target 时先记录 target 发现动作，不能列 ninja/make/meson compile；基于 compile_commands 的静态分析仅在项目配置和工具可用时列出。明确 QEMU 不在当前验证路径，且即使可用也不能证明物理 I2C/SMBus 时序或异常恢复；将真实硬件验证列为未执行的边界验证。每项必须标明已执行/未执行、选择理由和缺失条件，不得虚构命令结果。"
+  },
+  {
+    "id": "web-register-sql-and-secrets",
+    "prompt": "请 review 从 main 到 HEAD 的用户注册 API 改动。需求：注册时邮箱必须唯一，密码必须安全存储，注册成功后向该用户发送欢迎邮件。变更如下：\n```python\n@app.route(\"/register\", methods=[\"POST\"])\ndef register():\n    email = request.form[\"email\"]\n    password = request.form[\"password\"]\n    cursor.execute(f\"INSERT INTO users (email, password) VALUES ('{email}', '{password}')\")\n    db.commit()\n    for u in User.query.all():\n        if u.email == email:\n            send_email(u.email, \"welcome\")\n    return \"ok\", 200\n```\n",
+    "expected": "识别为 Python/Web 后端通用审查；按 Spec（邮箱唯一、密码安全存储、发欢迎邮件）与 Standards 双轨给出发现：🔴 SQL 注入（f-string 拼接应改参数化查询）、🔴 密码明文存储（应 bcrypt/argon2）、🟡 全表扫描后内存匹配（应直接 WHERE 查询并由 DB 唯一约束保证）、🟡 欢迎邮件逻辑与注册主流程未解耦；🔴 项附修复代码并说明触发条件，不虚构运行验证。"
+  },
+  {
+    "id": "ts-async-concurrency-bugs",
+    "prompt": "请 review 从 main 到 HEAD 的批量任务处理改动。变更如下：\n```typescript\nasync function processJobs(jobIds: string[]) {\n  const results: any[] = [];\n  jobIds.forEach(async (id) => {\n    const job = await fetchJob(id);\n    results.push(job);\n  });\n  saveResults(results);\n  return results;\n}\n```\n",
+    "expected": "识别为 TypeScript/Node 通用审查；给出发现：🔴 forEach+async 不会等待，saveResults 和 return 在任务完成前执行（results 为空）、🔴 results.push 在多个并发 async 闭包间存在竞态、🟡 fetchJob 失败时缺少 try/catch 导致 unhandled promise rejection；给出用 Promise.all 或 for...of await 的修复，并标注未实际执行运行验证。"
+  }
+]
