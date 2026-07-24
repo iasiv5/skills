@@ -10,19 +10,26 @@
     "guizang-ppt-skill":         { "repo": "op7418/guizang-ppt-skill" },
     "guizang-social-card-skill": { "repo": "op7418/guizang-social-card-skill" },
     "note-slides":               { "repo": "gainubi/note-slides" },
-    "pua":                       { "repo": "tanweai/pua",                          "subdir": "skills/pua" },
-    "grill-with-docs":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/grill-with-docs" },
     "grilling":                  { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/grilling" },
-    "domain-modeling":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/domain-modeling" },
-    "improve-codebase-architecture": { "repo": "mattpocock/skills",                "subdir": "skills/engineering/improve-codebase-architecture" },
-    "codebase-design":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/codebase-design" },
     "teach":                     { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/teach" },
-    "neat-freak":                { "repo": "KKKKhazix/khazix-skills",              "subdir": "neat-freak" },
+    "writing-great-skills":      { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/writing-great-skills" },
+    "grill-with-docs":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/grill-with-docs" },
+    "domain-modeling":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/domain-modeling" },
+    "codebase-design":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/codebase-design" },
+    "improve-codebase-architecture": { "repo": "mattpocock/skills",                "subdir": "skills/engineering/improve-codebase-architecture" },
+    "darwin-skill":                          { "repo": "alchaincyf/darwin-skill" },
     "Geek-skills-keqian-method":             { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-keqian-method" },
     "Geek-skills-xuefeng-method":            { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-xuefeng-method" },
     "Geek-skills-wechat-article-writer":     { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-wechat-article-writer" },
     "Geek-skills-c-drive-cleaner":           { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-c-drive-cleaner" },
-    "darwin-skill":                          { "repo": "alchaincyf/darwin-skill" }
+    "neat-freak":                            { "repo": "KKKKhazix/khazix-skills",  "subdir": "neat-freak" },
+    "pua":                                   { "repo": "tanweai/pua",              "subdir": "skills/pua" }
   },
-  "skip": ["code-review", "wechat-draft", "Geek-skills-wechat-article-writer", "Geek-skills-c-drive-cleaner", "neat-freak"]
+  "skip": [
+    "code-review", 
+    "wechat-draft", 
+    "Geek-skills-wechat-article-writer", 
+    "Geek-skills-c-drive-cleaner", 
+    "neat-freak"
+  ]
 }
