@@ -157,7 +157,7 @@ Agent Skill 生态在快速扩张。Claude Code、Codex、OpenClaw、Trae、Code
 
 **Phase 2 的核心逻辑**（v2.0 强化）：
 
-1. 找出得分最低的维度
+1. 找出加权短板最大的维度（weighted_gap = weight × (10 − score) / 10，避免低权重维度制造进步幻觉）
 2. 针对该维度生成 1 个具体改进方案（一轮只改一个维度，反例黑名单第 5 条）
 3. 编辑 SKILL.md，git commit
 4. 启动 **2 个独立子 agent** 重新评分（下一轮换全新评委，避免锚定）
@@ -186,6 +186,11 @@ npx skills add alchaincyf/darwin-skill
 安装后在任何支持 Skill 的 Agent 工具中说「优化所有skills」或「优化某个skill」就行。
 
 无法访问 GitHub 的朋友，可以直接下载 zip 包：[darwin-skill.zip](https://pub-161ae4b5ed0644c4a43b5c6412287e03.r2.dev/skills/darwin-skill.zip)，解压后把 SKILL.md 放到 `~/.claude/skills/darwin-skill/` 目录即可。
+
+安全提示：
+
+- 在 git 仓库里跑优化，并先把你本地对 skill 的改动 commit 或 stash，这样 darwin.skill 才能干净地保留或回滚实验改动。
+- 进入下一轮优化前先审查 checkpoint 的 diff，尤其当 skill 涉及 shell 命令、git 操作、凭证、本地文件或发布流程时。
 
 ---
 
