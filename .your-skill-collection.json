@@ -12,7 +12,7 @@
     "note-slides":               { "repo": "gainubi/note-slides" },
     "grilling":                  { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/grilling" },
     "teach":                     { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/teach" },
-    "writing-great-skills":      { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/writing-great-skills" },
+    "writing-for-agents":        { "repo": "mattpocock/skills",                    "subdir": "skills/productivity/writing-for-agents" },
     "grill-with-docs":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/grill-with-docs" },
     "domain-modeling":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/domain-modeling" },
     "codebase-design":           { "repo": "mattpocock/skills",                    "subdir": "skills/engineering/codebase-design" },
