@@ -1,6 +1,6 @@
 ---
 name: wechat-draft
-description: "把【现成】Markdown 文章排版成微信兼容 HTML、选主题预览、确认后推送到公众号草稿箱。触发词：公众号排版、Markdown 转微信、选主题、推草稿；英文：format Markdown for WeChat、preview themes、publish to draft。明确不做、改用其他 skill：写/创作公众号文章 → Geek-skills-wechat-article-writer；转幻灯片 → note-slides；做封面/小红书图 → guizang-social-card-skill；润色/rewrite/配图上传/草稿箱管理 也不在范围。"
+description: "把【现成】Markdown 文章排版成微信兼容 HTML、选主题预览、确认后推送到公众号草稿箱。触发词：公众号排版、Markdown 转微信、选主题、推草稿；英文：format Markdown for WeChat、preview themes、publish to draft。明确不做：写/创作公众号文章（本 skill 只排版现成稿，创作内容请先用其他写作工具完成）；转幻灯片、做封面/小红书图、润色/rewrite、配图上传、草稿箱管理 也不在范围。"
 ---
 
 # wechat-draft
@@ -93,5 +93,5 @@ description: "把【现成】Markdown 文章排版成微信兼容 HTML、选主�
 | 回显 APPSECRET | 不显示，或只显示 app_id 前 4 位 |
 | 手写 HTML/CSS 替代 format.py，或跳过 format 直接 publish | 必须先经 format.py 生成 HTML |
 | 未确认预览就 publish | 🔴 等用户确认"预览满意" |
-| 处理封面图/配图/图片上传、管理现有草稿 | 封面配图与草稿管理在公众号后台操作（封面图另见 guizang-social-card-skill） |
+| 处理封面图/配图/图片上传、管理现有草稿 | 封面配图与草稿管理在公众号后台操作 |
 | 跳过前置检查直接 publish | 推送前必须检查 config + IP 白名单 |
