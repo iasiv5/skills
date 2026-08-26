@@ -6,7 +6,6 @@
     "xlsx":                      { "repo": "anthropics/skills",                    "subdir": "skills/xlsx" },
     "skill-creator":             { "repo": "anthropics/skills",                    "subdir": "skills/skill-creator" },
     "remotion-best-practices":   { "repo": "remotion-dev/skills",                  "subdir": "skills/remotion-best-practices" },
-    "claude-to-im":              { "repo": "op7418/Claude-to-IM-skill" },
     "guizang-ppt-skill":         { "repo": "op7418/guizang-ppt-skill" },
     "guizang-social-card-skill": { "repo": "op7418/guizang-social-card-skill" },
     "note-slides":               { "repo": "gainubi/note-slides" },
