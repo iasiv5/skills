@@ -22,7 +22,9 @@
     "Geek-skills-wechat-article-writer":     { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-wechat-article-writer" },
     "Geek-skills-c-drive-cleaner":           { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-c-drive-cleaner" },
     "neat-freak":                            { "repo": "KKKKhazix/khazix-skills",  "subdir": "neat-freak" },
-    "pua":                                   { "repo": "tanweai/pua",              "subdir": "skills/pua" }
+    "pua":                                   { "repo": "tanweai/pua",              "subdir": "skills/pua" },
+    "handoff":                               { "repo": "iasiv5/m",                 "subdir": "plugins/iasi/skills/handoff" },
+    "writing-plans":                         { "repo": "iasiv5/m",                 "subdir": "plugins/iasi/skills/writing-plans" }
   },
   "skip": [
     "code-review", 
