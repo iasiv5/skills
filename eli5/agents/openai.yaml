@@ -1,0 +1,3 @@
+interface:
+  display_name: "ELI5"
+  short_description: "把复杂概念做成大图小字的 HTML 图解页"
