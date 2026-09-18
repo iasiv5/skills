@@ -1,6 +1,6 @@
 ---
 name: npm-name-claim
-description: 抢注/占位发布 npm 包名：查名、搭 0.0.1 占位包、认证与发布的全流程。当用户想查 npm 包名是否被注册、想抢注/占位/保留（claim/reserve）npm package name，或 npm publish 遇到认证与环境故障（E401、PUT 报 404、ENEEDAUTH、EOTP/2FA、静默失败 exit 1、镜像源发不出包）时使用。
+description: 抢注/占位发布 npm 包名：查名、搭 0.0.1 占位包、认证与发布的全流程，以及发布后配置 GitHub Actions OIDC Trusted Publishing（无 token 发版）。当用户想查 npm 包名是否被注册、想抢注/占位/保留（claim/reserve）npm package name、想把 npm 包升级为 OIDC/trusted publishing 发布、或 npm publish / npm trust 遇到认证与环境故障（E401、PUT 报 404、ENEEDAUTH、EOTP/2FA、静默失败 exit 1、镜像源发不出包）时使用。
 ---
 
 # npm 包名抢注（占位发布）
@@ -20,6 +20,7 @@ scripts/claim.sh weblogin <pkgdir>            # 已有可用 token 时跳过
 scripts/claim.sh publish <pkgdir>             # 用后台任务方式运行，见第 4 步
 scripts/claim.sh verify <name>
 scripts/claim.sh cleanup <pkgdir>             # 全部发完后做
+scripts/claim.sh trust <pkgdir> --repo OWNER/REPO --file <wf.yml>   # 可选：发包后配 OIDC 信任，见第 7 节
 ```
 
 ## 1. 查名
@@ -62,6 +63,8 @@ token 的落点只有一个：`<pkgdir>/.npmrc`（chmod 600）。输出与聊天
 | `npm publish` / `npm pack` **静默 exit 1，无任何错误文本** | cache/logs 目录只读（如 `~/.npm` 在只读挂载），npm 内部崩溃并吞掉报错 | `--cache`、`--logs-dir` 指到可写目录（claim.sh 已内置，落在包目录父目录下） |
 | PUT 404 + whoami 401（命中失效签名） | token 失效 | 重走第 3 步 |
 | `EOTP: This operation requires a one-time password` | 账号 2FA 设为 auth-and-writes，写操作要二次验证 | 见下 |
+| `npm trust` 任意子命令（**连 `list` 读操作**）报 `EOTP`，错误通道里授权链接是打码的 `***` | trust 属账号级敏感操作，auth-and-writes 账号一律二次验证，且 npm 把它走错误通道输出 | 与 publish 同一套伪 TTY + `--browser=false`（`claim.sh trust` 已内置）；`--browser` 这个 flag 传不进去就改用环境变量 `npm_config_browser=false` |
+| `npm trust ... --cache/--logs-dir <dir>` 报 `Unknown positional argument: <dir>` | `npm trust` 的子命令用严格 flag 解析器，不认这些全局 flag 的空格分隔形式，值被当成了多余位置参数 | 相关配置全部改走 `npm_config_*` 环境变量（`npm_config_cache` / `npm_config_logs_dir` / `npm_config_browser`） |
 | PUT `403 Package name too similar to existing packages ...` | npm typosquat 防护在发布时做相似度拦截（check 阶段看不到） | 该名对所有账号永久关闭，重试无意义；向用户说明并给替代：`@scope/name`（属自己账号，无抢注意义）或换名 |
 
 **EOTP 核心技巧：伪造 TTY + 关闭浏览器。** 具体命令在 `claim.sh` 的 publish 子命令里（`script -qec` 包一层伪终端，npm 加 `--browser=false`），这里写清楚它为什么有效——排障时据此推理：
@@ -91,6 +94,31 @@ token 的落点只有一个：`<pkgdir>/.npmrc`（chmod 600）。输出与聊天
 - `claim.sh cleanup <pkgdir>` 删除包目录里的 token 文件。占位包发布完成后建议清掉；下次发版重走 weblogin（用户点一次链接的事）。
 - 完成标准：各包目录里已无 `.npmrc`。
 
+## 7. Trusted Publishing（GitHub Actions OIDC，无 token 发版）
+
+占位包发完后，可顺手把包升级成 OIDC 信任发布：以后发版不再需要任何静态
+token，CI 用短时凭据且自带 provenance。
+
+1. **前提：包必须已存在**——首发无法直接 OIDC（npm/cli#8544 仍 open）。
+   第 2 步的 0.0.1 bootstrap 正好铺平这条路，这是「先 bootstrap 再 OIDC」
+   发布策略的根因，不只是抢名；
+2. **配置信任**：`claim.sh trust <pkgdir> --repo OWNER/REPO --file <workflow.yml>`
+   （内部 `npm trust github`，需要 npm ≥ 11.10；workflow 只写文件名不带
+   路径）。等价于 npmjs.com 网站上的 Trusted Publisher 表单，但全程 CLI +
+   一次浏览器授权，无需登录网站；
+3. **仓库里放 workflow**，三要素：`permissions: id-token: write`；npm ≥
+   11.5.1（setup-node 装 node 24，`npm install -g npm@latest` 兜底）；
+   `npm publish --provenance --access public`。触发用 `on: push: tags: ['v*']`，
+   另加 `workflow_dispatch` 方便重跑；
+4. **发版 = 打 tag**：`npm version x.y.z && git push --tags`，Actions 自动
+   发布。registry 元数据里发布者显示为 `GitHub Actions` 即 OIDC 生效
+   （`claim.sh verify` 会直接把它打出来）。
+
+实战样例（2026-09-18）：`@iasiv5/dsh-obmc-web`，0.0.1 bootstrap → weblogin
+→ `trust` 配信任 → cleanup 删 token → 推 `v0.1.0` tag → Actions 发布。
+
 ## 依赖与移植
 
-bash、curl、node、npm、util-linux 的 `script`。换机器/新环境使用：整个 skill 目录拷贝到该环境的 skill 目录即可，脚本无其他依赖。
+bash、curl、node、npm、util-linux 的 `script`；`trust` 子命令额外要求
+npm ≥ 11.10。换机器/新环境使用：整个 skill 目录拷贝到该环境的 skill 目录
+即可，脚本无其他依赖。

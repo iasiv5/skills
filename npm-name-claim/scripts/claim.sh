@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# claim.sh — npm 包名抢注工具（查名 / 搭占位包 / 免贴token认证 / 伪TTY发布 / 验证 / 清理）
+# claim.sh — npm 包名抢注与无 token 发版工具（查名 / 搭占位包 / 免贴token认证 / 伪TTY发布 / 验证 / 清理 / OIDC信任）
 # 依赖: bash, curl, node, npm, script(util-linux)
-# 用法: claim.sh <check|scaffold|weblogin|publish|verify|cleanup> ...
+# 用法: claim.sh <check|scaffold|weblogin|publish|verify|cleanup|trust> ...
 set -euo pipefail
 
 REGISTRY="https://registry.npmjs.org"
@@ -12,7 +12,9 @@ USAGE="用法:
   claim.sh weblogin <pkgdir>                              web 登录拿 token 写入 <pkgdir>/.npmrc（token 不回显）
   claim.sh publish <pkgdir>                               伪 TTY 发布；EOTP 时输出 AUTH_URL 交用户授权，之后自动完成
   claim.sh verify <name>                                  验证已发布（200 + 版本 + 发布者）
-  claim.sh cleanup <pkgdir>                               删除包目录里的 .npmrc（token 卫生）"
+  claim.sh cleanup <pkgdir>                               删除包目录里的 .npmrc（token 卫生）
+  claim.sh trust <pkgdir> --repo OWNER/REPO --file <workflow.yml> [--allow-publish]
+                                                          配 GitHub Actions OIDC 信任（npm trust github）；EOTP 时输出 AUTH_URL"
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 jsonget() { node -e "const d=JSON.parse(process.argv[1]); const ks=process.argv[2].split('.'); let v=d; for(const k of ks) v=v?.[k]; console.log(v ?? '')" "$1" "$2"; }
@@ -147,6 +149,50 @@ publish)
     echo "FAILED(EOTP): 授权链接未被完成或已过期，重新运行本命令重试: $url" ; exit 1
   else
     echo "FAILED: 发布失败，输出末尾如下：" ; tr -d '\r' < "$ts" | tail -15 ; exit 1
+  fi
+  ;;
+
+trust)
+  pkgdir="${1:-}"; [ -n "$pkgdir" ] && [ -d "$pkgdir" ] || die "$USAGE"
+  shift || true
+  repo="" ; file="" ; allow=""
+  while [ $# -gt 0 ]; do case "$1" in
+    --repo|--repository) repo="${2:-}"; shift 2;;
+    --file) file="${2:-}"; shift 2;;
+    --allow-publish) allow="--allow-publish"; shift;;
+    *) die "未知参数: $1";; esac; done
+  [ -n "$repo" ] && [ -n "$file" ] || die "trust 需要 --repo OWNER/REPO 与 --file <workflow 文件名>"
+  pkgdir=$(cd "$pkgdir" && pwd)
+  base=$(dirname "$pkgdir") ; cache="$base/.npm-cache" ; logs="$base/.npm-logs"
+  mkdir -p "$cache" "$logs"
+  ts="$logs/trust-$(basename "$pkgdir")-$(date +%s).out"
+  name=$(jsonget "$(cat "$pkgdir/package.json")" name)
+  # 前提：包必须已存在（0.0.1 bootstrap 已覆盖；首发无法直接 OIDC，见 npm/cli#8544）。
+  echo "TRUST: $name ← github $repo :: $file $allow （2FA 账号必走 AUTH_URL，请转交用户授权；npm 会自动继续）"
+  # 两个坑（2026-09-18 实战）：
+  # 1) npm trust 的子命令解析器不认 --cache/--logs-dir/--browser 这类空格分隔的全局 flag，
+  #    值会被当成多余的位置参数（Unknown positional argument）→ 一律走 npm_config_* 环境变量；
+  # 2) trust 连 list 读操作都触发 EOTP，且错误通道里授权链接打码 → 伪 TTY + browser=false
+  #    让明文 AUTH_URL 走 stdout，npm 拿到 OTP 票据后自动重试。
+  set +e
+  script -qec "cd '$pkgdir' && npm_config_browser=false npm_config_cache='$cache' npm_config_logs_dir='$logs' npm trust github '$name' --repository '$repo' --file '$file' $allow -y --registry $REGISTRY" "$ts" &
+  spid=$!
+  url=""
+  while kill -0 "$spid" 2>/dev/null; do
+    if [ -s "$ts" ]; then
+      u=$(tr -d '\r' < "$ts" | grep -oE 'https://www\.npmjs\.com/auth/cli/[a-z0-9-]+' | tail -1 || true)
+      [ -n "$u" ] && [ "$u" != "$url" ] && { url="$u"; echo "AUTH_URL: $url"; }
+    fi
+    sleep 2
+  done
+  wait "$spid"; rc=$?
+  set -e
+  if [ "$rc" -eq 0 ] && tr -d '\r' < "$ts" | grep -q "Trust configuration created"; then
+    echo "TRUSTED: $name ↔ $repo :: $file （npm trust list 可复核）"
+  elif [ -n "$url" ]; then
+    echo "FAILED(EOTP): 授权链接未被完成或已过期，重新运行本命令重试: $url" ; exit 1
+  else
+    echo "FAILED: trust 配置失败，输出末尾如下：" ; tr -d '\r' < "$ts" | tail -15 ; exit 1
   fi
   ;;
 
