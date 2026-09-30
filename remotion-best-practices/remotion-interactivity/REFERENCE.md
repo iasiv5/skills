@@ -1,7 +1,7 @@
 ---
 name: remotion-interactivity
 description: Structure Remotion markup for interactivity
-version: 4.0.524
+version: 4.0.530
 ---
 
 By writing Remotion markup in a specific way, the Remotion Studio is able to recognize the structure of the code and makes it interactive:
@@ -12,6 +12,37 @@ By writing Remotion markup in a specific way, the Remotion Studio is able to rec
 - Making keyframes and easing values editable
 
 If the markup is too complex for the Studio to make it interactive, then the values become grayed out.
+
+## Give every independently editable item its own JSX node
+
+The Studio edits the JSX source node that created an item. If multiple runtime
+items come from the same JSX node, they share one source-editing target.
+
+For every composition registration, clip, scene, layer or sequence that should
+be editable on its own, write a separate JSX node and keep its editable props
+on that node. This applies to `<Composition>`, `<Still>`, built-in media
+components, `<Sequence>`, `<Series.Sequence>`, `<TransitionSeries.Sequence>`
+and custom components.
+
+For example, author an editable timeline like this:
+
+```tsx title="Separate source nodes"
+<Series>
+  <Series.Sequence name="Introduction" durationInFrames={90}>
+    <Introduction />
+  </Series.Sequence>
+  <Series.Sequence name="Demo" durationInFrames={150}>
+    <Demo />
+  </Series.Sequence>
+</Series>
+```
+
+A `.map()` or another programmatic loop would create multiple runtime items
+from one JSX source node. That is appropriate for repeated output that is
+intentionally controlled as one template, such as visualization bars or
+particles. It is not appropriate when the instances need independent IDs or
+names, props, metadata, timing, ordering, deletion or duplication in the
+Studio.
 
 ## Make an HTML element interactive using `Interactive`
 
@@ -147,6 +178,72 @@ const translateY = interpolate(frame, [0, 30], [0, 120]); // ❌ Math should be 
 />
 ```
 
+## Keep SVG paths editable with `Interactive.Path`
+
+Use `<Interactive.Path>` from `remotion` instead of `<path>` inside an SVG to make the path visually editable.
+
+Install `@remotion/paths` for path interpolation and Studio path keyframes:
+
+```sh
+bunx remotion add @remotion/paths
+```
+
+If the geometry is meant to be static, put the path string directly in the `d` prop. Do not extract it into a constant.
+
+```tsx title="Editable static path"
+import {Interactive} from 'remotion';
+
+<Interactive.Svg width={300} height={300} viewBox="0 0 300 300">
+  <Interactive.Path
+    name="Triangle"
+    d="M 40 40 L 260 40 L 150 260 Z"
+    fill="#0b84f3"
+  />
+</Interactive.Svg>
+```
+
+### Morph paths using inline `interpolatePaths()`
+
+Use `interpolatePaths()` from `@remotion/paths` directly in `d`.  
+It accepts a frame, an input range, an equally sized array of path strings, and options for easing, extrapolation, and posterization.
+Keep the output paths, ranges, and options inline, following the same input-range rules as `interpolate()` above.  
+Do not use `interpolatePath()` API or extract the interpolated result into a variable when the path keyframes should remain editable in Studio.
+
+```tsx title="Editable path keyframes"
+import {interpolatePaths} from '@remotion/paths';
+import {Easing, Interactive, useCurrentFrame} from 'remotion';
+
+export const MorphingPath = () => {
+  const frame = useCurrentFrame();
+
+  return (
+    <Interactive.Svg width={300} height={300} viewBox="0 0 300 300">
+      <Interactive.Path
+        name="Morphing triangle"
+        d={interpolatePaths(
+          frame,
+          [0, 30, 60],
+          [
+            'M 40 40 L 260 40 L 150 260 Z',
+            'M 40 150 L 150 40 L 260 150 Z',
+            'M 40 260 L 150 40 L 260 260 Z',
+          ],
+          {
+            easing: Easing.bezier(0.42, 0, 0.58, 1),
+            extrapolateLeft: 'clamp',
+            extrapolateRight: 'clamp',
+          },
+        )}
+        fill="#0b84f3"
+      />
+    </Interactive.Svg>
+  );
+};
+```
+
+Studio can edit the path at the current frame, add or move keyframes, and adjust their easing.  
+Use `strokeDasharray` and `strokeDashoffset` to evolve paths.
+
 ## Use `scale`, `translate`, `rotate` CSS properties
 
 Avoid the `transform` CSS property.  
@@ -154,7 +251,7 @@ If possible, use `scale`, `rotate` and `translate` instead because only they are
 
 ## Keep composition metadata inline
 
-When scaffolding a composition, keep `width`, `height`, `fps`, `durationInFrames` and `defaultProps` inline and make no type assertions.
+When scaffolding a composition, use a JSX string literal for `id`, keep `width`, `height`, `fps`, `durationInFrames` and `defaultProps` inline and make no type assertions.
 
 The Props editor can save visual edits back to your code when `defaultProps` is an inline object literal on `<Composition>` or `<Still>`.
 
