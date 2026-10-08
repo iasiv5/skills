@@ -4,7 +4,6 @@
     "docx":                      { "repo": "anthropics/skills",                    "subdir": "skills/docx" },
     "pdf":                       { "repo": "anthropics/skills",                    "subdir": "skills/pdf" },
     "xlsx":                      { "repo": "anthropics/skills",                    "subdir": "skills/xlsx" },
-    "skill-creator":             { "repo": "anthropics/skills",                    "subdir": "skills/skill-creator" },
     "remotion-best-practices":   { "repo": "remotion-dev/skills",                  "subdir": "skills/remotion-best-practices" },
     "guizang-ppt-skill":         { "repo": "op7418/guizang-ppt-skill" },
     "guizang-social-card-skill": { "repo": "op7418/guizang-social-card-skill" },
@@ -20,18 +19,12 @@
     "Geek-skills-keqian-method":             { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-keqian-method" },
     "Geek-skills-xuefeng-method":            { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-xuefeng-method" },
     "Geek-skills-wechat-article-writer":     { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-wechat-article-writer" },
-    "Geek-skills-c-drive-cleaner":           { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-c-drive-cleaner" },
-    "neat-freak":                            { "repo": "KKKKhazix/khazix-skills",  "subdir": "neat-freak" },
-    "pua":                                   { "repo": "tanweai/pua",              "subdir": "skills/pua" },
     "handoff":                               { "repo": "iasiv5/m",                 "subdir": "plugins/iasi/skills/handoff" },
     "writing-plans":                         { "repo": "iasiv5/m",                 "subdir": "plugins/iasi/skills/writing-plans" }
   },
   "skip": [
     "code-review", 
     "wechat-draft", 
-    "Geek-skills-wechat-article-writer", 
-    "Geek-skills-c-drive-cleaner", 
-    "neat-freak",
-    "pua"
+    "Geek-skills-wechat-article-writer"
   ]
 }
