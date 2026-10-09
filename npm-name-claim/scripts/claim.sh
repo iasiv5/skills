@@ -6,12 +6,12 @@ set -euo pipefail
 
 REGISTRY="https://registry.npmjs.org"
 USAGE="用法:
-  claim.sh check <name>                                   查可用性+合规+近似名
+  claim.sh check <name> [<name>...]                       查可用性+合规；多名时逐行输出并省略近似名，单名附近似名
   claim.sh scaffold <name> [--dir BASE] [--desc T] [--repo URL] [--homepage URL] [--author N]
                                                           搭 0.0.1 占位包到 BASE/<name>（默认 ./npm-packages）
   claim.sh weblogin <pkgdir>                              web 登录拿 token 写入 <pkgdir>/.npmrc（token 不回显）
   claim.sh publish <pkgdir>                               伪 TTY 发布；EOTP 时输出 AUTH_URL 交用户授权，之后自动完成
-  claim.sh verify <name>                                  验证已发布（200 + 版本 + 发布者）
+  claim.sh verify <name> [--wait 秒]                      验证已发布（200 + 版本 + 发布者）；--wait 轮询等待 0.0.0-stage 转正
   claim.sh cleanup <pkgdir>                               删除包目录里的 .npmrc（token 卫生）
   claim.sh trust <pkgdir> --repo OWNER/REPO --file <workflow.yml> [--allow-publish]
                                                           配 GitHub Actions OIDC 信任（npm trust github）；EOTP 时输出 AUTH_URL"
@@ -23,24 +23,29 @@ cmd="${1:-}"; shift || true
 case "$cmd" in
 
 check)
-  name="${1:-}" ; [ -n "$name" ] || die "$USAGE"
-  # 名字合规（新包规则：小写字母数字连字符，可带 scope，不以点/下划线开头，≤214）
-  if [[ "$name" =~ ^@ ]]; then
-    [[ "$name" =~ ^@[a-z0-9-]+/[a-z0-9][a-z0-9-]*$ ]] || die "scope 包名不合规: $name"
-  else
-    [[ "$name" =~ ^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$ ]] || die "包名不合规（需小写字母/数字/连字符，且不以连字符开头结尾）: $name"
-  fi
-  [ ${#name} -le 214 ] || die "包名超过 214 字符"
-  code=$(curl -s -o /dev/null -w '%{http_code}' "$REGISTRY/$name")
-  case "$code" in
-    404) echo "AVAILABLE: $name 未注册，可抢注" ;;
-    200) echo "TAKEN: $name 已被注册" ;;
-    *)   die "registry 返回 HTTP $code，请人工确认" ;;
-  esac
-  enc=${name//@/%40} ; enc=${enc//\//%2F}
-  echo "--- 近似名（评估混淆/typosquat 争议风险）---"
-  curl -s "$REGISTRY/-/v1/search?text=$enc&size=5" \
-    | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const d=JSON.parse(s);for(const o of d.objects)console.log(' ', o.package.name, '|', o.package.version, '|', (o.package.description||'').slice(0,70))})"
+  [ $# -ge 1 ] || die "$USAGE"
+  batch=0 ; [ $# -gt 1 ] && batch=1   # 多名批量：逐行输出，省略近似名刷屏
+  for name in "$@"; do
+    # 名字合规（新包规则：小写字母数字连字符，可带 scope，不以点/下划线开头，≤214）
+    if [[ "$name" =~ ^@ ]]; then
+      [[ "$name" =~ ^@[a-z0-9-]+/[a-z0-9][a-z0-9-]*$ ]] || { echo "INVALID: scope 包名不合规: $name"; continue; }
+    else
+      [[ "$name" =~ ^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$ ]] || { echo "INVALID: 包名不合规（需小写字母/数字/连字符，且不以连字符开头结尾）: $name"; continue; }
+    fi
+    [ ${#name} -le 214 ] || { echo "INVALID: 包名超过 214 字符: $name"; continue; }
+    code=$(curl -s -o /dev/null -w '%{http_code}' "$REGISTRY/$name")
+    case "$code" in
+      404) echo "AVAILABLE: $name 未注册，可抢注" ;;
+      200) echo "TAKEN: $name 已被注册" ;;
+      *)   echo "UNKNOWN: $name -> registry HTTP $code，请人工确认" ;;
+    esac
+    if [ "$batch" -eq 0 ]; then
+      enc=${name//@/%40} ; enc=${enc//\//%2F}
+      echo "--- 近似名（评估混淆/typosquat 争议风险）---"
+      curl -s "$REGISTRY/-/v1/search?text=$enc&size=5" \
+        | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const d=JSON.parse(s);for(const o of d.objects)console.log(' ', o.package.name, '|', o.package.version, '|', (o.package.description||'').slice(0,70))})"
+    fi
+  done
   ;;
 
 scaffold)
@@ -197,13 +202,29 @@ trust)
   ;;
 
 verify)
+  wait_secs=0
+  if [ "${1:-}" = "--wait" ]; then wait_secs="${2:-180}"; shift 2; fi
   name="${1:-}"; [ -n "$name" ] || die "$USAGE"
-  code=$(curl -s -o /dev/null -w '%{http_code}' "$REGISTRY/$name")
-  [ "$code" = "200" ] || die "$name -> HTTP $code（尚未生效？registry 有分钟级缓存）"
-  curl -s "$REGISTRY/$name" | node -e "
-    let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const d=JSON.parse(s);
-    const v=d.versions[d['dist-tags'].latest];
-    console.log('LIVE:', d.name+'@'+d['dist-tags'].latest, '| by', (v._npmUser||{}).name, '| https://www.npmjs.com/package/'+d.name)})"
+  deadline=$(( $(date +%s) + wait_secs ))
+  while :; do
+    http=$(curl -s -o /dev/null -w '%{http_code}' "$REGISTRY/$name")
+    msg="" ; ok=0
+    if [ "$http" = "200" ]; then
+      d=$(curl -s "$REGISTRY/$name")
+      latest=$(jsonget "$d" dist-tags.latest)
+      if [ "$latest" != "0.0.0-stage" ]; then
+        # 版本号含点，不能用 jsonget 的点路径，改 node 内联解析
+        echo "$d" | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const d=JSON.parse(s);const v=d.versions[d['dist-tags'].latest];console.log('LIVE:', d.name+'@'+d['dist-tags'].latest, '| by', (v._npmUser||{}).name, '| https://www.npmjs.com/package/'+d.name)})"
+        break
+      fi
+      msg="STAGED: $name 仍是 0.0.0-stage（全新包名首发的正常占位记录，1–2 分钟转正；publish 已受理，不要重发）"
+      ok=1
+    else
+      msg="$name -> HTTP $http（尚未生效？registry 有分钟级缓存）"
+    fi
+    if [ "$(date +%s)" -ge "$deadline" ]; then echo "$msg"; exit $(( 1 - ok )); fi
+    sleep 5
+  done
   ;;
 
 cleanup)
