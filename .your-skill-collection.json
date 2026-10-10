@@ -20,13 +20,17 @@
     "Geek-skills-xuefeng-method":            { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-xuefeng-method" },
     "Geek-skills-wechat-article-writer":     { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-wechat-article-writer" }
   },
-  "skip": [
+  "local": [
     "brainstorming",
     "writing-plans",
     "cleanup",
     "handoff",
-    "code-review", 
-    "wechat-draft", 
+    "code-review",
+    "wechat-draft",
+    "npm-name-claim",
+    "eli5"
+  ],
+  "skip": [
     "Geek-skills-wechat-article-writer"
   ]
 }

@@ -3,7 +3,7 @@
 # 用法:
 #   ./update.sh              # 更新 .your-skill-collection.json 中所有 skills
 #   ./update.sh docx pdf     # 只更新指定的 skills
-# 注意: skip 列表中的 skill 不参与更新
+# 注意: local 列表（本地自研源头）和 skip 列表（暂时跳过）中的 skill 不参与更新
 
 set -euo pipefail
 
@@ -75,7 +75,7 @@ get_clone() {
   fail "克隆失败: $repo（耗时 ${dur}s）"; return 1
 }
 
-# 从 .your-skill-collection.json 读取条目列表（排除 skip，支持按名称过滤）
+# 从 .your-skill-collection.json 读取条目列表（排除 skip 和 local，支持按名称过滤）
 # 输出格式: name TAB repo TAB mode TAB payload
 #   mode=subdir: payload=子目录路径（或空）
 #   mode=files:  payload=JSON 数组字符串
@@ -84,9 +84,11 @@ read_skills() {
 import json, os, sys
 data = json.load(open(os.path.join(sys.argv[2], '.your-skill-collection.json')))
 skips = set(data.get('skip', []))
+locals_ = set(data.get('local', []))
+ignored = skips | locals_
 f = set(sys.argv[1].split()) if sys.argv[1].strip() else None
-for name, cfg in data['skills'].items():
-    if name in skips:
+for name, cfg in data.get('skills', {}).items():
+    if name in ignored:
         continue
     if f and name not in f:
         continue
