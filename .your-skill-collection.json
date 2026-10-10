@@ -18,11 +18,13 @@
     "darwin-skill":                          { "repo": "alchaincyf/darwin-skill" },
     "Geek-skills-keqian-method":             { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-keqian-method" },
     "Geek-skills-xuefeng-method":            { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-xuefeng-method" },
-    "Geek-skills-wechat-article-writer":     { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-wechat-article-writer" },
-    "handoff":                               { "repo": "iasiv5/m",                 "subdir": "plugins/iasi/skills/handoff" },
-    "writing-plans":                         { "repo": "iasiv5/m",                 "subdir": "plugins/iasi/skills/writing-plans" }
+    "Geek-skills-wechat-article-writer":     { "repo": "staruhub/ClaudeSkills",    "subdir": "skills/Geek-skills-wechat-article-writer" }
   },
   "skip": [
+    "brainstorming",
+    "writing-plans",
+    "cleanup",
+    "handoff",
     "code-review", 
     "wechat-draft", 
     "Geek-skills-wechat-article-writer"
