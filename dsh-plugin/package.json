@@ -1,6 +1,6 @@
 {
   "name": "@iasiv5/dsh-skills",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "DeepSeek Harness plugin: iasiv5's agent skill collection as bundled skills (loaded via the host skill registry, no .agents/skills copies needed).",
   "keywords": [
     "dsh",
