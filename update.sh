@@ -4,6 +4,11 @@
 #   ./update.sh              # 更新 .your-skill-collection.json 中所有 skills
 #   ./update.sh docx pdf     # 只更新指定的 skills
 # 注意: local 列表（本地自研源头）和 skip 列表（暂时跳过）中的 skill 不参与更新
+#
+# ⚠️ DeepSeek Harness (DSH) 用户请勿使用本脚本：DSH 走 @iasiv5/dsh-skills 插件
+#    安装（dsh plugin --profile web add @iasiv5/dsh-skills 或市场安装），插件版
+#    优先级低于本地副本，本脚本装的副本会遮蔽插件版。本脚本仅供 Claude Code /
+#    Codex 等其他 harness 使用。
 
 set -euo pipefail
 

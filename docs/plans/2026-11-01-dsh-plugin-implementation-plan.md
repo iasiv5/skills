@@ -3,6 +3,7 @@
 > 修订 A（2026-11-01 评审 R1）：skill 计数 27→28（评审 Q1）；invocation 按 frontmatter 透传 + DoD 精确集合 22+6（Q2）；Task 8 白名单 29 项 + `.git` 排除（Q3）；NOTICE 覆盖扩至 20 个上游来源、素材源改仓库（Q4/Q8）；锁文件提交 + `npm ci`（Q5/Q7）；重启生效判据可观测化（Q6）；版本门禁首发特判（Q9）；判据命令退出码卫生（Q10）。
 > 修订 B（2026-11-01 评审 R2）：Task 9 补 dsh-m 发版链（push ≠ 市场可见，Q13）；Task 8 Step 3 改全集逐项断言堵假绿通道（Q14）；重启探针加轮询 ≤120s 防启动竞态（Q15）；ADR 0002 勘误 28、核查落盘直路径、Task 6 加 git 干净前置（Q16）。
 > 定稿（2026-11-01）：评审通过（16 项闭环）；D1 计数勘误 28、D2 NOTICE 扩至 20 上游、D3 id `dsh-skills` 均经主人批示，待决策标注已清除。
+> 执行勘误 C（2026-11-01）：门禁③语义细化——「打包分歧」（引用目标在仓库内存在但在打包目录集之外）为 fail；「既有悬空引用」（源中即缺失，上游原样）与文档写法示例降为 warn 非阻断（as-is 照带，构建报告如实计数）；提取器过滤 `<占位符>`/`file:`/绝对路径/glob。
 
 ## 目标
 
@@ -108,7 +109,7 @@
 - 接口契约
   - Consumes: Task 2 的 manifest schema；根目录 skill 目录（以「根目录下含 `SKILL.md` 的目录」**动态发现**，硬编码名单禁用；`.backup/`（gitignore）无根级 SKILL.md，天然不在集合内）
   - Produces: `dsh-plugin/skills-manifest.json`（真实 28 条）、`dsh-plugin/skills/<目录>` 副本、`dsh-plugin/package-lock.json`（提交入库）；门禁命令 `node dsh-plugin/scripts/build.mjs --check`（CI 用，只校验不同步）；退出码约定 0=过 / 1=挂
-- 门禁四项：① 每个目录 `SKILL.md` 存在且 frontmatter 可被 `yaml` 解析、含非空 `name`/`description`，且 invocation 键合法——`disable-model-invocation`/`user-invocable` 为可解析布尔（true/false/1/0/yes/no/on/off），legacy 键（`disableModelInvocation`/`modelInvocable`/`userInvocable`）拒绝（与宿主 `rejectLegacyInvocationKey` 同语义）；② 全仓 frontmatter `name` 全局唯一（`keqian-method` 等与目录名不同以 frontmatter 为准）；③ 引用完整性冒烟：扫每个 `SKILL.md` 中的相对路径引用（`](./…)`、`](…/)` 与 `scripts/…`、`assets/…`、`references/…` 字面引用），目标文件必须存在于包内（as-is 下防手滑删文件）；④ `npm pack --dry-run` 成功并打印 tarball 体积
+- 门禁四项：① 每个目录 `SKILL.md` 存在且 frontmatter 可被 `yaml` 解析、含非空 `name`/`description`，且 invocation 键合法——`disable-model-invocation`/`user-invocable` 为可解析布尔（true/false/1/0/yes/no/on/off），legacy 键（`disableModelInvocation`/`modelInvocable`/`userInvocable`）拒绝（与宿主 `rejectLegacyInvocationKey` 同语义）；② 全仓 frontmatter `name` 全局唯一（`keqian-method` 等与目录名不同以 frontmatter 为准）；③ 引用完整性冒烟（执行勘误 C 两级语义）：扫每个 `SKILL.md` 中的相对路径引用（`](./…)`、`](…/)` 与反引号内 `scripts/…`、`assets/…`、`references/…`、`docs/…` 字面引用，过滤 `<占位符>`/`file:`/绝对路径/glob）；**fail = 打包分歧**（目标在仓库内存在但在打包目录集之外——老全仓布局可用、打包后必断）；**warn = 既有悬空**（源中即缺失，上游原样照带、构建报告计数）；④ `npm pack --dry-run` 成功并打印 tarball 体积
 - 验证范围：build 全绿且 manifest 28 条；人为破坏用例转红。
 
 - [ ] Step 1: 写 `scripts/build.mjs` 骨架（空 staging 逻辑 + 「0 个 skill 目录」守卫）、`package.json` scripts + devDependencies（`"yaml": "^2"`）、根 `.gitignore` 追加两条；**先 `npm install`（生成 `package-lock.json`）并提交锁文件**——依赖就位后 Step 2 的失败信号才是计数守卫而非 `Cannot find package 'yaml'`
