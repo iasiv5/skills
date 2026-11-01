@@ -24,14 +24,15 @@ jobs:
           # No registry-url on purpose (dsh-skins precedent): setup-node would
           # inject a placeholder NODE_AUTH_TOKEN, which shadows the OIDC
           # exchange. The default registry is registry.npmjs.org already.
-      - name: Verify tag ↔ package version identity + semver-by-manifest gate
-        run: node scripts/version-gate.mjs "${GITHUB_REF_NAME}"
       - name: Install dependencies (lockfile-pinned)
         run: npm ci
       - name: Build (stage skills + manifest + gates)
         run: npm run build
       - name: Unit tests
         run: npm test
+      - name: Verify tag ↔ package version identity + semver-by-manifest gate
+        # After build: the gate reads skills-manifest.json, which the build stages.
+        run: node scripts/version-gate.mjs "${GITHUB_REF_NAME}"
       - name: Pack the install artifact
         run: mkdir -p ../.artifacts && npm pack --pack-destination ../.artifacts
       - name: Artifact load smoke (packed tarball, not the worktree)
