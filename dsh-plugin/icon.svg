@@ -1,4 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#16213e"/>
-  <path d="M14 14h36v6H20v10h24a6 6 0 0 1 6 6v10a6 6 0 0 1-6 6H14v-6h30V36H20a6 6 0 0 1-6-6V14z" fill="#e94560"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1B2440"/>
+      <stop offset="1" stop-color="#10182B"/>
+    </linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4FC3F7"/>
+      <stop offset="1" stop-color="#2FE39B"/>
+    </linearGradient>
+    <linearGradient id="mid" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#33B5E5"/>
+      <stop offset="1" stop-color="#25C08A"/>
+    </linearGradient>
+    <linearGradient id="bot" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1E9BD0"/>
+      <stop offset="1" stop-color="#1A9A72"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.62">
+      <stop offset="0" stop-color="#2FE39B" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#2FE39B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <rect width="64" height="64" rx="14" fill="url(#glow)"/>
+
+  <!-- bottom layer -->
+  <path d="M32 41 L50 46.5 L32 52 L14 46.5 Z" fill="url(#bot)" opacity="0.5"/>
+  <!-- middle layer -->
+  <path d="M32 33.5 L50 39 L32 44.5 L14 39 Z" fill="url(#mid)" opacity="0.78"/>
+  <!-- top layer -->
+  <path d="M32 26 L50 31.5 L32 37 L14 31.5 Z" fill="url(#top)"/>
+  <!-- 4-point spark cutout on top layer -->
+  <path d="M32 27.6 L33.5 30.5 L36.4 32 L33.5 33.5 L32 36.4 L30.5 33.5 L27.6 32 L30.5 30.5 Z" fill="#10182B"/>
 </svg>
