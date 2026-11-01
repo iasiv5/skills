@@ -24,6 +24,14 @@ const BOOL_TRUE = new Set([true, 1, "1", "true", "yes", "on"]);
 const BOOL_FALSE = new Set([false, 0, "0", "false", "no", "off"]);
 const REF_PREFIX_RE = /^(?:scripts|assets|references|docs)\//;
 
+// License-driven packaging exclusions (owner decisions D4/D5, 2026-11-01):
+//   docx / pdf / xlsx — Anthropic LICENSE.txt ADDITIONAL RESTRICTIONS prohibit
+//     distribution to any third party; npm publishing would violate it.
+//   remotion-best-practices — upstream ships no license (remotion-dev/skills).
+// These stay in the repository; they are only kept out of the npm package.
+// Audit record: ~/.dsh-research/dsh-skills-plan-review/license-audit-2026-11.md
+const PACKAGING_EXCLUDE = new Set(["docx", "pdf", "xlsx", "remotion-best-practices"]);
+
 const errors = [];
 function fail(message) {
   errors.push(message);
@@ -34,11 +42,18 @@ function fail(message) {
 async function discoverSkillDirs() {
   const entries = await readdir(repoRoot, { withFileTypes: true });
   const dirs = [];
+  const excluded = [];
   for (const entry of entries) {
     if (entry.name.startsWith(".")) continue;
     if (!entry.isDirectory()) continue;
-    if (existsSync(join(repoRoot, entry.name, "SKILL.md"))) dirs.push(entry.name);
+    if (!existsSync(join(repoRoot, entry.name, "SKILL.md"))) continue;
+    if (PACKAGING_EXCLUDE.has(entry.name)) {
+      excluded.push(entry.name);
+      continue;
+    }
+    dirs.push(entry.name);
   }
+  if (excluded.length > 0) console.log(`excluded from package (license policy): ${excluded.sort().join(", ")}`);
   return dirs.sort();
 }
 
@@ -242,6 +257,13 @@ function packReport() {
     return;
   }
   const notices = (result.stderr ?? "").split("\n").filter((line) => line.startsWith("npm notice"));
+  // Hard exclusion assertions (fail-closed): dev trees and test scaffolding must
+  // never enter the tarball, regardless of the files whitelist.
+  for (const line of notices) {
+    if (/npm notice (node_modules\/|test\/|scripts\/|\.github\/)/.test(line)) {
+      fail(`pack listing contains forbidden path: ${line.trim()}`);
+    }
+  }
   const interesting = notices.filter((line) => /Tarball Details|package size|total files|filename/i.test(line));
   console.log(interesting.join("\n"));
 }

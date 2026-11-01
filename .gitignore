@@ -11,3 +11,6 @@ __pycache__/
 # dsh-plugin build artifacts (staged skills snapshot + generated manifest)
 dsh-plugin/skills/
 dsh-plugin/skills-manifest.json
+
+# dependency trees (npm dev install)
+node_modules/

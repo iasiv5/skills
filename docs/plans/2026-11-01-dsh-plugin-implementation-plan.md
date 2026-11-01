@@ -4,10 +4,11 @@
 > 修订 B（2026-11-01 评审 R2）：Task 9 补 dsh-m 发版链（push ≠ 市场可见，Q13）；Task 8 Step 3 改全集逐项断言堵假绿通道（Q14）；重启探针加轮询 ≤120s 防启动竞态（Q15）；ADR 0002 勘误 28、核查落盘直路径、Task 6 加 git 干净前置（Q16）。
 > 定稿（2026-11-01）：评审通过（16 项闭环）；D1 计数勘误 28、D2 NOTICE 扩至 20 上游、D3 id `dsh-skills` 均经主人批示，待决策标注已清除。
 > 执行勘误 C（2026-11-01）：门禁③语义细化——「打包分歧」（引用目标在仓库内存在但在打包目录集之外）为 fail；「既有悬空引用」（源中即缺失，上游原样）与文档写法示例降为 warn 非阻断（as-is 照带，构建报告如实计数）；提取器过滤 `<占位符>`/`file:`/绝对路径/glob。
+> 执行勘误 D（2026-11-01，主人批示 D4/D5）：**剔除 4 个 skill 出包**——docx/pdf/xlsx（Anthropic LICENSE 禁第三方再分发，Task 4 Step 2 审计实锤）+ remotion-best-practices（上游 404 无许可）；仓库原样保留，构建脚本 `PACKAGING_EXCLUDE` 显式排除。**打包集 28 → 24（18 model-invocable + 6 斜杠）**；ADR 0003 已补修订节；NOTICE 改「收录 24 + 未收录 4 及缘由」双层结构（原「恰 20 条」分节断言随落地形态改为覆盖性断言）；Geek ×2 修正为 staruhub/ClaudeSkills 仓库级 MIT；附带修正：`dsh-plugin/node_modules` 误跟踪已移出索引并入 gitignore，门禁④加 pack 禁入路径硬断言（fail-closed）。Task 8 迁移白名单改 **25 项**（24 skill + `docs`）——4 个剔除 skill 的本地副本**保留**（插件不提供它们，本地保留即保持可用，且不涉 npm 再分发）。
 
 ## 目标
 
-把本仓 28 个 skill 以**单包全量**方式改造为 DSH 插件 `@iasiv5/dsh-skills`：仓库内新增 `dsh-plugin/` wrapper，构建期同步 skills、发版到 npm，web 机装机并通过 DoD 验收，随后清理本机 `~/.agents/skills/` 旧副本、收录 dsh-m（audience internal），并产出 desktop 机跟进清单。
+把本仓 28 个 skill 中的 **24 个**（勘误 D：docx/pdf/xlsx/remotion-best-practices 因许可剔除出包，仓库保留）以**单包全量**方式改造为 DSH 插件 `@iasiv5/dsh-skills`：仓库内新增 `dsh-plugin/` wrapper，构建期同步 skills、发版到 npm，web 机装机并通过 DoD 验收，随后清理本机 `~/.agents/skills/` 旧副本、收录 dsh-m（audience internal），并产出 desktop 机跟进清单。
 
 ## 架构快照
 
@@ -22,7 +23,7 @@
 - **零 runtime 依赖**；禁止任何 `@deepseek-ai/*` 依赖（know-how 041）；devDependencies 仅 `yaml`（构建/测试期用），`package-lock.json` 随仓提交，CI 用 `npm ci`。
 - **as-is 不裁剪**（ADR 0003）：skill 目录内文件原样进包；LICENSE 保留；根级 `NOTICE.md` 汇总归属。
 - bundled skill rank = 600（`BUNDLED_SKILL_RANK`）。**invocation 按 frontmatter 透传**（与宿主 `parseInvocationPolicy` 同语义）：`disable-model-invocation: true` → `modelInvocable: false`；`user-invocable: false` → `userInvocable: false`；缺省两值均为 true；legacy 键（`disableModelInvocation`/`modelInvocable`/`userInvocable`）非法，构建门禁拒绝。frontmatter 有 `whenToUse` 则透传。
-- **计数基线（2026-11-01 实测）**：28 个 skill = 22 个 model-invocable + 6 个 `disable-model-invocation`（cleanup、eli5、grill-with-docs、improve-codebase-architecture、retro、teach）。构建输出动态计数 `N skills staged` 并断言 N == manifest 条数；判据引用名单处均以此二清单为准，防仓库演化后数字漂移。
+- **计数基线（2026-11-01 实测，勘误 D 后）**：仓库 28 个 skill；**打包 24 个 = 18 个 model-invocable + 6 个 `disable-model-invocation`**（cleanup、eli5、grill-with-docs、improve-codebase-architecture、retro、teach）；`PACKAGING_EXCLUDE` = docx/pdf/xlsx/remotion-best-practices（许可剔除，勘误 D）。构建输出动态计数 `N skills staged` 并断言 N == manifest 条数；判据引用名单处均以此二清单为准，防仓库演化后数字漂移。
 - 版本语义：新增 skill = minor，内容修订 = patch，移除/更名 = major（CI 门禁强制）；首发 **1.0.0**。
 - dsh-m 条目：id `dsh-skills`、category `self-dev`、`audience: "internal"`、`decoupled: true`、verified `["0.2.1-rc.5"]`。（id 已经主人批示 D3 定稿：现役 6 条自研条目全为 npm 短名，基线 B11 原文 `iasiv5__skills` 系与 awesome-dsh 社区目录惯例混淆，按 registry 实况取短名。）
 - web 机环境红线：npm 一律 `export npm_config_cache=~/workspace/.npm-ci-cache`；npm 轮询加 `--registry=https://registry.npmjs.org`（know-how 035⑥）；profiles 禁裸写，装/卸走 `dsh plugin --profile web …` 通道（know-how 026）；**重启一律 `dshm_restart`，禁在当轮 inline `systemctl restart`**（know-how 037）。
@@ -46,7 +47,7 @@
 - Create: `dsh-plugin/NOTICE.md` — 第三方归属汇总（ADR 0003；覆盖全部 20 个上游来源）
 - Create: `dsh-plugin/README.md` — 插件包自述（安装方式、skill 清单指向）
 - Create: `dsh-plugin/skills-manifest.json` — 构建产物（gitignore），schema 见 Task 2 接口契约
-- Create: `dsh-plugin/skills/` — 构建产物（gitignore），28 个 skill 目录的同步副本
+- Create: `dsh-plugin/skills/` — 构建产物（gitignore），24 个收录 skill 目录的同步副本（勘误 D：4 个许可剔除目录不入）
 - Create: `dsh-plugin/scripts/build.mjs` — 同步 + manifest 生成 + 门禁 + 体积报告
 - Create: `dsh-plugin/test/provider.test.mjs` — `node --test` 单测（fixture 驱动）
 - Create: `.github/workflows/release.yml` — tag 触发构建 + 版本门禁 + OIDC 发布
@@ -108,9 +109,9 @@
 - 涉及文件：Create `dsh-plugin/scripts/build.mjs`、`dsh-plugin/package-lock.json`（本任务生成）；Modify `package.json`（加 `"scripts": {"build": "node scripts/build.mjs", "test": "node --test test/provider.test.mjs"}`）；Modify 根 `.gitignore`（追加 `dsh-plugin/skills/`、`dsh-plugin/skills-manifest.json`）。
 - 接口契约
   - Consumes: Task 2 的 manifest schema；根目录 skill 目录（以「根目录下含 `SKILL.md` 的目录」**动态发现**，硬编码名单禁用；`.backup/`（gitignore）无根级 SKILL.md，天然不在集合内）
-  - Produces: `dsh-plugin/skills-manifest.json`（真实 28 条）、`dsh-plugin/skills/<目录>` 副本、`dsh-plugin/package-lock.json`（提交入库）；门禁命令 `node dsh-plugin/scripts/build.mjs --check`（CI 用，只校验不同步）；退出码约定 0=过 / 1=挂
+  - Produces: `dsh-plugin/skills-manifest.json`（真实 24 条）、`dsh-plugin/skills/<目录>` 副本、`dsh-plugin/package-lock.json`（提交入库）；门禁命令 `node dsh-plugin/scripts/build.mjs --check`（CI 用，只校验不同步）；退出码约定 0=过 / 1=挂
 - 门禁四项：① 每个目录 `SKILL.md` 存在且 frontmatter 可被 `yaml` 解析、含非空 `name`/`description`，且 invocation 键合法——`disable-model-invocation`/`user-invocable` 为可解析布尔（true/false/1/0/yes/no/on/off），legacy 键（`disableModelInvocation`/`modelInvocable`/`userInvocable`）拒绝（与宿主 `rejectLegacyInvocationKey` 同语义）；② 全仓 frontmatter `name` 全局唯一（`keqian-method` 等与目录名不同以 frontmatter 为准）；③ 引用完整性冒烟（执行勘误 C 两级语义）：扫每个 `SKILL.md` 中的相对路径引用（`](./…)`、`](…/)` 与反引号内 `scripts/…`、`assets/…`、`references/…`、`docs/…` 字面引用，过滤 `<占位符>`/`file:`/绝对路径/glob）；**fail = 打包分歧**（目标在仓库内存在但在打包目录集之外——老全仓布局可用、打包后必断）；**warn = 既有悬空**（源中即缺失，上游原样照带、构建报告计数）；④ `npm pack --dry-run` 成功并打印 tarball 体积
-- 验证范围：build 全绿且 manifest 28 条；人为破坏用例转红。
+- 验证范围：build 全绿且 manifest 24 条；人为破坏用例转红。
 
 - [ ] Step 1: 写 `scripts/build.mjs` 骨架（空 staging 逻辑 + 「0 个 skill 目录」守卫）、`package.json` scripts + devDependencies（`"yaml": "^2"`）、根 `.gitignore` 追加两条；**先 `npm install`（生成 `package-lock.json`）并提交锁文件**——依赖就位后 Step 2 的失败信号才是计数守卫而非 `Cannot find package 'yaml'`
 - [ ] Step 2: 运行确认失败（骨架 staging 源为空）
@@ -119,7 +120,7 @@
 - [ ] Step 3: 实现 staging/manifest/门禁全量逻辑（同步用 `fs.cp`；manifest 按 dir 字典序；invocation 预计算入 manifest；四项门禁；`npm pack --dry-run` 体积报告）
 - [ ] Step 4: 全量构建通过
 - Run: `cd dsh-plugin && npm run build`
-- Expected: 退出码 0，输出 `28 skills staged`（动态计数 N，N == manifest.skills.length == 28）、体积报告、四项门禁全过
+- Expected: 退出码 0，输出 `24 skills staged`（动态计数 N，N == manifest.skills.length == 24；另打印 `excluded from package (license policy): docx, pdf, remotion-best-practices, xlsx`）、体积报告、四项门禁全过（含 pack 禁入路径硬断言）
 - [ ] Step 5: 负向验证（防门禁空转）：临时把某个 SKILL.md 的 `name:` 改成与另一 skill 重复
 - Run: `cd dsh-plugin && npm run build`
 - Expected: 退出码 1，报「duplicate skill name」；还原后重跑恢复绿
@@ -147,25 +148,25 @@
 - Expected: NOTICE 分节恰 20；README 含安装命令行（任一失败即退出码非 0）
 - [ ] Step 5: checkpoint commit（`docs(dsh-plugin): notice, readme and update.sh deprecation note`）
 
-### Task 5: 本地端到端（folder 安装全量 28 skill）
+### Task 5: 本地端到端（folder 安装全量 24 skill）
 
 - 目标：发布前在 web 机用 folder 安装验证全量注册（复用 Task 1 已验证的装载路径，灌真内容）。
 - 涉及文件：无新增（消费 Task 3 产物）。
 - 接口契约
   - Consumes: Task 3 的 staged `dsh-plugin/skills/` + manifest；Task 1 的安装命令与重启生效探针范式（T0/T1 时间戳 + journal 联合判据）
   - Produces: 主人新会话 skill 清单核对（DoD 第③条的预演）
-- 验证范围：journal 干净 + 时间戳推进 + 主人新会话 22 项 model 可见 + `/eli5` 冒烟。
+- 验证范围：journal 干净 + 时间戳推进 + 主人新会话 18 项 model 可见 + `/eli5` 冒烟。
 
 - [ ] Step 1: 重新构建确保产物最新
 - Run: `cd dsh-plugin && npm run build`
-- Expected: 退出码 0，`28 skills staged`
+- Expected: 退出码 0，`24 skills staged`
 - [ ] Step 2: folder 安装 + `dshm_restart` 工具（按 Task 1 Step 3 探针范式，轮询 ≤120s 至 T1 > T0）
 - Run: `dsh plugin --profile web add /home/ubuntu/workspace/skills/dsh-plugin` → `dshm_restart` 工具
 - Expected: 安装成功、轮询窗口内 T1 > T0
 - [ ] Step 3: journal 锚点检查（同 Task 1 Step 4 命令）
 - Expected: 无 `did not activate` / `skipping profile bundle`
-- [ ] Step 4: 🔴 主人协同验证点——开一个**新会话**核对：**22 个 model-invocable skill 全部出现**在 available_skills（清单：answer-me-with-html, architecture-diagram, brainstorming, code-review, codebase-design, darwin-skill, docx, domain-modeling, grilling, guizang-ppt-skill, guizang-social-card-skill, handoff, keqian-method, note-slides, npm-name-claim, pdf, remotion-best-practices, wechat-draft, writing-for-agents, writing-plans, xuefeng-method, xlsx）；**6 个 `disable-model-invocation` skill（cleanup, eli5, grill-with-docs, improve-codebase-architecture, retro, teach）不出现在 catalog 属预期**，经斜杠调用验证——当场 `/eli5` 冒烟一次（注意：`Geek-skills-*` 目录名不出现，出现的是 `keqian-method`/`xuefeng-method`；非本仓 skill（lark-* 等）恒在场，不作判据）
-- Expected: 22 项齐、`/eli5` 冒烟正常
+- [ ] Step 4: 🔴 主人协同验证点——开一个**新会话**核对：**18 个 model-invocable skill 全部出现**在 available_skills（清单：answer-me-with-html, architecture-diagram, brainstorming, code-review, codebase-design, darwin-skill, domain-modeling, grilling, guizang-ppt-skill, guizang-social-card-skill, handoff, keqian-method, note-slides, npm-name-claim, wechat-draft, writing-for-agents, writing-plans, xuefeng-method）；**6 个 `disable-model-invocation` skill（cleanup, eli5, grill-with-docs, improve-codebase-architecture, retro, teach）不出现在 catalog 属预期**，经斜杠调用验证——当场 `/eli5` 冒烟一次；**docx/pdf/xlsx/remotion-best-practices 不在 catalog 属预期**（勘误 D 许可剔除；本地 `~/.agents/skills` 副本尚在时会以 rank 500 出现——Task 8 清理前的过渡期现状，如实记录即可）（注意：`Geek-skills-*` 目录名不出现，出现的是 `keqian-method`/`xuefeng-method`；非本仓 skill（lark-* 等）恒在场，不作判据）
+- Expected: 18 项齐、`/eli5` 冒烟正常
 - [ ] Step 5: 记录结果后暂不卸载（Task 7 直接换成正式源）
 
 ### Task 6: 发布流水线 + 首发 1.0.0
@@ -180,7 +181,7 @@
 - [ ] Step 1: 写 release.yml（job：checkout → setup-node 20 → `npm ci`（dsh-plugin 内，依赖已提交的 package-lock.json；本包仅 1 个 devDep，npm 链路与 `npm publish`/OIDC 一致，不引入 pnpm）→ `npm run build` → `npm test` → 版本门禁脚本（内联 node 脚本，npmjs 直查，含首发特判）→ `npm publish`（`cwd: dsh-plugin`，`--provenance`，`NPM_CONFIG_PROVENANCE: true`，OIDC `permissions: id-token: write`））与 ci.yml（push/pr：build + test）
 - [ ] Step 2: tarball 预审计（本地等价发布物检查）
 - Run: `cd dsh-plugin && npm pack --dry-run`
-- Expected: files 列表含 `skills/` 下 28 目录、`lib/`、`skills-manifest.json`、`cordis.patch.yml`、`icon.svg`、`NOTICE.md`、`README.md`；不含 `node_modules`、`test/`、`scripts/`
+- Expected: files 列表含 `skills/` 下 24 目录、`lib/`、`skills-manifest.json`、`cordis.patch.yml`、`icon.svg`、`NOTICE.md`、`README.md`；不含 `node_modules`、`test/`、`scripts/`（门禁④硬断言兜底）
 - [ ] Step 3: 🔴 主人协同点——按 npm-name-claim skill 完成 Trusted Publisher 配置（npm 网站 + GitHub Actions 权限）
 - [ ] Step 4: 合入 main 并打标（工作在 main 前先经主人确认）。**前置检查：`git -C ~/workspace/skills status --porcelain` 为空**——本评审批次的文档产物（ADR 0002/0003、GLOSSARY 增补、本计划）必须先全部提交，否则 push main 不含它们
 - Run: `git -C ~/workspace/skills status --porcelain`（应为空）→ `git push origin main && git tag v1.0.0 && git push origin v1.0.0`
@@ -206,7 +207,7 @@
 - Run: `dsh plugin --profile web add @iasiv5/dsh-skills`
 - Expected: 安装成功（若遇 `minimumReleaseAge` 类拦截，按 know-how 020 包名级豁免或等 24h 窗口）
 - [ ] Step 3: `dshm_restart` 工具 → T0/T1 时间戳推进（轮询 ≤120s，同 Task 1 Step 3）+ journal 锚点检查（联合判据）；HTTP 200 仅辅助
-- [ ] Step 4: 🔴 主人协同验证点——新会话 22 项 model 可见 + `/eli5` 冒烟（同 Task 5 Step 4 双清单）
+- [ ] Step 4: 🔴 主人协同验证点——新会话 18 项 model 可见 + `/eli5` 冒烟（同 Task 5 Step 4 双清单）
 - [ ] Step 5: 记录装机事实：`~/.dsh/profiles/web/node_modules/@iasiv5/dsh-skills/package.json` 的 version 应为 1.0.0
 - Run: `node -p "require('/home/ubuntu/.dsh/profiles/web/node_modules/@iasiv5/dsh-skills/package.json').version"`
 - Expected: `1.0.0`
@@ -218,19 +219,19 @@
 - 接口契约
   - Consumes: Task 7 装机验证通过（此前禁止清理）
   - Produces: 备份档案路径（供复发恢复）
-- 验证范围：白名单 29 个仓管目录从 `~/.agents/skills/` 消失，其余（lark-* 等 28 个）原样保留；新会话 22 项仍齐（来源切换为插件）。
+- 验证范围：白名单 25 个仓管目录从 `~/.agents/skills/` 消失（24 插件收录 skill + `docs`），其余原样保留——**含 4 个许可剔除 skill 的本地副本（docx/pdf/xlsx/remotion-best-practices，插件不提供它们，本地保留即保持可用，勘误 D）**与 lark-* 等 28 个；新会话 18 项仍齐（来源切换为插件）。
 - 事实注记：`~/.agents/skills` 本身是 update.sh 产出的 **git 工作树**（含 `.git`/`.gitignore` 及 `GLOSSARY.md`/`update.sh`/`.your-skill-collection.json` 等文件级副本）；B7 范围仅限**目录**，`.git` 与文件级残留不在本次删除集（见「计划外建议」）。
 
 - [ ] Step 1: 全量备份
 - Run: `tar -czf ~/workspace/.dsh-research/agents-skills-backup-20261101.tar.gz -C ~ .agents/skills`
 - Expected: tarball 生成，`tar -tzf | head` 可列出内容
-- [ ] Step 2: 按显式白名单删除。**仓管集 = 28 个 skill 目录（根目录下含 `SKILL.md` 的目录，动态发现）+ `docs`，共 29 项白名单**；`~/.agents/skills` 的 `.git` 显式排除
-- Run: 先 `comm -12 <(find ~/workspace/skills -mindepth 1 -maxdepth 1 -type d -not -name '.git' -not -name '.backup' -printf "%f\n" | sort) <(find ~/.agents/skills -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | sort) | grep -vxF '.git'` 预览交集 → 人工断言交集恰为 29 项（28 skill + `docs`）且不含 `.git` → 逐目录 `rm -rf`
-- Expected: 交集清单恰 29 项；出现 `.git`、缺项或多项 → 停下核对再删
+- [ ] Step 2: 按显式白名单删除。**仓管删除集 = 插件收录的 24 个 skill 目录（动态发现 − `PACKAGING_EXCLUDE`）+ `docs`，共 25 项白名单**；`docx`/`pdf`/`xlsx`/`remotion-best-practices` 与 `~/.agents/skills` 的 `.git` **显式保留/排除**（勘误 D）
+- Run: 先 `comm -12 <(find ~/workspace/skills -mindepth 1 -maxdepth 1 -type d -not -name '.git' -not -name '.backup' -not -name 'docx' -not -name 'pdf' -not -name 'xlsx' -not -name 'remotion-best-practices' -printf "%f\n" | sort; echo docs) <(find ~/.agents/skills -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | sort)` 预览交集 → 人工断言交集恰为 25 项（24 skill + `docs`）且不含 `.git` 与 4 个剔除项 → 逐目录 `rm -rf`
+- Expected: 交集清单恰 25 项；出现 `.git`/4 个剔除项、缺项或多项 → 停下核对再删
 - [ ] Step 3: 复核（显式断言，禁 `|| true` 吞退出码）
-- Run: `WL="$( (find ~/workspace/skills -mindepth 1 -maxdepth 1 -type d -not -name '.git' -not -name '.backup' -printf '%f\n'; echo docs) | sort)"; LEFT="$(comm -12 <(echo "$WL") <(ls ~/.agents/skills))"; [ -z "$LEFT" ] && [ "$(ls ~/.agents/skills | grep -c '^lark-')" = "28" ] && echo PASS`
-- Expected: 白名单 29 项**全部**不存在（`LEFT` 为空——全集逐项断言，杜绝「抽查 3 项、部分残留也判 PASS」的假绿通道）；lark-* 恰 28 个；任一不符则非零退出并打印 `$LEFT`
-- [ ] Step 4: 🔴 主人协同验证点——新会话 22 项 model 可见仍齐（此时唯一来源 = 插件 rank 600）
+- Run: `WL="$( (find ~/workspace/skills -mindepth 1 -maxdepth 1 -type d -not -name '.git' -not -name '.backup' -not -name 'docx' -not -name 'pdf' -not -name 'xlsx' -not -name 'remotion-best-practices' -printf '%f\n'; echo docs) | sort)"; LEFT="$(comm -12 <(echo "$WL") <(ls ~/.agents/skills))"; [ -z "$LEFT" ] && [ "$(ls ~/.agents/skills | grep -c '^lark-')" = "28" ] && [ "$(ls -d ~/.agents/skills/docx 2>/dev/null | wc -l)" = "1" ] && echo PASS`
+- Expected: 白名单 25 项**全部**不存在（`LEFT` 为空——全集逐项断言）；lark-* 恰 28 个；**4 个剔除 skill 本地副本仍在**（docx 抽查存在）；任一不符则非零退出并打印 `$LEFT`
+- [ ] Step 4: 🔴 主人协同验证点——新会话 18 项 model 可见仍齐（来源 = 插件 rank 600）+ 4 个剔除 skill 本地斜杠仍可用（`/docx` 等，rank 500 本地副本）
 - [ ] Step 5: checkpoint commit（如有 `update.sh` 注记未推，随下一批推送）
 
 ### Task 9: dsh-m 收录（audience internal）
@@ -242,7 +243,7 @@
   - Produces: dsh-m 卡片 `dsh-skills`（`dshm_search`/`dshm_install` 可见可装）
 - 验证范围：`node scripts/validate-registry.mjs` 零警告；dsh-m 全量测试回到基线（028 §4）；**发版转正**（npm 新版 tarball 含条目——push ≠ 市场可见）。
 
-- [ ] Step 1: registry.json 追加条目：`{"id":"dsh-skills","name":"DSH Skills (iasiv5)","description":"iasiv5 skill 合集（28 个）的 DSH 插件化分发，bundled skill 方式加载，版本无关。作者自用，不推广。详见仓库。","category":"self-dev","tags":["skills","合集","bundled"],"audience":"internal","decoupled":true,"source":"npm","npm":"@iasiv5/dsh-skills","github":"iasiv5/skills","icon":"https://cdn.jsdelivr.net/npm/@iasiv5/dsh-skills@1.0.0/icon.svg","homepage":"https://github.com/iasiv5/skills","verified":["0.2.1-rc.5"]}`（id 已定稿，主人 2026-11-01 批示 D3 = `dsh-skills`；字段名以 registry 现有 internal 条目实测为准，Step 2 校验兜底）
+- [ ] Step 1: registry.json 追加条目：`{"id":"dsh-skills","name":"DSH Skills (iasiv5)","description":"iasiv5 skill 合集（收录 24 个，另 4 个因上游许可未收录）的 DSH 插件化分发，bundled skill 方式加载，版本无关。作者自用，不推广。详见仓库。","category":"self-dev","tags":["skills","合集","bundled"],"audience":"internal","decoupled":true,"source":"npm","npm":"@iasiv5/dsh-skills","github":"iasiv5/skills","icon":"https://cdn.jsdelivr.net/npm/@iasiv5/dsh-skills@1.0.0/icon.svg","homepage":"https://github.com/iasiv5/skills","verified":["0.2.1-rc.5"]}`（id 已定稿，主人 2026-11-01 批示 D3 = `dsh-skills`；字段名以 registry 现有 internal 条目实测为准，Step 2 校验兜底）
 - [ ] Step 2: 校验
 - Run: `cd ~/workspace/dsh-m && export GITHUB_TOKEN=$(gh auth token) && node scripts/validate-registry.mjs`
 - Expected: 零 error、零 warning（含 022 的 verified 污染告警）
@@ -262,9 +263,9 @@
 - 交付物：本节即清单，执行在 Host B。
 - [ ] 插件页按名安装 `@iasiv5/dsh-skills`（或 dsh-m Discover/市场入口）
 - [ ] 完全退出托盘重开（desktop 重启语义）
-- [ ] 新会话核对 22 项 model 可见 + 6 项斜杠可达（同 Task 5 Step 4 双清单）+ 日志无 `did not activate`
-- [ ] 清理 `%USERPROFILE%\.agents\skills\`（或对应目录）中仓管 29 个目录（28 skill + `docs`，先备份；同样排除 `.git`）
-- [ ] 复验新会话 22 项来源为插件
+- [ ] 新会话核对 18 项 model 可见 + 6 项斜杠可达（同 Task 5 Step 4 双清单）+ 日志无 `did not activate`
+- [ ] 清理 `%USERPROFILE%\.agents\skills\`（或对应目录）中仓管 25 个目录（24 收录 skill + `docs`，先备份；同样排除 `.git`，保留 4 个许可剔除 skill 本地副本）
+- [ ] 复验新会话 18 项来源为插件
 
 ## 执行纪律
 
@@ -278,10 +279,10 @@
 
 ## 最终验证（DoD，引用 Q9 共识；判据按评审 R1 修订）
 
-1. 构建门禁绿：`cd dsh-plugin && npm run build && npm test` → `28 skills staged`（动态计数 == manifest 条数 == 28）、四门禁过（含 invocation 键门禁）、单测绿。
+1. 构建门禁绿：`cd dsh-plugin && npm run build && npm test` → `24 skills staged`（动态计数 == manifest 条数 == 24；排除行如实打印）、四门禁过（含 invocation 键门禁与 pack 禁入硬断言）、单测绿。
 2. web 机装机后：journal 无 `did not activate` / `skipping profile bundle` **且** `ActiveEnterTimestamp` 较装机前推进（联合判据）；HTTP 200 仅辅助信号。
-3. 主人新会话：本仓 **22 个 model-invocable skill 全部出现**在 available_skills（Task 5 Step 4 清单）；`/eli5` 冒烟成功（6 个 slash-only 之一）；6 个 `disable-model-invocation` skill 不在 catalog 属预期。
-4. `~/.agents/skills/` 白名单 29 个仓管目录（28 skill + `docs`）已清理、备份 tarball 在 `~/workspace/.dsh-research/agents-skills-backup-20261101.tar.gz`；清理后复验 22 项仍齐。
+3. 主人新会话：本仓 **18 个 model-invocable skill 全部出现**在 available_skills（Task 5 Step 4 清单）；`/eli5` 冒烟成功（6 个 slash-only 之一）；6 个 `disable-model-invocation` skill 与 4 个许可剔除 skill（无本地副本的机器上）不在 catalog 属预期。
+4. `~/.agents/skills/` 白名单 25 个仓管目录（24 收录 skill + `docs`）已清理、4 个剔除 skill 本地副本保留、备份 tarball 在 `~/workspace/.dsh-research/agents-skills-backup-20261101.tar.gz`；清理后复验 18 项仍齐。
 5. dsh-m 发版转正：npmjs 上 dsh-m 新版 tarball 的 registry.json 含 `dsh-skills` 条目（可证判据）；registry validate 零警告；宿主 `dshm_search` 出卡（audience internal；依赖缓存刷新，延迟则以 npm 判据为准随后补验）。
 6. desktop 清单（Task 10）交接给主人。
 
