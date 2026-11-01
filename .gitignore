@@ -7,3 +7,7 @@ __pycache__/
 
 # Ignore all Lark skill directories
 /lark-*/
+
+# dsh-plugin build artifacts (staged skills snapshot + generated manifest)
+dsh-plugin/skills/
+dsh-plugin/skills-manifest.json

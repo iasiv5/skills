@@ -38,6 +38,13 @@
     "node": ">=20",
     "dsh": ">=0.2.0-0"
   },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test test/provider.test.mjs"
+  },
+  "devDependencies": {
+    "yaml": "^2.6.0"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
