@@ -89,22 +89,22 @@
 - 涉及文件：Modify `dsh-plugin/lib/index.js`；Create `dsh-plugin/test/provider.test.mjs`。
 - 接口契约
   - Consumes: Task 1 的导出骨架
-  - Produces: **`skills-manifest.json` schema**（后续 Task 3 按此生成）：`{ "skills": [ { "dir": "<skills/ 下目录名>", "name": "<frontmatter name>", "description": "<frontmatter description>", "whenToUse": "<有则字符串>", "invocation": { "modelInvocable": <bool>, "userInvocable": <bool> } } ] }`——`invocation` 由 build 按 frontmatter `disable-model-invocation`/`user-invocable` 以宿主 `parseInvocationPolicy` 同语义**预计算**（缺省均 true）；实现行为：`apply(ctx, config = {})` 读 manifest（路径 = `config.manifestDir ?? packageRoot` 下的 `skills-manifest.json`，`manifestDir` 供单测注入 fixture 目录；生产路径即 packageRoot），对每条生成 candidate `{ name, description, ...(whenToUse ? { whenToUse } : {}), invocation: <manifest 条目原样透传>, provider: "@iasiv5/dsh-skills", source: "bundled", rank: 600, path: join(packageRoot,"skills",dir,"SKILL.md"), resourceBase: { kind: "directory", path: join(packageRoot,"skills",dir) } }`（路径统一 POSIX 分隔符）；`get()` 读 `path`、剥离 YAML frontmatter、返回 `{ name, description, invocation, provider, source, resourceBase, path, content }`
-- 验证范围：`node --test dsh-plugin/test/` 全绿（含 invocation 透传断言）。
+  - Produces: **`skills-manifest.json` schema**（后续 Task 3 按此生成）：`{ "skills": [ { "dir": "<skills/ 下目录名>", "name": "<frontmatter name>", "description": "<frontmatter description>", "whenToUse": "<有则字符串>", "invocation": { "modelInvocable": <bool>, "userInvocable": <bool> } } ] }`——`invocation` 由 build 按 frontmatter `disable-model-invocation`/`user-invocable` 以宿主 `parseInvocationPolicy` 同语义**预计算**（缺省均 true）；实现行为：`apply(ctx, config = {})` 读 manifest（路径 = `config.manifestDir ?? packageRoot` 下的 `skills-manifest.json`，`manifestDir` 供单测注入 fixture 目录；生产路径即 packageRoot），对每条生成 candidate `{ name, description, ...(whenToUse ? { whenToUse } : {}), invocation: <manifest 条目原样透传>, provider: "@iasiv5/dsh-skills", source: "bundled", rank: 600, path: join(base,"skills",dir,"SKILL.md"), resourceBase: { kind: "directory", path: join(base,"skills",dir) }，其中 base = `config.manifestDir ?? packageRoot`（执行勘误 2026-11-01：candidate 路径基座须与 manifest 同源，否则 fixture 注入下 `get()` 读不到 SKILL.md） }`（路径统一 POSIX 分隔符）；`get()` 读 `path`、剥离 YAML frontmatter、返回 `{ name, description, invocation, provider, source, resourceBase, path, content }`
+- 验证范围：`node --test dsh-plugin/test/provider.test.mjs` 全绿（含 invocation 透传断言）。
 
 - [ ] Step 1: 写失败单测：fixture 目录 `test/fixtures/`（含 `skills-manifest.json` + `skills/demo-skill/SKILL.md`（默认 invocation）+ `skills/demo-slash-only/SKILL.md`（manifest 标 `modelInvocable:false`）），以 `apply(fakeCtx, { manifestDir: fixtureDir })` 注入，断言：list() 返回 2 条 candidate 且字段齐、`demo-slash-only` 的 `invocation.modelInvocable === false` 透传不失真、get() 返回正文含 fixture 正文标记、缺 manifest 时 apply 抛错
-- Run: `node --test dsh-plugin/test/`
+- Run: `node --test dsh-plugin/test/provider.test.mjs`
 - Expected: 失败（实现未完成/断言不满足）
 - [ ] Step 2: 实现 provider（manifest 读取、candidates 构建、get 正文剥离），frontmatter 剥离用 `^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)` 正则（baoyu 同款）
 - [ ] Step 3: 跑单测
-- Run: `node --test dsh-plugin/test/`
+- Run: `node --test dsh-plugin/test/provider.test.mjs`
 - Expected: 全部 pass，0 fail
 - [ ] Step 4: checkpoint commit（`feat(dsh-plugin): provider implementation with manifest schema`）
 
 ### Task 3: 构建脚本 + 门禁（stage、manifest、校验、体积报告）
 
 - 目标：一条命令完成「根 skill 目录 → dsh-plugin/skills/ 同步 + 生成 manifest + 四项门禁 + npm pack 体积报告」。
-- 涉及文件：Create `dsh-plugin/scripts/build.mjs`、`dsh-plugin/package-lock.json`（本任务生成）；Modify `package.json`（加 `"scripts": {"build": "node scripts/build.mjs", "test": "node --test test/"}`）；Modify 根 `.gitignore`（追加 `dsh-plugin/skills/`、`dsh-plugin/skills-manifest.json`）。
+- 涉及文件：Create `dsh-plugin/scripts/build.mjs`、`dsh-plugin/package-lock.json`（本任务生成）；Modify `package.json`（加 `"scripts": {"build": "node scripts/build.mjs", "test": "node --test test/provider.test.mjs"}`）；Modify 根 `.gitignore`（追加 `dsh-plugin/skills/`、`dsh-plugin/skills-manifest.json`）。
 - 接口契约
   - Consumes: Task 2 的 manifest schema；根目录 skill 目录（以「根目录下含 `SKILL.md` 的目录」**动态发现**，硬编码名单禁用；`.backup/`（gitignore）无根级 SKILL.md，天然不在集合内）
   - Produces: `dsh-plugin/skills-manifest.json`（真实 28 条）、`dsh-plugin/skills/<目录>` 副本、`dsh-plugin/package-lock.json`（提交入库）；门禁命令 `node dsh-plugin/scripts/build.mjs --check`（CI 用，只校验不同步）；退出码约定 0=过 / 1=挂
