@@ -79,5 +79,5 @@ jobs:
         if: steps.npm-state.outputs.published != 'true'
         uses: softprops/action-gh-release@v2
         with:
-          files: ../.artifacts/iasiv5-dsh-skills-*.tgz
+          files: skills/.artifacts/iasiv5-dsh-skills-*.tgz
           generate_release_notes: true
