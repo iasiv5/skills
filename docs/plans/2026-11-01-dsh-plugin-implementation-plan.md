@@ -198,7 +198,7 @@
 - 涉及文件：无新增。
 - 接口契约
   - Consumes: Task 6 的 npm 1.0.0；Task 5 已在装 folder 版（先卸载防双装）；Task 1 重启生效探针范式
-  - Produces: 装机事实（Task 9 的 verified 与 dsh-m 描述引用）
+  - Produces: 装机事实（Task 9 的 verified 与 dsh-m 描述引用）；**装机形态定稿（主人批示 B，2026-11-01）：本机同样保持 npm 源，接受发版驱动更新，不回切 link: 安装**——此后本机跟进上游变化的路径 = update.sh → `npm run build`（门禁）→ commit/push/tag → CI 发布 → `dshm_upgrade`
 - 验证范围：DoD 全过。
 
 - [ ] Step 1: 卸载 folder 版

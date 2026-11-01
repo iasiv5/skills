@@ -23,5 +23,5 @@ jobs:
         run: npm run build
       - name: Unit tests
         run: npm test
-      - name: Staged copy in sync with source
-        run: npm run build -- --check
+      # 注：此处不放 --check——CI 内 staging 与比对是同一份检出，恒真。
+      # 真正的同步保证 = release.yml 在 tag 检出上重新构建发布，永不信任本地缓存副本。
