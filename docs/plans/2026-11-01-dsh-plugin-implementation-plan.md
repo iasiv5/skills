@@ -5,6 +5,7 @@
 > 定稿（2026-11-01）：评审通过（16 项闭环）；D1 计数勘误 28、D2 NOTICE 扩至 20 上游、D3 id `dsh-skills` 均经主人批示，待决策标注已清除。
 > 执行勘误 C（2026-11-01）：门禁③语义细化——「打包分歧」（引用目标在仓库内存在但在打包目录集之外）为 fail；「既有悬空引用」（源中即缺失，上游原样）与文档写法示例降为 warn 非阻断（as-is 照带，构建报告如实计数）；提取器过滤 `<占位符>`/`file:`/绝对路径/glob。
 > 执行勘误 D（2026-11-01，主人批示 D4/D5）：**剔除 4 个 skill 出包**——docx/pdf/xlsx（Anthropic LICENSE 禁第三方再分发，Task 4 Step 2 审计实锤）+ remotion-best-practices（上游 404 无许可）；仓库原样保留，构建脚本 `PACKAGING_EXCLUDE` 显式排除。**打包集 28 → 24（18 model-invocable + 6 斜杠）**；ADR 0003 已补修订节；NOTICE 改「收录 24 + 未收录 4 及缘由」双层结构（原「恰 20 条」分节断言随落地形态改为覆盖性断言）；Geek ×2 修正为 staruhub/ClaudeSkills 仓库级 MIT；附带修正：`dsh-plugin/node_modules` 误跟踪已移出索引并入 gitignore，门禁④加 pack 禁入路径硬断言（fail-closed）。Task 8 迁移白名单改 **25 项**（24 skill + `docs`）——4 个剔除 skill 的本地副本**保留**（插件不提供它们，本地保留即保持可用，且不涉 npm 再分发）。
+> 执行勘误 E（2026-11-01 13:48，**主人手动执行**）：`~/.agents/skills` 整目录由主人删除（超 Task 8 计划范围：含 lark-*×28、4 个剔除 skill 本地副本、6 个斜杠 skill 本地副本、`.git` 工作树与文件级残留；**无备份**）。Task 8 全部 Step 作废留档，验收缩为：新会话 18 项 ✓（执行会话重启后 catalog 已实测 18/18 逐名吻合，Task 5 Step 4 证据注记）、4 剔除项不再出现 ✓、6 斜杠走插件（`/eli5` 可随时冒烟）。**lark-*×28 本机退役**，回迁与否待主人后续指示（可从 Host B 或 lark-cli 同步源找回）。`~/.agents/skills` 遮蔽问题随之消灭，B7 目标以更强形态达成。
 
 ## 目标
 
@@ -213,6 +214,8 @@
 - Expected: `1.0.0`
 
 ### Task 8: 本机迁移——清理 ~/.agents/skills 旧副本
+
+> **状态（勘误 E，2026-11-01 13:48）：已由主人手动整体删除 `~/.agents/skills`（超计划范围、无备份）——以下 Step 1–5 作废留档。** 验收以勘误 E 缩略清单为准；lark-*×28 回迁待主人指示。
 
 - 目标：消除 rank 500 对 rank 600 的遮蔽；`update.sh` 流对本机 DSH 退役。
 - 涉及文件：`~/.agents/skills/`（仓外用户目录）；无仓内改动。
