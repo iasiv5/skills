@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "iasi 自用技能合集（@iasiv5/dsh-skills）",
+    "description": "iasi 的 Agent skills 合集，以 bundled skill 方式加载，免拷贝进 skills 目录。作者自用，不推广。"
+  }
+}

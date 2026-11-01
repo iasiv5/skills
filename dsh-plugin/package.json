@@ -1,7 +1,7 @@
 {
   "name": "@iasiv5/dsh-skills",
-  "version": "1.0.1",
-  "description": "DeepSeek Harness plugin: iasiv5's agent skill collection as bundled skills (loaded via the host skill registry, no .agents/skills copies needed).",
+  "version": "1.0.2",
+  "description": "iasi 的 Agent skills 合集 DSH 插件：以 bundled skill 方式加载，免拷贝进 skills 目录。作者自用，不推广。",
   "keywords": [
     "dsh",
     "dsh-plugin",
@@ -23,6 +23,7 @@
   "exports": {
     ".": "./lib/index.js",
     "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
     "./package.json": "./package.json"
   },
   "files": [
@@ -31,6 +32,7 @@
     "skills-manifest.json",
     "cordis.patch.yml",
     "icon.svg",
+    "locale",
     "NOTICE.md",
     "README.md"
   ],
