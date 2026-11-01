@@ -5,10 +5,10 @@
 #   ./update.sh docx pdf     # 只更新指定的 skills
 # 注意: local 列表（本地自研源头）和 skip 列表（暂时跳过）中的 skill 不参与更新
 #
-# ⚠️ DeepSeek Harness (DSH) 用户请勿使用本脚本：DSH 走 @iasiv5/dsh-skills 插件
-#    安装（dsh plugin --profile web add @iasiv5/dsh-skills 或市场安装），插件版
-#    优先级低于本地副本，本脚本装的副本会遮蔽插件版。本脚本仅供 Claude Code /
-#    Codex 等其他 harness 使用。
+# ⚠️ DeepSeek Harness (DSH) 的 skill 安装走 @iasiv5/dsh-skills 插件
+#    （dsh plugin --profile web add @iasiv5/dsh-skills 或市场安装），不走本脚本。
+#    维护者在本仓运行本脚本时，末尾会在依赖就绪时自动重建 dsh-plugin 的 staging
+#    与 manifest（仓库打包步骤，非 DSH 安装动作）；未就绪则提示跳过。
 
 set -euo pipefail
 
@@ -188,4 +188,21 @@ if git -C "$SKILLS_DIR" rev-parse --git-dir >/dev/null 2>&1; then
   else
     printf '  已是最新，无需提交。\n'
   fi
+fi
+
+# ─── DSH 插件 staging 自动重建（维护者便利；非 DSH 安装路径，安装仍走 @iasiv5/dsh-skills 插件）───
+# 仅当 dsh-plugin 依赖已就绪（跑过 npm ci）才自动执行；未就绪则提示跳过，不阻塞本脚本主职。
+# 失败语义：内容更新已落盘，构建失败只是打包门禁拒绝——修复后单独重跑即可，内容不丢。
+DSH_PLUGIN_DIR="$SKILLS_DIR/dsh-plugin"
+if [[ -d "$DSH_PLUGIN_DIR/node_modules" ]]; then
+  echo
+  log "重建 DSH 插件 staging（dsh-plugin/skills + skills-manifest.json）"
+  if (cd "$DSH_PLUGIN_DIR" && npm run build); then
+    log "✓ dsh-plugin 已同步。发版：git add -A && git commit && git push && git tag vX.Y.Z && git push origin vX.Y.Z（CI 发布后 dshm_upgrade）"
+  else
+    fail "dsh-plugin 打包门禁未过——内容已同步到仓库，但打包被拒绝；修复后重跑: cd \"$DSH_PLUGIN_DIR\" && npm run build"
+    exit 1
+  fi
+else
+  warn "跳过 DSH 插件 staging 重建（dsh-plugin/node_modules 不存在；需要时先 cd dsh-plugin && npm ci）"
 fi
