@@ -1,0 +1,16 @@
+{
+  "skills": [
+    {
+      "dir": "demo-skill",
+      "name": "demo-skill",
+      "description": "Demo skill for provider tests.",
+      "invocation": { "modelInvocable": true, "userInvocable": true }
+    },
+    {
+      "dir": "demo-slash-only",
+      "name": "demo-slash-only",
+      "description": "Slash-only demo skill.",
+      "invocation": { "modelInvocable": false, "userInvocable": true }
+    }
+  ]
+}

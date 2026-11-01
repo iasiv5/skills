@@ -1,0 +1,46 @@
+{
+  "name": "@iasiv5/dsh-skills",
+  "version": "1.0.0",
+  "description": "DeepSeek Harness plugin: iasiv5's agent skill collection as bundled skills (loaded via the host skill registry, no .agents/skills copies needed).",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "skills",
+    "agent-skills"
+  ],
+  "homepage": "https://github.com/iasiv5/skills",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iasiv5/skills.git",
+    "directory": "dsh-plugin"
+  },
+  "license": "SEE LICENSE IN NOTICE.md",
+  "author": "iasi",
+  "type": "module",
+  "main": "lib/index.js",
+  "icon": "./icon.svg",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "skills",
+    "skills-manifest.json",
+    "cordis.patch.yml",
+    "icon.svg",
+    "NOTICE.md",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20",
+    "dsh": ">=0.2.0-0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

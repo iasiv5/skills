@@ -1,0 +1,7 @@
+# @iasiv5/dsh-skills bundle patch: installing the package (the Plugins page, or
+# `dsh plugin --profile <name> add <spec>`) adds it to the profile's bundles,
+# and this layer mounts its one plugin row, which registers the iasiv5 skill
+# collection with the profile's skill registry as bundled skills.
+- insert:
+    - id: iasi-skills
+      name: "@iasiv5/dsh-skills"
