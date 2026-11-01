@@ -44,8 +44,7 @@ if (!Array.isArray(currentManifest.skills) || currentManifest.skills.length === 
 }
 const currentNames = new Set(currentManifest.skills.map((s) => s.name));
 
-let publishedVersions = [];
-const view = spawnView();
+const publishedVersions = spawnView();
 function spawnView() {
   try {
     const out = execFileSync("npm", ["view", PKG, "versions", "--json", `--registry=${REGISTRY}`], {
@@ -72,7 +71,7 @@ const previousText = publishedVersions
   .filter((v) => /^\d+\.\d+\.\d+$/.test(v))
   .map(parseSemver)
   .filter((v) => !newer(v, version))
-  .sort(newer)
+  .sort((a, b) => (newer(a, b) ? 1 : newer(b, a) ? -1 : 0))
   .pop();
 if (!previousText) die(`no previous version <= ${version.text} found on npm (${publishedVersions.join(", ")})`);
 console.log(`gate: previous release ${previousText.text}; diffing manifests`);
