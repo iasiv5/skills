@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dsh-plugin
+    permissions:
+      contents: write # create the GitHub Release after every gate passes
+      id-token: write # npm trusted publishing (OIDC)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # No registry-url on purpose (dsh-skins precedent): setup-node would
+          # inject a placeholder NODE_AUTH_TOKEN, which shadows the OIDC
+          # exchange. The default registry is registry.npmjs.org already.
+      - name: Verify tag ↔ package version identity + semver-by-manifest gate
+        run: node scripts/version-gate.mjs "${GITHUB_REF_NAME}"
+      - name: Install dependencies (lockfile-pinned)
+        run: npm ci
+      - name: Build (stage skills + manifest + gates)
+        run: npm run build
+      - name: Unit tests
+        run: npm test
+      - name: Pack the install artifact
+        run: mkdir -p ../.artifacts && npm pack --pack-destination ../.artifacts
+      - name: Artifact load smoke (packed tarball, not the worktree)
+        run: |
+          set -eu
+          cd ../.artifacts
+          tar -xzf iasiv5-dsh-skills-*.tgz
+          node --check package/lib/index.js
+          node --input-type=module -e "
+            import { apply, name } from './package/lib/index.js';
+            if (name !== 'iasi-skills') throw new Error('bad plugin name: ' + name);
+            if (typeof apply !== 'function') throw new Error('apply() missing');
+            console.log('artifact host load OK:', name);
+          "
+      - name: Check whether the version is already on npm (rerun safety)
+        id: npm-state
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view --registry https://registry.npmjs.org "@iasiv5/dsh-skills@${VERSION}" version >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish to npm via OIDC trusted publishing
+        if: steps.npm-state.outputs.published != 'true'
+        run: |
+          # Node 20 bundles npm 10.x; trusted publishing requires npm >= 11.5.1.
+          npm install -g npm@11 && echo "publish toolchain: npm $(npm -v) / node $(node -v)"
+          set +e
+          OUT=$(npm publish --provenance --access public 2>&1); rc=$?
+          set -e
+          printf '%s\n' "$OUT"
+          # npm staged-publishing tolerance (dsh-skins precedent, 2026-10-01):
+          # an accepted OIDC publish sits in the staging queue while `npm view`
+          # still 404s — a rerun in that window dies with 409 "Cannot publish
+          # over previously staged version". Staged means ACCEPTED: treat that
+          # case as success.
+          if [ "$rc" -ne 0 ] && printf '%s' "$OUT" | grep -q 'previously staged version'; then
+            echo "::notice::version is staged at npm and finalizing asynchronously; nothing left to publish."
+          elif [ "$rc" -ne 0 ]; then
+            exit "$rc"
+          fi
+      - name: Create the GitHub Release
+        if: steps.npm-state.outputs.published != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ../.artifacts/iasiv5-dsh-skills-*.tgz
+          generate_release_notes: true
