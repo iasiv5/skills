@@ -179,7 +179,7 @@ description: 代码审查助手。用户请求 review 代码、PR 或 commit，�
 ## 端到端示例（sensor_read.c，仅 trace 双轨 + 最窄路径）
 
 **Step 2 双轨**：
-- Spec：`docs/sensors.md` 规定 I2C 读取失败时 Available=false 且不发旧读数，成功读数单位摄氏度，周期 ≥1000ms。
+- Spec：`<项目>/docs/sensors.md` 规定 I2C 读取失败时 Available=false 且不发旧读数，成功读数单位摄氏度，周期 ≥1000ms。
 - Standards：项目约定负 errno 须转明确错误路径；D-Bus 更新失败须记录并传播。
 
 **Step 5 最窄路径**：
