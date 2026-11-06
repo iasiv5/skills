@@ -14,7 +14,7 @@ npm 没有预留/停放机制：**名字只有在第一次成功 publish 之后�
 用户报来一个或多个包名时，按序调用：
 
 ```bash
-scripts/claim.sh check <name> [<name>...]     # 多名批量逐行输出；单名附近似名
+scripts/claim.sh check <name> [<name>...]     # 批量逐行输出；短名自动 typosquat RISK 预筛；本地死刑名单命中报 DEAD
 scripts/claim.sh scaffold <name> --dir BASE --desc ... --repo ... --homepage ... --author ...
 scripts/claim.sh weblogin <pkgdir>            # 已有可用 token 时跳过
 scripts/claim.sh publish <pkgdir>             # 用后台任务方式运行，见第 4 步
@@ -25,11 +25,13 @@ scripts/claim.sh trust <pkgdir> --repo OWNER/REPO --file <wf.yml>   # 可选：�
 
 ## 1. 查名
 
-`claim.sh check` 返回 AVAILABLE / TAKEN（不合规或 registry 异常为 INVALID / UNKNOWN）；单名附近似名搜索，多名批量时逐行输出、省略近似名。
+`claim.sh check` 返回判定：AVAILABLE / TAKEN / RISK / DEAD / INVALID / UNKNOWN。多名批量逐行输出；RISK 预筛批量照跑，近似名全列表仅单名输出。
 
-- 完成标准：向用户逐名明确「可抢 / 已占」。
-- **AVAILABLE 只保证「未注册」**：npm 在 publish 时还有一层 typosquat 相似度拦截（详见第 4 步症状表），短名（≤4 字母）和常见词即使未注册也可能被拒。对短名要有此预期，先给用户打预防针。
-- **发布前做「拼接心算」**：把全名连读一遍，读起来像现有单词就是高危名。实战教训（2026-10-09）：`dsh-ip` 连读成 **dship**、`dsh-op` 连读成 **dshop**，check 均 AVAILABLE，publish 全部 403 永久关闭。`dsh-` + 2 字母后缀是重灾区。
+- 完成标准：向用户逐名明确「可抢 / 已占 / 高危 / 死刑」，RISK 名附近似对象。
+- **AVAILABLE 只保证「未注册」**：npm 在 publish 时还有一层 typosquat 相似度拦截（详见第 4 步症状表），短名（≤4 字母）和常见词即使未注册也可能被拒。
+- **RISK 是保守预警，不是判决**：check 自动把名字压成紧缩串（去连字符，如 `dsh-k`→`dshk`）做近似搜索，与已注册包编辑距离 ≤2 即报 RISK。存在假阳性——`dsh-a`≈`sha`（距离 1）实际发得出去。RISK 的价值是把「拼接心算」机械化，逼出第 4 步授权前的用户确认。
+- **DEAD 是确定性信号**：typosquat 403 意味着永久关闭，验过的死刑名记入本地名单 `~/.config/npm-claim/dead-names.txt`（一行一个包名，`#` 后备注；路径可用环境变量 `NPM_CLAIM_DEADLIST` 覆盖）。名单属个人维护数据，不随 skill 分发；check 命中即报 DEAD，连 registry 都不必查。
+- 实战教训：`dsh-ip`≈dship、`dsh-op`≈dshop（2026-10-09，连读成词）；`dsh-k`≈sshpk、`dsh-x`≈shx、`dsh-y`≈tshy（2026-11-06，压缩串近似非词）。两批 check 均 AVAILABLE，publish 全部 403 永久关闭——单字母/短名是重灾区，早期能过属窗口宽松，不可复制。
 - 近似名一眼扫过即可：占自己的品牌名属于正常占位；蹭知名项目的近似名属于 typosquat，会被 npm 处理，拒绝协助。
 - 提醒用户抓紧：查完到 publish 之间随时可能被人截胡。
 
@@ -72,12 +74,14 @@ cd <pkgdir> && npm whoami --registry https://registry.npmjs.org --cache ../.npm-
 | `EOTP: This operation requires a one-time password` | 账号 2FA 设为 auth-and-writes，写操作要二次验证 | 见下 |
 | `npm trust` 任意子命令（**连 `list` 读操作**）报 `EOTP`，错误通道里授权链接是打码的 `***` | trust 属账号级敏感操作，auth-and-writes 账号一律二次验证，且 npm 把它走错误通道输出 | 与 publish 同一套伪 TTY + `--browser=false`（`claim.sh trust` 已内置）；`--browser` 这个 flag 传不进去就改用环境变量 `npm_config_browser=false` |
 | `npm trust ... --cache/--logs-dir <dir>` 报 `Unknown positional argument: <dir>` | `npm trust` 的子命令用严格 flag 解析器，不认这些全局 flag 的空格分隔形式，值被当成了多余位置参数 | 相关配置全部改走 `npm_config_*` 环境变量（`npm_config_cache` / `npm_config_logs_dir` / `npm_config_browser`） |
-| PUT `403 Package name too similar to existing packages ...` | npm typosquat 防护在发布时做相似度拦截（check 阶段看不到） | 该名对所有账号永久关闭，重试无意义；向用户说明并给替代：`@scope/name`（属自己账号，无抢注意义）或换名。实战例：dsh-ip≈dship、dsh-op≈dshop |
+| PUT `403 Package name too similar to existing packages ...` | npm typosquat 防护在发布时做相似度拦截（check 阶段看不到） | 该名对所有账号永久关闭，重试无意义；记入本地死刑名单（见第 1 步 DEAD）；向用户说明并给替代：`@scope/name`（属自己账号，无抢注意义）或换名。实战例：dsh-ip≈dship、dsh-op≈dshop（连读成词）；dsh-k≈sshpk、dsh-x≈shx、dsh-y≈tshy（压缩串近似同样中招） |
 
 **EOTP 核心技巧：伪造 TTY + 关闭浏览器。** 具体命令在 `claim.sh` 的 publish 子命令里（`script -qec` 包一层伪终端，npm 加 `--browser=false`），这里写清楚它为什么有效——排障时据此推理：
 
 - 非 TTY 环境下，npm 收到 EOTP 直接抛错退出；伪 TTY 让它改走 web-OTP 流程：打开 authUrl、轮询 doneUrl、拿到 OTP 票据后**自动重试发布**，全程无需手动输验证码。
 - `--browser=false` 让 opener 把真实授权链接打印到输出后立即返回——npm 打印 URL 的通道关闭了脱敏（错误通道里的 URL 是打码的 `***`），并且弹浏览器、等回车两个动作都被跳过，适合 headless 环境。
+
+**授权前置确认**：typosquat 403 只能在真 PUT 时暴露，无法免费预试，而 auth-and-writes 账号每次 publish 都要先过 OTP。带 RISK 标记的名字发起 weblogin / publish 授权前，先向用户确认「publish 可能 403 永久关闭，这次授权可能白点」，点头再发起（2026-11-06 实录：k/x/y 三连 403，用户为注定失败的批次点了两次授权）。
 
 交互协议：
 

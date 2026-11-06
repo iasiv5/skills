@@ -24,7 +24,30 @@ case "$cmd" in
 
 check)
   [ $# -ge 1 ] || die "$USAGE"
-  batch=0 ; [ $# -gt 1 ] && batch=1   # 多名批量：逐行输出，省略近似名刷屏
+  batch=0 ; [ $# -gt 1 ] && batch=1   # 多名批量：逐行输出；RISK 预筛批量照跑，近似名全列表仅单名输出
+  deadlist="${NPM_CLAIM_DEADLIST:-$HOME/.config/npm-claim/dead-names.txt}"
+  # typosquat 预筛：npm 的相似度拦截发生在 publish 的 PUT 时，无法免费预试，403 即对所有账号永久关闭。
+  # 这里对短名做「压缩串（去连字符）编辑距离 ≤2」的保守预警：dsh-k→dshk≈sshpk、dsh-x→dshx≈shx、dsh-y→dshy≈tshy。
+  # RISK 是提示不是判决（存在假阳性：dsh-a≈sha 距离 1 却发得出去）；DEAD 名单才是确定性信号。
+  risk_scan() {
+    node -e '
+      const [name, json] = process.argv.slice(1);
+      const comp = s => s.toLowerCase().replace(/-/g, "");
+      const lv = (a, b) => { const m = a.length, n = b.length;
+        const row = Array.from({ length: m + 1 }, (_, i) => i);
+        for (let j = 1; j <= n; j++) { let prev = row[0]; row[0] = j;
+          for (let i = 1; i <= m; i++) { const tmp = row[i];
+            row[i] = Math.min(row[i] + 1, row[i - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = tmp; } }
+        return row[m]; };
+      const cn = comp(name);
+      for (const c of JSON.parse(json)) {
+        const cc = comp(c);
+        if (cc === cn) continue;
+        const d = lv(cn, cc);
+        if (d <= 2) console.log("RISK: " + name + " ≈ " + c + " （压缩串编辑距离 " + d + "，publish 可能 403 永久关闭）");
+      }
+    ' "$1" "$2"
+  }
   for name in "$@"; do
     # 名字合规（新包规则：小写字母数字连字符，可带 scope，不以点/下划线开头，≤214）
     if [[ "$name" =~ ^@ ]]; then
@@ -33,14 +56,26 @@ check)
       [[ "$name" =~ ^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$ ]] || { echo "INVALID: 包名不合规（需小写字母/数字/连字符，且不以连字符开头结尾）: $name"; continue; }
     fi
     [ ${#name} -le 214 ] || { echo "INVALID: 包名超过 214 字符: $name"; continue; }
+    # 死刑名单（确定性）：本地文件一行一个包名、# 后备注；数据属个人维护，不随 skill 分发
+    if [ -f "$deadlist" ] && grep -v '^#' "$deadlist" | awk '{print $1}' | grep -qx -- "$name"; then
+      echo "DEAD: $name 在本地死刑名单（typosquat 永久关闭，勿再尝试；名单: $deadlist）"
+      continue
+    fi
     code=$(curl -s -o /dev/null -w '%{http_code}' "$REGISTRY/$name")
     case "$code" in
       404) echo "AVAILABLE: $name 未注册，可抢注" ;;
       200) echo "TAKEN: $name 已被注册" ;;
       *)   echo "UNKNOWN: $name -> registry HTTP $code，请人工确认" ;;
     esac
+    # 压缩串近似搜索：原名 + 去连字符各查一次，合并去重后按编辑距离过滤
+    comp=${name//-/}
+    enc=${name//@/%40} ; enc=${enc//\//%2F}
+    enc2=${comp//@/%40} ; enc2=${enc2//\//%2F}
+    cands=$({ curl -s "$REGISTRY/-/v1/search?text=$enc&size=25"; echo; \
+              curl -s "$REGISTRY/-/v1/search?text=$enc2&size=25"; } \
+      | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{const names=new Set();for(const line of s.split("\n")){if(!line.trim())continue;try{const d=JSON.parse(line);for(const o of d.objects||[])names.add(o.package.name)}catch(e){}}console.log(JSON.stringify([...names]))})')
+    risk_scan "$name" "$cands"
     if [ "$batch" -eq 0 ]; then
-      enc=${name//@/%40} ; enc=${enc//\//%2F}
       echo "--- 近似名（评估混淆/typosquat 争议风险）---"
       curl -s "$REGISTRY/-/v1/search?text=$enc&size=5" \
         | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>{const d=JSON.parse(s);for(const o of d.objects)console.log(' ', o.package.name, '|', o.package.version, '|', (o.package.description||'').slice(0,70))})"
