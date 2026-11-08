@@ -1,20 +1,16 @@
 # NOTICE — 第三方归属与许可汇总
 
-本包（`@iasiv5/dsh-skills`）收录 iasiv5/skills 仓库 28 个 agent skill 中的 **24 个**（16 个上游第三方 + 8 个本地自研；18 个模型可自动触发 + 6 个仅斜杠调用）。收录遵循 as-is 原则（不裁剪上游文件）；**4 个 skill 因上游许可不允（或缺失）而被排除在包外**（见下节，仓库内保留）。各收录 skill 目录内的原许可文件原样保留；本文件汇总归属与许可状态。核查方法与逐 skill 台账见维护者审计档案（2026-11）。
+本包（`@iasiv5/dsh-skills`）收录 iasiv5/skills 仓库 28 个 agent skill 中的 **27 个**（19 个上游第三方 + 8 个本地自研；21 个模型可自动触发 + 6 个仅斜杠调用）。收录遵循 as-is 原则（不裁剪上游文件）；**1 个 skill 因上游许可缺失而被排除在包外**（见下节，仓库内保留）。各收录 skill 目录内的原许可文件原样保留；本文件汇总归属与许可状态。核查方法与逐 skill 台账见维护者审计档案（2026-11）。
 
-## 🚫 未收录：Anthropic 专有（禁止再分发）
+## Apache-2.0
 
-以下三个 skill 保留在仓库中，但**未收录于本包**：其上游许可（`LICENSE.txt`，© 2025 Anthropic, PBC）的 ADDITIONAL RESTRICTIONS 明文禁止向任何第三方分发、提取、复制或演绎，npm 打包发布将构成违约再分发。
-
-- **docx** — anthropics/skills（`skills/docx`）
-- **pdf** — anthropics/skills（`skills/pdf`）
-- **xlsx** — anthropics/skills（`skills/xlsx`）
-
-如您是 Anthropic 服务的授权用户，请直接通过 Anthropic 官方渠道（anthropics/skills 仓库）获取。
+- **docx** — anthropics/skills（`skills/docx`）。上游于 2026-11 将原 Anthropic 专有 LICENSE.txt 换为 Apache License 2.0（版权归属行保留上游模板占位 `Copyright [yyyy] [name of copyright owner]`），再分发限制解除；2026-11-08 起收入本包。
+- **pdf** — anthropics/skills（`skills/pdf`）。同上。
+- **xlsx** — anthropics/skills（`skills/xlsx`）。同上。
 
 ## ⚠️ 未收录：上游未声明许可
 
-- **remotion-best-practices** — remotion-dev/skills（`skills/remotion-best-practices`）。上游仓库与目录均未附许可文本，默认版权保留；经维护者裁决暂不收录，待上游明确后再议。
+- **remotion-best-practices** — remotion-dev/skills（`skills/remotion-best-practices`）。上游仓库与目录均未附内容许可文本，默认版权保留；经维护者裁决暂不收录，待上游明确后再议。上游 4.0.541 新增的 `remotion-license` 子技能只是 Remotion **软件**商业许可（remotion.pro）的查询指引，不构成对 skill 内容本身的许可授权，故排除维持。
 
 ## MIT 许可
 

@@ -25,12 +25,16 @@ const BOOL_FALSE = new Set([false, 0, "0", "false", "no", "off"]);
 const REF_PREFIX_RE = /^(?:scripts|assets|references|docs)\//;
 
 // License-driven packaging exclusions (owner decisions D4/D5, 2026-11-01):
-//   docx / pdf / xlsx — Anthropic LICENSE.txt ADDITIONAL RESTRICTIONS prohibit
-//     distribution to any third party; npm publishing would violate it.
-//   remotion-best-practices — upstream ships no license (remotion-dev/skills).
-// These stay in the repository; they are only kept out of the npm package.
+//   remotion-best-practices — upstream ships no content license
+//     (remotion-dev/skills). Its remotion-license subskill (synced at upstream
+//     4.0.541) documents the Remotion *software* license (remotion.pro), not a
+//     license for the skills content, so the exclusion stands.
+// docx / pdf / xlsx were excluded under the same policy until upstream
+// (anthropics/skills) relicensed them to Apache-2.0 (LICENSE.txt replaced,
+// 2026-11 sync; owner re-decision 2026-11-08): redistribution is now allowed,
+// so they are packaged again.
 // Audit record: ~/.dsh-research/dsh-skills-plan-review/license-audit-2026-11.md
-const PACKAGING_EXCLUDE = new Set(["docx", "pdf", "xlsx", "remotion-best-practices"]);
+const PACKAGING_EXCLUDE = new Set(["remotion-best-practices"]);
 
 const errors = [];
 function fail(message) {
