@@ -1,12 +1,13 @@
 # NOTICE — 第三方归属与许可汇总
 
-本包（`@iasiv5/dsh-skills`）收录 iasiv5/skills 仓库 28 个 agent skill 中的 **27 个**（19 个上游第三方 + 8 个本地自研；21 个模型可自动触发 + 6 个仅斜杠调用）。收录遵循 as-is 原则（不裁剪上游文件）；**1 个 skill 因上游许可缺失而被排除在包外**（见下节，仓库内保留）。各收录 skill 目录内的原许可文件原样保留；本文件汇总归属与许可状态。核查方法与逐 skill 台账见维护者审计档案（2026-11）。
+本包（`@iasiv5/dsh-skills`）收录 iasiv5/skills 仓库 29 个 agent skill 中的 **28 个**（20 个上游第三方 + 8 个本地自研；21 个模型可自动触发 + 7 个仅斜杠调用）。收录遵循 as-is 原则（不裁剪上游文件）；**1 个 skill 因上游许可缺失而被排除在包外**（见下节，仓库内保留）。各收录 skill 目录内的原许可文件原样保留；本文件汇总归属与许可状态。核查方法与逐 skill 台账见维护者审计档案（2026-11）。
 
 ## Apache-2.0
 
 - **docx** — anthropics/skills（`skills/docx`）。上游于 2026-11 将原 Anthropic 专有 LICENSE.txt 换为 Apache License 2.0（版权归属行保留上游模板占位 `Copyright [yyyy] [name of copyright owner]`），再分发限制解除；2026-11-08 起收入本包。
 - **pdf** — anthropics/skills（`skills/pdf`）。同上。
 - **xlsx** — anthropics/skills（`skills/xlsx`）。同上。
+- **impeccable** — pbakaus/impeccable（`.dsh/skills/impeccable`，repo LICENSE，Apache-2.0，© Paul Bakaus）。收录上游为 DeepSeek Harness 编译的 `.dsh` 专用构建（SKILL.md 内嵌 DSH 工具名与 `/` 命令语法，子代理角色以 `reference/degraded/` 降级版随包）；2026-11-10 起收入本包。
 
 ## ⚠️ 未收录：上游未声明许可
 

@@ -19,7 +19,7 @@ dsh plugin --profile web add @iasiv5/dsh-skills
 ## 内容与许可
 
 - skill 清单：见仓库根 README；本包按 as-is 收录（不裁剪上游文件）。
-- 许可归属：见 [NOTICE.md](./NOTICE.md)——注意 Anthropic 系（docx/pdf/xlsx）上游许可禁止再分发，相关条目附使用注记。
+- 许可归属：见 [NOTICE.md](./NOTICE.md)。docx/pdf/xlsx 上游（anthropics/skills）已转 Apache-2.0 随包分发；impeccable（pbakaus/impeccable，Apache-2.0）自 v1.2.0 收录。
 
 ## 更新
 
