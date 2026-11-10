@@ -9,6 +9,7 @@
     "guizang-ppt-skill":         { "repo": "op7418/guizang-ppt-skill" },
     "guizang-social-card-skill": { "repo": "op7418/guizang-social-card-skill" },
     "note-slides":               { "repo": "gainubi/note-slides" },
+    "impeccable":                { "repo": "pbakaus/impeccable",                       "subdir": ".dsh/skills/impeccable" },
     "grilling":                          { "repo": "mattpocock/skills",                "subdir": "skills/productivity/grilling" },
     "teach":                             { "repo": "mattpocock/skills",                "subdir": "skills/productivity/teach" },
     "writing-for-agents":                { "repo": "mattpocock/skills",                "subdir": "skills/productivity/writing-for-agents" },
