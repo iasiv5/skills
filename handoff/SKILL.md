@@ -2,6 +2,7 @@
 name: handoff
 description: "为新的 chat / 新会话生成面向下一会话目标的 handoff / continuation context。仅在用户明确要把当前工作交接到新 chat 继续时触发；不要用于普通总结、状态同步、代码评审、changelog 或文章摘要。基于只读证据输出可直接粘贴到新 chat 的中文优先接续上下文。"
 argument-hint: 请说明要交接到新建会话的目标、要求或关注点；可留空
+disable-model-invocation: true
 ---
 
 # Handoff Skill
