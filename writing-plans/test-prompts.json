@@ -5,7 +5,7 @@
     "expected": "进入 writing-plans；读取设计文档和最小必要上下文；先规划文件结构与职责，再拆任务；产出含验证命令、接口契约和最终审阅 checkpoint 的实施计划；不进入编码。",
     "assertions": [
       "response treats docs/specs/config-merge-design.md as an approved design input",
-      "response does not restart brainstorming or compare alternative designs",
+      "response does not reopen the approved design or compare alternative designs",
       "plan includes file structure and responsibilities before task breakdown",
       "each task has a concrete validation command or observable check",
       "plan ends with a review checkpoint and does not start implementation"
@@ -20,11 +20,11 @@
   {
     "id": "unapproved-design-stop",
     "prompt": "我们还没定最终方案，但你先把 Redis 缓存和数据库读写重构写个实施计划吧。",
-    "expected": "识别设计尚未批准且关键方案未定；触发 STOP；退回 brainstorming 或要求先明确方案，不编造计划。",
+    "expected": "识别设计尚未批准且关键方案未定；触发 STOP；退回 grill-with-docs 做方案压力测试，或要求先补清方案，不编造计划。",
     "assertions": [
       "response states that the input is not ready for an implementation plan",
       "response identifies missing approved design or unresolved key decisions",
-      "response routes back to brainstorming or asks for the required design artifact",
+      "response routes to grill-with-docs or asks for the missing design details",
       "response does not produce a full task list"
     ],
     "must_not": [

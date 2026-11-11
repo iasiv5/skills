@@ -1,6 +1,6 @@
 ---
 name: writing-plans
-description: "在已有设计文档或清晰需求、但还没开始实现时，把目标写成可执行的分步实施计划。适用于跨文件改动、非平凡功能、重构，以及任何需要明确测试或验证命令的任务。只要用户要把已定需求、现成 spec、明确目标，或 /grill-with-docs / /grilling 后达成的共识，拆成 step-by-step plan，就优先使用这个 skill；如果设计还没定，不要硬写计划，退回 brainstorming 或 grill-with-docs 把设计做扎实。"
+description: "在已有设计文档或清晰需求、但还没开始实现时，把目标写成可执行的分步实施计划。适用于跨文件改动、非平凡功能、重构，以及任何需要明确测试或验证命令的任务。只要用户要把已定需求、现成 spec、明确目标，或 /grill-with-docs / /grilling 后达成的共识，拆成 step-by-step plan，就优先使用这个 skill；如果设计还没定，不要硬写计划，退回 grill-with-docs 做方案压力测试，或补清缺失需求。"
 argument-hint: 提供已批准的设计文档、需求摘要、目标功能或期望路径；可留空
 ---
 
@@ -28,7 +28,7 @@ argument-hint: 提供已批准的设计文档、需求摘要、目标功能或�
 - 代码审查、交接总结、状态同步
 - 简单事实问答或代码解释
 
-如果还没有批准过的设计或达成共识，走 PHASE 0 的"方案未定"三选 fork（brainstorming / grill-with-docs / 补需求）。
+如果还没有批准过的设计或达成共识，走 PHASE 0 的"方案未定"回退路径：用 `grill-with-docs` 压测已有想法，或补清缺失需求。
 
 ## 红灯与反例
 
@@ -36,7 +36,7 @@ argument-hint: 提供已批准的设计文档、需求摘要、目标功能或�
 
 | 信号 | 一线动作 | 详见 |
 |---|---|---|
-| 设计未批准 / 方案未定就硬写计划（`unapproved-design-stop`） | 🛑 STOP，走三选 fork（`brainstorming` / `grill-with-docs` / 补需求） | PHASE 0（方案未定分支） |
+| 设计未批准 / 方案未定就硬写计划（`unapproved-design-stop`） | 🛑 STOP，先用 `grill-with-docs` 压测已有想法，或补清需求 | PHASE 0（方案未定分支） |
 | 编造文件、命令或测试框架（`missing-design-path-stop`） | 🛑 STOP，说明缺口，不猜路径、不猜命令 | PHASE 0（路径分支）、PHASE 1 |
 | 一个请求横跨多个独立子系统（`multi-subsystem-split`） | 🛑 STOP，先拆成多份计划，每份独立可验证 | PHASE 0（多子系统分支） |
 | 跳过文件结构直接列任务（`skip-file-structure-first`） | 回 PHASE 2 先规划文件结构与职责 | PHASE 2 |
@@ -68,7 +68,7 @@ argument-hint: 提供已批准的设计文档、需求摘要、目标功能或�
 如果输入仍然存在明显的方案未定、关键约束缺失或逻辑矛盾：
 - 🛑 STOP：明确说明当前输入还不适合直接写计划
 - 明确指出缺的是哪一类信息：批准过的设计、达成共识、关键路径、受影响文件范围，还是验证方式
-- 选一条设计轨道补设计——`brainstorming`（还在比较方案 / 需要多选澄清 / 目标边界没钉住时）、`grill-with-docs`（已有想法或草稿 / 对抗式压力测试 / 顺带沉淀 ADR glossary 时）、或直接补一份更清晰的需求（只是缺几条约束 / 不必走完整设计流程时）
+- 选一条设计轨道补设计——`grill-with-docs`（已有想法或草稿 / 对抗式压力测试 / 顺带沉淀 ADR glossary 时），或直接补清需求（只是缺几条约束 / 不必走完整设计流程时）
 
 如果用户给出的设计文档路径表达不确定、文件不存在或不可读：
 - 🛑 STOP：说明缺口，不猜路径、不猜命令，不生成完整计划（路径可读但范围/验证方式仍不明的情况，见下方"不知道关键路径"分支）
