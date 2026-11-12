@@ -1,6 +1,7 @@
 ---
 name: wechat-draft
 description: "把【现成】Markdown 文章排版成微信兼容 HTML、选主题预览、确认后推送到公众号草稿箱。触发词：公众号排版、Markdown 转微信、选主题、推草稿；英文：format Markdown for WeChat、preview themes、publish to draft。明确不做：写/创作公众号文章（本 skill 只排版现成稿，创作内容请先用其他写作工具完成）；转幻灯片、做封面/小红书图、润色/rewrite、配图上传、草稿箱管理 也不在范围。"
+disable-model-invocation: true
 ---
 
 # wechat-draft

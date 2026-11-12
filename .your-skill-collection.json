@@ -1,38 +1,40 @@
 {
-  "skills": {
-    "architecture-diagram":      { "repo": "Cocoon-AI/architecture-diagram-generator", "subdir": "architecture-diagram" },
-    "answer-me-with-html":       { "repo": "QingYunA/answer-me-with-html",             "subdir": "skills/answer-me-with-html" },
-    "docx":                      { "repo": "anthropics/skills",                        "subdir": "skills/docx" },
-    "pdf":                       { "repo": "anthropics/skills",                        "subdir": "skills/pdf" },
-    "xlsx":                      { "repo": "anthropics/skills",                        "subdir": "skills/xlsx" },
-    "remotion-best-practices":   { "repo": "remotion-dev/skills",                      "subdir": "skills/remotion-best-practices" },
-    "guizang-ppt-skill":         { "repo": "op7418/guizang-ppt-skill" },
-    "guizang-social-card-skill": { "repo": "op7418/guizang-social-card-skill" },
-    "note-slides":               { "repo": "gainubi/note-slides" },
-    "impeccable":                { "repo": "pbakaus/impeccable",                       "subdir": ".dsh/skills/impeccable" },
-    "grilling":                          { "repo": "mattpocock/skills",                "subdir": "skills/productivity/grilling" },
-    "teach":                             { "repo": "mattpocock/skills",                "subdir": "skills/productivity/teach" },
-    "writing-for-agents":                { "repo": "mattpocock/skills",                "subdir": "skills/productivity/writing-for-agents" },
-    "grill-with-docs":                   { "repo": "mattpocock/skills",                "subdir": "skills/engineering/grill-with-docs" },
-    "domain-modeling":                   { "repo": "mattpocock/skills",                "subdir": "skills/engineering/domain-modeling" },
-    "codebase-design":                   { "repo": "mattpocock/skills",                "subdir": "skills/engineering/codebase-design" },
-    "retro":                             { "repo": "mattpocock/skills",                "subdir": "skills/engineering/retro" },
-    "improve-codebase-architecture":     { "repo": "mattpocock/skills",                "subdir": "skills/engineering/improve-codebase-architecture" },
-    "darwin-skill":                      { "repo": "alchaincyf/darwin-skill" },
-    "Geek-skills-keqian-method":         { "repo": "staruhub/ClaudeSkills",            "subdir": "skills/Geek-skills-keqian-method" },
-    "Geek-skills-xuefeng-method":        { "repo": "staruhub/ClaudeSkills",            "subdir": "skills/Geek-skills-xuefeng-method" },
-    "Geek-skills-wechat-article-writer": { "repo": "staruhub/ClaudeSkills",            "subdir": "skills/Geek-skills-wechat-article-writer" }
+  "levels": {
+    "1": "Level I Skill —— 允许 Agent 自动调用（SKILL.md 无 disable-model-invocation 或值为 false）",
+    "2": "Level II Skill —— 不允许 Agent 自动调用（SKILL.md 含 disable-model-invocation: true）"
   },
-  "local": [
-    "brainstorming",
-    "writing-plans",
-    "cleanup",
-    "handoff",
-    "code-review",
-    "wechat-draft",
-    "npm-name-claim",
-    "eli5"
-  ],
+  "skills": {
+    "architecture-diagram":              { "level": 1, "repo": "Cocoon-AI/architecture-diagram-generator", "subdir": "architecture-diagram" },
+    "answer-me-with-html":               { "level": 1, "repo": "QingYunA/answer-me-with-html", "subdir": "skills/answer-me-with-html" },
+    "docx":                              { "level": 1, "repo": "anthropics/skills", "subdir": "skills/docx" },
+    "pdf":                               { "level": 1, "repo": "anthropics/skills", "subdir": "skills/pdf" },
+    "xlsx":                              { "level": 1, "repo": "anthropics/skills", "subdir": "skills/xlsx" },
+    "guizang-ppt-skill":                 { "level": 1, "repo": "op7418/guizang-ppt-skill" },
+    "guizang-social-card-skill":         { "level": 1, "repo": "op7418/guizang-social-card-skill" },
+    "note-slides":                       { "level": 1, "repo": "gainubi/note-slides" },
+    "impeccable":                        { "level": 1, "repo": "pbakaus/impeccable", "subdir": ".dsh/skills/impeccable" },
+    "grilling":                          { "level": 1, "repo": "mattpocock/skills", "subdir": "skills/productivity/grilling" },
+    "teach":                             { "level": 2, "repo": "mattpocock/skills", "subdir": "skills/productivity/teach" },
+    "writing-for-agents":                { "level": 1, "repo": "mattpocock/skills", "subdir": "skills/productivity/writing-for-agents" },
+    "grill-with-docs":                   { "level": 2, "repo": "mattpocock/skills", "subdir": "skills/engineering/grill-with-docs" },
+    "domain-modeling":                   { "level": 1, "repo": "mattpocock/skills", "subdir": "skills/engineering/domain-modeling" },
+    "codebase-design":                   { "level": 1, "repo": "mattpocock/skills", "subdir": "skills/engineering/codebase-design" },
+    "retro":                             { "level": 2, "repo": "mattpocock/skills", "subdir": "skills/engineering/retro" },
+    "improve-codebase-architecture":     { "level": 2, "repo": "mattpocock/skills", "subdir": "skills/engineering/improve-codebase-architecture" },
+    "darwin-skill":                      { "level": 1, "repo": "alchaincyf/darwin-skill" },
+    "Geek-skills-keqian-method":         { "level": 1, "repo": "staruhub/ClaudeSkills", "subdir": "skills/Geek-skills-keqian-method" },
+    "Geek-skills-xuefeng-method":        { "level": 1, "repo": "staruhub/ClaudeSkills", "subdir": "skills/Geek-skills-xuefeng-method" }
+  },
+  "local": {
+    "brainstorming":  { "level": 2 },
+    "writing-plans":  { "level": 1 },
+    "cleanup":        { "level": 2 },
+    "handoff":        { "level": 2 },
+    "code-review":    { "level": 1 },
+    "wechat-draft":   { "level": 2 },
+    "npm-name-claim": { "level": 1 },
+    "eli5":           { "level": 2 }
+  },
   "skip": [
     "Geek-skills-wechat-article-writer"
   ]
