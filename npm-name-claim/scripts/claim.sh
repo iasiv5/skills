@@ -75,6 +75,18 @@ check)
               curl -s "$REGISTRY/-/v1/search?text=$enc2&size=25"; } \
       | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{const names=new Set();for(const line of s.split("\n")){if(!line.trim())continue;try{const d=JSON.parse(line);for(const o of d.objects||[])names.add(o.package.name)}catch(e){}}console.log(JSON.stringify([...names]))})')
     risk_scan "$name" "$cands"
+    # 2026-11-12 实录补充：前缀直查——近似名=本名+后缀（dsh-loopx = dsh-loop+x）。
+    # 这类近亲进不了本名的搜索结果（实测 text=dsh-loop 都搜不到 dsh-loop），压缩
+    # 距离 1 也会漏报 RISK；对本名长度 ≥4 的真前缀（窗口最多 6 个，/latest 轻量
+    # 端点避免 packument 肥 fetch）逐个直查，已注册者参与距离比对。
+    nlen=${#name}
+    hits=""
+    for (( i=nlen-1; i>=4 && i>=nlen-6; i-- )); do
+      pfx="${name:0:i}"
+      pcode=$(curl -s -o /dev/null -w '%{http_code}' "$REGISTRY/$(printf '%s' "$pfx" | sed 's/@/%40/g; s/\//%2F/g')/latest")
+      [ "$pcode" = "200" ] && hits="$hits\"$pfx\"," || true
+    done
+    [ -n "$hits" ] && risk_scan "$name" "[${hits%,}]" || true
     if [ "$batch" -eq 0 ]; then
       echo "--- 近似名（评估混淆/typosquat 争议风险）---"
       curl -s "$REGISTRY/-/v1/search?text=$enc&size=5" \
@@ -188,7 +200,10 @@ publish)
   elif [ -n "$url" ]; then
     echo "FAILED(EOTP): 授权链接未被完成或已过期，重新运行本命令重试: $url" ; exit 1
   else
-    echo "FAILED: 发布失败，输出末尾如下：" ; tr -d '\r' < "$ts" | tail -15 ; exit 1
+    echo "FAILED: 发布失败，输出末尾如下："
+    if [ -s "$ts" ]; then tr -d '\r' < "$ts" | tail -15
+    else echo "（无输出文件 $ts——script/npm 未产生任何输出，真实报错在上层 stderr；常见为运行环境禁伪终端，见 SKILL.md 症状表）"; fi
+    exit 1
   fi
   ;;
 

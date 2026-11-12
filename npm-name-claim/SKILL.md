@@ -40,6 +40,7 @@ scripts/claim.sh trust <pkgdir> --repo OWNER/REPO --file <wf.yml>   # 可选：�
 `claim.sh scaffold` 生成三件套（package.json / index.js / README.md）并自动做打包自检。
 
 - `--desc` 与 keywords 按用户项目主题写正常文案——占位包也是公开门面。
+- 字段默认约定（对齐 npm-packages/ 现有占位包）：`--author iasiv5`、`--homepage https://www.npmjs.com/package/<name>`、repo 留空；`publishConfig.registry` 由 scaffold 写死官方源。
 - package.json 里已写死 `publishConfig.registry: https://registry.npmjs.org/`。这是防翻车关键：很多机器默认源是镜像（腾讯/淘宝等），镜像只能装、发不了，发布必须显式指回官方源。
 - 完成标准：scaffold 输出「打包自检通过」。
 
@@ -75,6 +76,7 @@ cd <pkgdir> && npm whoami --registry https://registry.npmjs.org --cache ../.npm-
 | `npm trust` 任意子命令（**连 `list` 读操作**）报 `EOTP`，错误通道里授权链接是打码的 `***` | trust 属账号级敏感操作，auth-and-writes 账号一律二次验证，且 npm 把它走错误通道输出 | 与 publish 同一套伪 TTY + `--browser=false`（`claim.sh trust` 已内置）；`--browser` 这个 flag 传不进去就改用环境变量 `npm_config_browser=false` |
 | `npm trust ... --cache/--logs-dir <dir>` 报 `Unknown positional argument: <dir>` | `npm trust` 的子命令用严格 flag 解析器，不认这些全局 flag 的空格分隔形式，值被当成了多余位置参数 | 相关配置全部改走 `npm_config_*` 环境变量（`npm_config_cache` / `npm_config_logs_dir` / `npm_config_browser`） |
 | PUT `403 Package name too similar to existing packages ...` | npm typosquat 防护在发布时做相似度拦截（check 阶段看不到） | 该名对所有账号永久关闭，重试无意义；记入本地死刑名单（见第 1 步 DEAD）；向用户说明并给替代：`@scope/name`（属自己账号，无抢注意义）或换名。实战例：dsh-ip≈dship、dsh-op≈dshop（连读成词）；dsh-k≈sshpk、dsh-x≈shx、dsh-y≈tshy（压缩串近似同样中招） |
+| `script: failed to create pseudo-terminal: Permission denied` | 运行环境沙箱禁止创建伪终端，`script` 起不来、npm 根本没执行；后续可能跟着「$ts 输出文件不存在」的 bash 重定向报错 | 对该命令请求提权（如 danger-full-access）后重跑 publish。**不要绕 claim.sh 直发**：非 TTY 下 `npm publish --auth-type=web` 的 EOTP 授权链接是打码的 `***`，没法交给用户（2026-11-12 实录：pty 被禁 → 静默 exit 1，误诊两轮才到根因） |
 
 **EOTP 核心技巧：伪造 TTY + 关闭浏览器。** 具体命令在 `claim.sh` 的 publish 子命令里（`script -qec` 包一层伪终端，npm 加 `--browser=false`），这里写清楚它为什么有效——排障时据此推理：
 
@@ -101,7 +103,7 @@ cd <pkgdir> && npm whoami --registry https://registry.npmjs.org --cache ../.npm-
 for n in a b c; do
   echo "=== PUBLISH dsh-$n start $(date +%T) ==="
   bash scripts/claim.sh publish "/path/npm-packages/dsh-$n" 2>&1 \
-    | grep --line-buffered -E "PUBLISHED|AUTH_URL|https://www\.npmjs\.com/auth|npm error"
+    | grep --line-buffered -E "PUBLISHED|AUTH_URL|https://www\.npmjs\.com/auth|npm error|ERROR:|FAILED:|script:|Permission denied"
   echo "=== dsh-$n exit=${PIPESTATUS[0]} $(date +%T) ==="
 done
 ```
@@ -111,6 +113,7 @@ done
 - publish 输出**不要吞进变量**再判断——AUTH_URL 出现时 npm 正阻塞等用户授权，吞掉输出 = 死等且链接不可见；
 - grep 必须加 `--line-buffered`：非 TTY 下 grep 块缓冲，已匹配的链接行会憋到进程退出才吐；
 - 匹配模式必须包含裸 URL（`https://www\.npmjs\.com/auth`）——授权链接独立成行，只匹配 `AUTH_URL`/`Authenticate` 关键词会漏掉它。
+- 匹配模式必须包含 `ERROR:`/`FAILED:`/`script:`/`Permission denied`——claim.sh 与 `script` 的失败行不带 `npm error` 前缀，只匹配 npm 关键词会把失败吞成静默 exit 1（2026-11-12 实录）；**exit=1 且无匹配行 = 过滤吞了错误，先去掉过滤裸跑看全文再定位**。
 
 完成标准：输出 `PUBLISHED:`。
 
@@ -118,7 +121,7 @@ done
 
 `claim.sh verify <name>`：registry 返回 200 + 最新版本 + 发布者账号。把 `https://www.npmjs.com/package/<name>` 链接给用户，并告知：名字已锁定，以后发正式版就是改版本号后 `npm publish`。
 
-**`0.0.0-stage` 与分钟级延迟是正常现象，不要重发**：全新包名首发成功后，registry 会先挂一条 `0.0.0-stage`（"Temporary package placeholder for staged publishing"）占位记录，真实版本约 1–2 分钟后才转正为 latest；期间 verify 可能显示 `LIVE: name@0.0.0-stage`，甚至在前几十秒短暂 404。publish 已受理，此时重发只会徒增失败。需要确认转正就用 `claim.sh verify <name> --wait 180` 轮询，输出 `STAGED:` 表示仍在转正中。
+**`0.0.0-stage` 与分钟级延迟是正常现象，不要重发**：全新包名首发成功后，registry 会先挂一条 `0.0.0-stage`（"Temporary package placeholder for staged publishing"）占位记录，真实版本几分钟内转正为 latest——**实测为几分钟到 10 分钟量级**（2026-11-11 两批：一批 ≤4 分钟、另一批 10 分钟后仍未转正），文档早前的「1–2 分钟」偏乐观；期间 verify 可能显示 `LIVE: name@0.0.0-stage` 或 `STAGED:`，甚至在前几十秒短暂 404。publish 已受理，此时重发只会徒增失败；`--wait 180` 可能不够，转正确认可以事后补——包名此时已锁定，他人无法再注册。
 
 完成标准：verify 输出 `LIVE:`（版本号为真实版本而非 `0.0.0-stage`）。
 
