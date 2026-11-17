@@ -3,3 +3,4 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-11-17T12:09	50d73dc	code-review	-	2胜1平1负	revert	dim3改	R1 Step0止损+仲裁：bmc3-0/web重裁3-0胜，validation0-3负（新答漏compile_commands边界注记check④，24→23倒退）；9票全slight；行为证据：新版有界搜索+止损生效，旧版find /绕路仍在；网评泄露s0/s1相对名已改用r1b/r1-web脱敏重评	e2-dev
 2026-11-17T14:29	1e4bc07	code-review	-	3胜1负	keep	dim7改	R2 模板补假设槽：bmc/validation/missing→新版，web负（旧版偶有更深发现）；checks 24:24零倒退；体积+1%；6票全slight——连续2轮多数略好→停手进Phase4	e2-dev
 2026-11-17T14:49	3dede08	code-review	-	0胜2负	reject	-	留出集（uefi+ts，原始版vs终版）：多数负，5票全slight，checks 11:11持平；旧版优势为单轮内容深度差异（乱序独立成项/地址校验措辞），与唯一改动（假设槽位）无因果；按协议建议回滚，待人审终裁	e2-holdout
+2026-11-17T15:15	3b5c309	code-review	-	87.3	rollback	-	终审人裁：按协议回滚到原始版；净改动（假设槽位+3行）不保留；R1/R2证据与E1改进清单留档（.dsh-research/darwin-code-review-20261117）	e2-holdout
