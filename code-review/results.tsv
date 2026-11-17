@@ -1,0 +1,2 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-11-17T11:17	bf1bfb6	code-review	-	87.3	baseline	-	对裸跑2胜2平0负（多数胜）；检查项24/24，裸跑19/24；E1结构分64.3最弱D3=6.5/D7=8；实测证据C1 Step0失败分叉4/4、C2模板缺假设槽4/4、C3资源分页截断3/4、全机find绕路1条	
