@@ -1,2 +1,3 @@
 timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-11-17T11:17	bf1bfb6	code-review	-	87.3	baseline	-	对裸跑2胜2平0负（多数胜）；检查项24/24，裸跑19/24；E1结构分64.3最弱D3=6.5/D7=8；实测证据C1 Step0失败分叉4/4、C2模板缺假设槽4/4、C3资源分页截断3/4、全机find绕路1条	
+2026-11-17T12:09	50d73dc	code-review	-	2胜1平1负	revert	dim3改	R1 Step0止损+仲裁：bmc3-0/web重裁3-0胜，validation0-3负（新答漏compile_commands边界注记check④，24→23倒退）；9票全slight；行为证据：新版有界搜索+止损生效，旧版find /绕路仍在；网评泄露s0/s1相对名已改用r1b/r1-web脱敏重评	e2-dev
