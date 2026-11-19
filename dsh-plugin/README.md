@@ -1,4 +1,5 @@
 # @iasiv5/dsh-skills
+![DSH](https://img.shields.io/badge/DSH-0.2.2--rc.5%20verified-2563eb)
 
 DeepSeek Harness 插件：把 [iasiv5/skills](https://github.com/iasiv5/skills) 仓库的 skill 合集以 **bundled skill** 方式注册进 DSH 宿主 skill 注册表——安装插件即用，**不再需要**把 skill 拷贝进 `.agents/skills/` 或 `.dsh/skills/`。
 
